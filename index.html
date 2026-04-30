@@ -382,20 +382,39 @@ tr:hover td { background:#111; }
 // ─── SUPABASE CONFIG ───
 const SB_URL = 'https://xgjqidgeifjrrjrpeprg.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhnanFpZGdlaWZqcnJqcnBlcHJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0OTk0MTQsImV4cCI6MjA5MzA3NTQxNH0.QaLdrPcPVyjPN4wEfnTcqn3eEksT_jwVLYjciiGLGgY';
-const HDR = { 'apikey':SB_KEY, 'Authorization':'Bearer '+SB_KEY, 'Content-Type':'application/json', 'Prefer':'return=representation' };
+const HDR = {
+  'apikey': SB_KEY,
+  'Authorization': 'Bearer ' + SB_KEY,
+  'Content-Type': 'application/json',
+  'Prefer': 'return=representation',
+  'Access-Control-Allow-Origin': '*'
+};
 
 async function dbGet(q='') {
-  const r = await fetch(`${SB_URL}/rest/v1/ventas?${q}`, { headers:HDR });
+  const r = await fetch(`${SB_URL}/rest/v1/ventas?${q}`, {
+    method: 'GET',
+    headers: HDR,
+    mode: 'cors'
+  });
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
 async function dbPost(body) {
-  const r = await fetch(`${SB_URL}/rest/v1/ventas`, { method:'POST', headers:HDR, body:JSON.stringify(body) });
+  const r = await fetch(`${SB_URL}/rest/v1/ventas`, {
+    method: 'POST',
+    headers: HDR,
+    mode: 'cors',
+    body: JSON.stringify(body)
+  });
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
 async function dbDelete(id) {
-  const r = await fetch(`${SB_URL}/rest/v1/ventas?id=eq.${id}`, { method:'DELETE', headers:HDR });
+  const r = await fetch(`${SB_URL}/rest/v1/ventas?id=eq.${id}`, {
+    method: 'DELETE',
+    headers: HDR,
+    mode: 'cors'
+  });
   if (!r.ok) throw new Error(await r.text());
 }
 
@@ -822,30 +841,101 @@ function showDetail(d) {
   const wrap = document.getElementById('staff-detail-wrap');
   const hit = d.total >= META;
   const bono = hit ? Math.round(d.total * 0.03) : 0;
-  const rows = d.sales.length
-    ? d.sales.map(s => `<tr><td>${fmtDate(s.fecha)}</td><td>${s.estudio}</td><td style="color:var(--white)">${s.paquete}</td><td>${s.categoria}</td><td style="font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--white)">$${Number(s.monto).toLocaleString('es-MX')}</td></tr>`).join('')
-    : '<tr><td colspan="5" style="text-align:center;color:var(--gray);padding:24px">Sin ventas</td></tr>';
-  wrap.innerHTML = `<div class="detail-panel">
-    <div class="detail-header">
-      <div>
-        <div class="detail-header-name">${d.user.name}</div>
-        <div style="font-size:12px;color:var(--gray);margin-top:4px">
-          Venta: <strong style="color:${hit ? 'var(--green)' : 'var(--red)'}">$${d.total.toLocaleString('es-MX')}</strong> &nbsp;·&nbsp;
-          Bono: <strong style="color:${hit ? 'var(--green)' : 'var(--gray3)'}">$${bono.toLocaleString('es-MX')}</strong> &nbsp;·&nbsp;
-          ${d.sales.length} ventas
+
+  function renderDetailRows(sales) {
+    return sales.length
+      ? sales.map(s => `<tr>
+          <td>${fmtDate(s.fecha)}</td>
+          <td>${s.estudio}</td>
+          <td style="color:var(--white)">${s.paquete}</td>
+          <td>${s.categoria}</td>
+          <td style="font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--white)">$${Number(s.monto).toLocaleString('es-MX')}</td>
+          <td><button class="td-del admin-del-btn" data-id="${s.id}" data-pkg="${s.paquete}" data-monto="${s.monto}" data-est="${s.estudio}" style="background:none;border:1px solid transparent;color:var(--gray);cursor:pointer;font-size:12px;padding:3px 8px;transition:all 0.2s;">✕</button></td>
+        </tr>`).join('')
+      : '<tr><td colspan="6" style="text-align:center;color:var(--gray);padding:24px">Sin ventas</td></tr>';
+  }
+
+  function buildDetail(sales) {
+    const total = sales.reduce((s,v) => s + Number(v.monto), 0);
+    const isHit = total >= META;
+    const b = isHit ? Math.round(total * 0.03) : 0;
+    return `<div class="detail-panel">
+      <div class="detail-header">
+        <div>
+          <div class="detail-header-name">${d.user.name}</div>
+          <div style="font-size:12px;color:var(--gray);margin-top:4px">
+            Venta: <strong style="color:${isHit ? 'var(--green)' : 'var(--red)'}">$${total.toLocaleString('es-MX')}</strong> &nbsp;·&nbsp;
+            Bono: <strong style="color:${isHit ? 'var(--green)' : 'var(--gray3)'}">$${b.toLocaleString('es-MX')}</strong> &nbsp;·&nbsp;
+            ${sales.length} ventas
+            <span style="margin-left:12px;font-size:10px;color:var(--gray);border:1px solid var(--border);padding:2px 8px;">Admin · Puedes eliminar ventas</span>
+          </div>
         </div>
+        <button class="detail-close" id="btn-close-detail">Cerrar ✕</button>
       </div>
-      <button class="detail-close" id="btn-close-detail">Cerrar ✕</button>
-    </div>
-    <div style="padding:20px;">
-      <table class="detail-sales-table">
-        <thead><tr><th>Fecha</th><th>Estudio</th><th>Producto</th><th>Categoría</th><th>Monto</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>
-  </div>`;
-  wrap.scrollIntoView({behavior:'smooth',block:'nearest'});
+      <div style="padding:20px;">
+        <table class="detail-sales-table">
+          <thead><tr><th>Fecha</th><th>Estudio</th><th>Producto</th><th>Categoría</th><th>Monto</th><th></th></tr></thead>
+          <tbody id="detail-tbody">${renderDetailRows(sales)}</tbody>
+        </table>
+      </div>
+    </div>`;
+  }
+
+  // Keep a mutable copy of sales for this detail panel
+  let detailSales = [...d.sales];
+  wrap.innerHTML = buildDetail(detailSales);
+  wrap.scrollIntoView({behavior:'smooth', block:'nearest'});
+
   document.getElementById('btn-close-detail').addEventListener('click', () => wrap.innerHTML = '');
+
+  // Admin delete buttons inside detail panel
+  wrap.addEventListener('click', async function(e) {
+    const btn = e.target.closest('button.admin-del-btn');
+    if (!btn) return;
+    const id = parseInt(btn.dataset.id);
+    const pkg = btn.dataset.pkg;
+    const monto = Number(btn.dataset.monto);
+    const est = btn.dataset.est;
+
+    // Show modal
+    _pendingDeleteId = id;
+    document.getElementById('modal-body').textContent = pkg + ' · $' + monto.toLocaleString('es-MX') + ' · ' + est + ' · ' + d.user.name;
+    document.getElementById('modal-overlay').style.display = 'flex';
+
+    // Override confirm to also refresh detail panel
+    const confirmBtn = document.getElementById('modal-confirm');
+    const newConfirm = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirm, confirmBtn);
+    newConfirm.addEventListener('click', async () => {
+      document.getElementById('modal-overlay').style.display = 'none';
+      try {
+        await dbDelete(id);
+        detailSales = detailSales.filter(s => s.id !== id);
+        document.getElementById('detail-tbody').innerHTML = renderDetailRows(detailSales);
+        // Update header totals
+        const newTotal = detailSales.reduce((s,v) => s + Number(v.monto), 0);
+        const isHit = newTotal >= META;
+        const b = isHit ? Math.round(newTotal * 0.03) : 0;
+        wrap.querySelector('.detail-header div div:last-child').innerHTML = `
+          Venta: <strong style="color:${isHit ? 'var(--green)' : 'var(--red)'}">$${newTotal.toLocaleString('es-MX')}</strong> &nbsp;·&nbsp;
+          Bono: <strong style="color:${isHit ? 'var(--green)' : 'var(--gray3)'}">$${b.toLocaleString('es-MX')}</strong> &nbsp;·&nbsp;
+          ${detailSales.length} ventas
+          <span style="margin-left:12px;font-size:10px;color:var(--gray);border:1px solid var(--border);padding:2px 8px;">Admin · Puedes eliminar ventas</span>`;
+        // Refresh main admin table
+        const allSales = await dbGet('order=created_at.desc');
+        renderAdminView(allSales);
+      } catch(e) { console.error('Admin delete error:', e); }
+    });
+
+    // Rewire cancel too
+    const cancelBtn = document.getElementById('modal-cancel');
+    const newCancel = cancelBtn.cloneNode(true);
+    cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+    newCancel.addEventListener('click', () => {
+      _pendingDeleteId = null;
+      document.getElementById('modal-overlay').style.display = 'none';
+    });
+  });
 }
 
 // ─── EXPORT CSV ───
