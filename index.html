@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZUDA · Staff Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+:root {
+  --black:#0D0D0D; --white:#FFFFFF; --gray:#8A8A8A;
+  --gray2:#1E1E1E; --gray3:#2A2A2A; --border:#222;
+  --green:#27AE60; --red:#C0392B; --accent:#E8D5A3;
+}
+html { scroll-behavior:smooth; }
+body { background:var(--black); color:var(--white); font-family:'DM Sans',sans-serif; font-weight:300; font-size:14px; line-height:1.6; -webkit-font-smoothing:antialiased; min-height:100vh; }
+#login-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:40px 20px; }
+.login-logo { font-family:'Bebas Neue',sans-serif; font-size:64px; letter-spacing:0.12em; margin-bottom:8px; }
+.login-tag { font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:var(--gray); margin-bottom:48px; }
+.login-box { width:100%; max-width:380px; border:1px solid var(--border); background:#0A0A0A; }
+.login-hd { padding:24px 28px; border-bottom:1px solid var(--border); }
+.login-hd h2 { font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:0.1em; }
+.login-hd p { font-size:12px; color:var(--gray); margin-top:4px; }
+.login-body { padding:28px; }
+.input-group { margin-bottom:20px; }
+.input-group label { display:block; font-size:10px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--gray); margin-bottom:8px; }
+.input-group input { width:100%; padding:12px 14px; background:var(--gray2); border:1px solid var(--border); color:var(--white); font-family:'DM Sans',sans-serif; font-size:14px; outline:none; transition:border-color 0.2s; }
+.btn-primary { width:100%; padding:13px; background:var(--white); color:var(--black); font-family:'Bebas Neue',sans-serif; font-size:16px; letter-spacing:0.12em; border:none; cursor:pointer; transition:opacity 0.2s; }
+.btn-primary:hover { opacity:0.88; }
+.login-error { font-size:12px; color:var(--red); margin-top:12px; text-align:center; min-height:18px; }
+#app-screen { display:none; }
+nav { position:sticky; top:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:0 40px; height:60px; border-bottom:1px solid var(--border); background:rgba(13,13,13,0.97); backdrop-filter:blur(12px); }
+.nav-logo { font-family:'Bebas Neue',sans-serif; font-size:26px; letter-spacing:0.12em; }
+.nav-user { display:flex; align-items:center; gap:16px; }
+.nav-avatar { width:32px; height:32px; border-radius:50%; background:var(--gray3); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:14px; color:var(--accent); }
+.nav-name { font-size:13px; color:var(--gray); }
+.nav-logout { font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray); cursor:pointer; padding:6px 12px; border:1px solid var(--border); background:none; transition:all 0.2s; }
+.nav-logout:hover { color:var(--white); border-color:var(--gray); }
+.admin-nav-tag { font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--red); border:1px solid var(--red); padding:3px 10px; margin-left:10px; }
+.main { max-width:1060px; margin:0 auto; padding:0 40px; }
+.hero-band { padding:48px 0 36px; border-bottom:1px solid var(--border); }
+.eyebrow { font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:var(--gray); margin-bottom:16px; }
+.hero-title { font-family:'Bebas Neue',sans-serif; font-size:clamp(40px,7vw,72px); letter-spacing:0.04em; line-height:0.94; margin-bottom:24px; }
+.hero-title span { color:var(--gray); }
+.kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border:1px solid var(--border); }
+.kpi { background:var(--black); padding:20px 22px; }
+.kpi-val { font-family:'Bebas Neue',sans-serif; font-size:32px; letter-spacing:0.04em; transition:color 0.4s; }
+.kpi-lbl { font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray); margin-top:2px; }
+.section { padding:40px 0; border-bottom:1px solid var(--border); }
+.sec-hd { display:flex; align-items:baseline; gap:16px; margin-bottom:28px; }
+.sec-num { font-family:'Bebas Neue',sans-serif; font-size:12px; letter-spacing:0.15em; color:var(--gray); }
+.sec-title { font-family:'Bebas Neue',sans-serif; font-size:26px; letter-spacing:0.08em; }
+.progress-wrap { border:1px solid var(--border); }
+.progress-header { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border); }
+.prog-cell { background:var(--black); padding:28px 32px; }
+.prog-lbl { font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--gray); margin-bottom:8px; }
+.prog-val { font-family:'Bebas Neue',sans-serif; font-size:48px; letter-spacing:0.03em; line-height:1; transition:color 0.4s; }
+.prog-sub { font-size:12px; color:var(--gray); margin-top:6px; }
+.bar-container { padding:24px 32px; border-top:1px solid var(--border); background:var(--black); }
+.bar-track { height:6px; background:var(--gray3); border-radius:3px; overflow:hidden; margin-bottom:10px; }
+.bar-fill { height:100%; border-radius:3px; background:var(--white); transition:width 0.6s ease; }
+.bar-labels { display:flex; justify-content:space-between; font-size:11px; color:var(--gray); }
+.bar-pct { font-family:'Bebas Neue',sans-serif; font-size:13px; }
+.bonus-grid { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border); border:1px solid var(--border); }
+.bonus-box { background:var(--black); padding:28px 32px; }
+.bonus-lbl { font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--gray); margin-bottom:10px; }
+.bonus-amt { font-family:'Bebas Neue',sans-serif; font-size:52px; letter-spacing:0.03em; line-height:1; color:var(--gray3); transition:color 0.4s; }
+.bonus-amt.active { color:var(--white); }
+.bonus-note { font-size:12px; color:var(--gray); margin-top:8px; line-height:1.5; }
+.est-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border); border:1px solid var(--border); }
+.est-card { background:var(--black); padding:28px 28px 24px; }
+.est-name { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:0.07em; margin-bottom:4px; }
+.est-badge { display:inline-block; font-size:9px; letter-spacing:0.12em; text-transform:uppercase; padding:2px 8px; border:1px solid var(--border); color:var(--gray); margin-bottom:18px; }
+.est-badge.mine { border-color:var(--accent); color:var(--accent); }
+.est-row { display:flex; justify-content:space-between; align-items:baseline; font-size:12px; color:var(--gray); padding:6px 0; border-top:1px solid var(--border); }
+.est-row span:last-child { font-family:'Bebas Neue',sans-serif; font-size:18px; color:var(--white); }
+.est-bar-track { height:4px; background:var(--gray3); border-radius:2px; margin:12px 0 6px; }
+.est-bar-fill { height:100%; border-radius:2px; transition:width 0.6s ease; }
+.est-pct { font-family:'Bebas Neue',sans-serif; font-size:11px; }
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border); border:1px solid var(--border); }
+.form-panel { background:var(--black); padding:32px; }
+.form-title { font-family:'Bebas Neue',sans-serif; font-size:18px; letter-spacing:0.08em; color:var(--gray); margin-bottom:24px; }
+.field { margin-bottom:20px; }
+.field label { display:block; font-size:10px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--gray); margin-bottom:8px; }
+.field select, .field input[type=date] { width:100%; padding:11px 14px; background:var(--gray2); border:1px solid var(--border); color:var(--white); font-family:'DM Sans',sans-serif; font-size:14px; outline:none; appearance:none; -webkit-appearance:none; }
+.field select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238A8A8A' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:36px; }
+.field select option { background:var(--black); }
+.sale-preview { background:var(--gray3); border:1px solid var(--border); padding:16px; margin-top:20px; }
+.sale-preview .sp-row { display:flex; justify-content:space-between; font-size:13px; padding:4px 0; color:var(--gray); }
+.sale-preview .sp-row.big span:last-child { font-family:'Bebas Neue',sans-serif; font-size:24px; color:var(--white); }
+.btn-add { width:100%; padding:14px; background:none; border:1px solid var(--border); color:var(--gray); font-family:'Bebas Neue',sans-serif; font-size:15px; letter-spacing:0.12em; cursor:pointer; transition:all 0.2s; margin-top:16px; }
+.btn-add.ready { border-color:var(--white); color:var(--white); }
+.success-msg { font-size:12px; color:var(--green); margin-top:10px; text-align:center; min-height:18px; }
+.table-wrap { border:1px solid var(--border); overflow:hidden; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+thead tr { background:var(--gray2); }
+th { padding:12px 16px; text-align:left; font-size:10px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray); border-bottom:1px solid var(--border); }
+td { padding:12px 16px; border-bottom:1px solid #111; color:rgba(255,255,255,0.7); }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:#111; }
+.td-pkg { color:var(--white); }
+.td-amt { font-family:'Bebas Neue',sans-serif; font-size:16px; color:var(--white); }
+.td-del { cursor:pointer; color:var(--gray); font-size:12px; padding:4px 8px; border:1px solid transparent; background:none; transition:all 0.2s; }
+.td-del:hover { color:var(--red); border-color:var(--red); }
+.empty-state { padding:48px; text-align:center; color:var(--gray); font-size:13px; }
+.export-btn { display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border:1px solid var(--border); background:none; color:var(--gray); font-family:'DM Sans',sans-serif; font-size:12px; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; margin-bottom:16px; }
+.export-btn:hover { color:var(--white); border-color:var(--gray); }
+#admin-screen { display:none; }
+.admin-kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border:1px solid var(--border); }
+.admin-filter-bar { display:flex; align-items:center; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
+.filter-btn { padding:7px 16px; border:1px solid var(--border); background:none; color:var(--gray); font-family:'DM Sans',sans-serif; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; }
+.filter-btn:hover, .filter-btn.active { background:var(--gray3); color:var(--white); border-color:var(--gray); }
+.admin-table-wrap { border:1px solid var(--border); overflow:hidden; }
+.admin-table-wrap table { width:100%; border-collapse:collapse; font-size:13px; table-layout:fixed; }
+.admin-table-wrap th { padding:11px 14px; text-align:left; font-size:10px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray); border-bottom:1px solid var(--border); background:var(--gray2); }
+.admin-table-wrap td { padding:11px 14px; border-bottom:1px solid #111; color:rgba(255,255,255,0.7); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.admin-table-wrap tr:last-child td { border-bottom:none; }
+.admin-table-wrap tr:hover td { background:#111; }
+.row-red td { background:#1a0a0a !important; }
+.row-red td.td-name { color:#e57373 !important; }
+.row-red td.td-status { color:var(--red) !important; font-weight:500; }
+.row-green td { background:#051a0e !important; }
+.row-green td.td-name { color:#6fcf97 !important; }
+.row-green td.td-status { color:var(--green) !important; font-weight:500; }
+.td-bar-cell { padding:8px 14px !important; }
+.mini-bar-track { height:4px; background:var(--gray3); border-radius:2px; width:100%; }
+.mini-bar-fill { height:100%; border-radius:2px; transition:width 0.5s ease; }
+.detail-panel { border:1px solid var(--border); background:#080808; margin-top:1px; }
+.detail-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+.detail-header-name { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:0.08em; }
+.detail-close { font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray); cursor:pointer; padding:5px 10px; border:1px solid var(--border); background:none; }
+.detail-sales-table { width:100%; border-collapse:collapse; font-size:12px; }
+.detail-sales-table th { padding:8px 12px; text-align:left; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--gray); border-bottom:1px solid var(--border); }
+.detail-sales-table td { padding:8px 12px; border-bottom:1px solid #111; color:rgba(255,255,255,0.65); }
+@media(max-width:680px){
+  nav{padding:0 20px;} .main{padding:0 20px;}
+  .kpi-row,.progress-header,.form-grid,.bonus-grid,.est-grid,.admin-kpi-row{grid-template-columns:1fr;}
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.hero-band,.section{animation:fadeUp 0.4s ease both;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-logo">ZUDA</div>
+  <div class="login-tag">Staff Portal · Bonos 2026</div>
+  <div class="login-box">
+    <div class="login-hd"><h2>INICIAR SESIÓN</h2><p>Ingresa con tus credenciales de staff</p></div>
+    <div class="login-body">
+      <div class="input-group">
+        <label>Usuario</label>
+        <input type="text" id="input-user" placeholder="correo@ejemplo.com" autocomplete="username">
+      </div>
+      <div class="input-group">
+        <label>Contraseña</label>
+        <div style="position:relative;">
+          <input type="password" id="input-pass" placeholder="••••••••" autocomplete="current-password" style="padding-right:44px;">
+          <button id="btn-toggle-pass" style="position:absolute;right:0;top:0;height:100%;width:42px;background:none;border:none;border-left:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;">
+            <svg id="icon-eye" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8A8A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg id="icon-eye-off" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8A8A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
+      </div>
+      <button class="btn-primary" id="btn-login">ENTRAR</button>
+      <div class="login-error" id="login-error"></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen">
+  <nav>
+    <span class="nav-logo">ZUDA</span>
+    <div id="nav-countdown" style="display:none;align-items:center;gap:10px;padding:7px 16px;border:1px solid #1a3d1a;background:#0a150a;">
+      <span style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gray);">Reto</span>
+      <span id="nav-cd-text" style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:0.08em;color:var(--green);">--</span>
+    </div>
+    <div class="nav-user">
+      <div class="nav-avatar" id="nav-avatar">--</div>
+      <span class="nav-name" id="nav-name">—</span>
+      <button class="nav-logout" id="btn-logout">Salir</button>
+    </div>
+  </nav>
+
+  <div class="main">
+
+    <!-- STAFF: HERO -->
+    <div class="hero-band staff-only" id="hero-band">
+      <div class="eyebrow">Piloto Mayo–Junio 2026 · Bono individual 3%</div>
+      <div class="hero-title">HOLA,<br><span id="hero-name">—</span></div>
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-val" id="kpi-total">$0</div><div class="kpi-lbl">Venta bimestral</div></div>
+        <div class="kpi"><div class="kpi-val" id="kpi-falta" style="color:var(--gray)">$65,000</div><div class="kpi-lbl">Falta para meta</div></div>
+        <div class="kpi"><div class="kpi-val" id="kpi-bono">$0</div><div class="kpi-lbl">Bono estimado</div></div>
+        <div class="kpi"><div class="kpi-val" id="kpi-ventas">0</div><div class="kpi-lbl">Ventas registradas</div></div>
+      </div>
+    </div>
+
+    <!-- 01 PROGRESO -->
+    <div class="section staff-only">
+      <div class="sec-hd"><span class="sec-num">01</span><span class="sec-title">MI PROGRESO</span></div>
+      <div class="progress-wrap">
+        <div class="progress-header">
+          <div class="prog-cell">
+            <div class="prog-lbl">Venta acumulada bimestral</div>
+            <div class="prog-val" id="prog-venta">$0</div>
+            <div class="prog-sub" id="prog-sub">Registra tus ventas abajo para comenzar</div>
+          </div>
+          <div class="prog-cell">
+            <div class="prog-lbl">Bono individual estimado</div>
+            <div class="prog-val" id="prog-bono" style="color:var(--gray3)">$0</div>
+            <div class="prog-sub" id="prog-bono-sub">Activa a los $65,000 en ventas propias</div>
+          </div>
+        </div>
+        <div class="bar-container">
+          <div class="bar-track"><div class="bar-fill" id="bar-fill" style="width:0%"></div></div>
+          <div class="bar-labels"><span>$0</span><span id="bar-pct-lbl" class="bar-pct">0%</span><span>Meta $65,000</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 02 BONO -->
+    <div class="section staff-only">
+      <div class="sec-hd"><span class="sec-num">02</span><span class="sec-title">DESGLOSE DEL BONO</span></div>
+      <div class="bonus-grid">
+        <div class="bonus-box">
+          <div class="bonus-lbl">Bono individual · 3% sobre venta total</div>
+          <div class="bonus-amt" id="box-bono-ind">$0</div>
+          <div class="bonus-note" id="box-bono-note">Necesitas $65,000 en ventas para activarlo. Aplica sobre el total.</div>
+        </div>
+        <div class="bonus-box" style="border-left:1px solid var(--border)">
+          <div class="bonus-lbl">Pago estimado · julio 2026</div>
+          <div class="bonus-amt" id="box-bono-total" style="color:var(--gray3)">$0</div>
+          <div class="bonus-note">Se suma al bono colectivo de cada estudio donde vendiste.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 03 VENTA POR ESTUDIO -->
+    <div class="section staff-only">
+      <div class="sec-hd" style="justify-content:space-between;align-items:center;">
+        <div style="display:flex;align-items:baseline;gap:16px;"><span class="sec-num">03</span><span class="sec-title">VENTA POR ESTUDIO</span></div>
+        <button id="btn-refresh-estudios" style="padding:7px 16px;border:1px solid var(--border);background:none;color:var(--gray);font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;">↻ Actualizar</button>
+      </div>
+      <div class="est-grid" id="est-grid">
+        <div class="est-card" style="grid-column:1/-1"><div class="empty-state">Cargando...</div></div>
+      </div>
+      <div style="font-size:11px;color:var(--gray);margin-top:10px;" id="est-sync-note"></div>
+    </div>
+
+    <!-- 04 REGISTRAR VENTA -->
+    <div class="section staff-only">
+      <div class="sec-hd"><span class="sec-num">04</span><span class="sec-title">REGISTRAR VENTA</span></div>
+      <div class="form-grid">
+        <div class="form-panel">
+          <div class="form-title">DATOS DE LA VENTA</div>
+          <div class="field">
+            <label>Fecha de la venta</label>
+            <input type="date" id="f-fecha">
+          </div>
+          <div class="field">
+            <label>Estudio <span style="color:var(--red);font-size:11px;">* obligatorio</span></label>
+            <select id="f-estudio">
+              <option value="">— Selecciona estudio —</option>
+              <option value="LILAS">Lilas</option>
+              <option value="PRADO NORTE">Prado Norte</option>
+              <option value="ARTZ PEDREGAL">Artz Pedregal</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Categoría</label>
+            <select id="f-cat"><option value="">— Selecciona categoría —</option></select>
+          </div>
+          <div class="field">
+            <label>Paquete / Membresía</label>
+            <select id="f-pkg"><option value="">— Primero selecciona categoría —</option></select>
+          </div>
+        </div>
+        <div class="form-panel">
+          <div class="form-title">RESUMEN</div>
+          <div class="sale-preview">
+            <div class="sp-row"><span>Categoría</span><span id="prev-cat">—</span></div>
+            <div class="sp-row"><span>Paquete</span><span id="prev-pkg">—</span></div>
+            <div class="sp-row"><span>Estudio</span><span id="prev-est" style="color:var(--red)">— elige estudio —</span></div>
+            <div class="sp-row"><span>Fecha</span><span id="prev-fecha">—</span></div>
+            <div class="sp-row big" style="border-top:1px solid var(--border);margin-top:10px;padding-top:10px;">
+              <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--gray)">Monto</span>
+              <span id="prev-monto">$0</span>
+            </div>
+          </div>
+          <button class="btn-add" id="btn-add">+ REGISTRAR VENTA</button>
+          <div class="success-msg" id="success-msg"></div>
+          <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);font-size:12px;color:var(--gray);line-height:1.6;">
+            Registra solo ventas con tu código de staff en el POS. Se corrobora contra el sistema al cierre del bimestre.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 05 HISTORIAL -->
+    <div class="section staff-only" style="border-bottom:none;padding-bottom:60px;">
+      <div class="sec-hd"><span class="sec-num">05</span><span class="sec-title">HISTORIAL DE VENTAS</span></div>
+      <button class="export-btn" id="btn-export">↓ Exportar mis ventas CSV</button>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Fecha</th><th>Estudio</th><th>Paquete / Membresía</th><th>Categoría</th><th>Monto</th><th></th></tr></thead>
+          <tbody id="sales-tbody"><tr><td colspan="6"><div class="empty-state">Cargando...</div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ADMIN -->
+    <div id="admin-screen">
+      <div class="hero-band">
+        <div class="eyebrow">Vista de administrador · Piloto Mayo–Junio 2026</div>
+        <div class="hero-title">EQUIPO<br><span>STAFF</span></div>
+        <div class="admin-kpi-row">
+          <div class="kpi"><div class="kpi-val" id="adm-kpi-total">—</div><div class="kpi-lbl">Venta total equipo</div></div>
+          <div class="kpi"><div class="kpi-val" id="adm-kpi-sobre">0</div><div class="kpi-lbl">Sobre meta</div></div>
+          <div class="kpi"><div class="kpi-val" id="adm-kpi-bajo" style="color:var(--red)">0</div><div class="kpi-lbl">Bajo meta</div></div>
+          <div class="kpi"><div class="kpi-val" id="adm-kpi-bonos">$0</div><div class="kpi-lbl">Bonos estimados</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="sec-hd"><span class="sec-num">01</span><span class="sec-title">PROGRESO POR PERSONA</span></div>
+        <div class="admin-filter-bar">
+          <button class="filter-btn active" data-filter="todos">Todos</button>
+          <button class="filter-btn" data-filter="LILAS">Lilas</button>
+          <button class="filter-btn" data-filter="PRADO NORTE">Prado Norte</button>
+          <button class="filter-btn" data-filter="ARTZ PEDREGAL">Artz Pedregal</button>
+          <button class="filter-btn" data-filter="bajo">Bajo meta</button>
+          <button id="btn-refresh-admin" style="margin-left:auto;padding:7px 16px;border:1px solid var(--border);background:none;color:var(--gray);font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;">↻ Actualizar</button>
+        </div>
+        <div id="sync-status" style="font-size:12px;color:var(--green);min-height:18px;margin-bottom:12px;"></div>
+        <div class="admin-table-wrap">
+          <table>
+            <colgroup><col style="width:20%"><col style="width:14%"><col style="width:13%"><col style="width:13%"><col style="width:12%"><col style="width:16%"><col style="width:12%"></colgroup>
+            <thead><tr><th>Nombre</th><th>Estudios</th><th>Venta acum.</th><th>Falta/Excedente</th><th>Bono est.</th><th>Progreso</th><th>Estado</th></tr></thead>
+            <tbody id="admin-tbody"></tbody>
+          </table>
+        </div>
+        <div id="staff-detail-wrap"></div>
+      </div>
+
+      <div class="section">
+        <div class="sec-hd"><span class="sec-num">02</span><span class="sec-title">VENTAS POR ESTUDIO</span></div>
+        <div class="admin-table-wrap">
+          <table>
+            <colgroup><col style="width:22%"><col style="width:30%"><col style="width:23%"><col style="width:25%"></colgroup>
+            <thead><tr><th>Estudio</th><th>Venta total</th><th>Vendedores · Ventas</th><th>Avance</th></tr></thead>
+            <tbody id="admin-estudios-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section" style="border-bottom:none;padding-bottom:60px;">
+        <div class="sec-hd"><span class="sec-num">03</span><span class="sec-title">EXPORTAR DATOS</span></div>
+        <button class="export-btn" id="btn-export-admin">↓ Exportar todas las ventas CSV</button>
+        <div style="font-size:12px;color:var(--gray);margin-top:8px;line-height:1.6;">CSV consolidado de todas las ventas desde Supabase.</div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- MODAL ELIMINAR -->
+<div id="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:999;align-items:center;justify-content:center;">
+  <div style="background:#0D0D0D;border:1px solid #333;padding:32px;width:100%;max-width:360px;margin:0 20px;">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.08em;margin-bottom:8px;">ELIMINAR VENTA</div>
+    <div id="modal-body" style="font-size:13px;color:#8A8A8A;margin-bottom:24px;line-height:1.6;"></div>
+    <div style="display:flex;gap:8px;">
+      <button id="modal-cancel" style="flex:1;padding:12px;background:none;border:1px solid #333;color:#8A8A8A;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.08em;cursor:pointer;">CANCELAR</button>
+      <button id="modal-confirm" style="flex:1;padding:12px;background:#C0392B;border:1px solid #C0392B;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.08em;cursor:pointer;">ELIMINAR</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── SUPABASE CONFIG ───
+const SB_URL = 'https://xgjqidgeifjrrjrpeprg.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhnanFpZGdlaWZqcnJqcnBlcHJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0OTk0MTQsImV4cCI6MjA5MzA3NTQxNH0.QaLdrPcPVyjPN4wEfnTcqn3eEksT_jwVLYjciiGLGgY';
+const HDR = { 'apikey':SB_KEY, 'Authorization':'Bearer '+SB_KEY, 'Content-Type':'application/json', 'Prefer':'return=representation' };
+
+async function dbGet(q='') {
+  const r = await fetch(`${SB_URL}/rest/v1/ventas?${q}`, { headers:HDR });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function dbPost(body) {
+  const r = await fetch(`${SB_URL}/rest/v1/ventas`, { method:'POST', headers:HDR, body:JSON.stringify(body) });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function dbDelete(id) {
+  const r = await fetch(`${SB_URL}/rest/v1/ventas?id=eq.${id}`, { method:'DELETE', headers:HDR });
+  if (!r.ok) throw new Error(await r.text());
+}
+
+// ─── USUARIOS ───
+const USERS = {
+  "gabolm88@gmail.com":             {pass:"Zuda2026$Gabo",    name:"Gabriel Lara Marín",          initials:"GL", isAdmin:false},
+  "andreadelaf@icloud.com":         {pass:"Zuda2026$Andrea",  name:"Andrea De La Fuente Piña",    initials:"AF", isAdmin:false},
+  "aolverasanroman@gmail.com":      {pass:"Zuda2026$Alexa",   name:"Alexa Olvera Sanromán",       initials:"AO", isAdmin:false},
+  "jelwanmariano1214@gmail.com":    {pass:"Zuda2026$Mariano", name:"Mariano Jelwan Martínez",     initials:"MJ", isAdmin:false},
+  "karymontiel111@gmail.com":       {pass:"Zuda2026$Karyme",  name:"Karyme Montiel García",       initials:"KM", isAdmin:false},
+  "elisornia.dg@gmail.com":         {pass:"Zuda2026$Elisa",   name:"Elisa Flores Recio",          initials:"EF", isAdmin:false},
+  "isaapenguelly@gmail.com":        {pass:"Zuda2026$Isa",     name:"Isabella Penguelly Anaya",    initials:"IP", isAdmin:false},
+  "rferreraa54@gmail.com":          {pass:"Zuda2026$Regina",  name:"Regina Ferrera Abogado",      initials:"RF", isAdmin:false},
+  "valeriafrid03@gmail.com":        {pass:"Zuda2026$Valeria", name:"Valeria Joanna Frid Gebel",   initials:"VF", isAdmin:false},
+  "liora.waldmanmenasse@gmail.com": {pass:"Zuda2026$Liora",   name:"Liora Waldman Menasse",       initials:"LW", isAdmin:false},
+  "jimenezabarcasara@gmail.com":    {pass:"Zuda2026$Sara",    name:"Sara Jiménez Abarca",         initials:"SJ", isAdmin:false},
+  "valealvareze2004@gmail.com":     {pass:"Zuda2026$Vale",    name:"Valentina Álvarez Espíndola", initials:"VA", isAdmin:false},
+  "josemvazquez048@gmail.com":      {pass:"Zuda2026$Jose",    name:"José Manuel Vázquez Rendón",  initials:"JV", isAdmin:false},
+  "f.cohen2501@gmail.com":          {pass:"Zuda2026$Fanny",   name:"Fanny Cohen Darwich",         initials:"FC", isAdmin:false},
+  "marianahdzrivera12@gmail.com":   {pass:"Zuda2026$Mariana", name:"Mariana Hernández Rivera",    initials:"MH", isAdmin:false},
+  "nicolasflores94@live.com":       {pass:"Zuda2026$Nicolas", name:"Nicolás Flores Valencia",     initials:"NF", isAdmin:false},
+  "marialaura5485@gmail.com":       {pass:"Zuda2026$Laura",   name:"María Laura Machado Rivas",   initials:"ML", isAdmin:false},
+  "alvarin.zatarain@gmail.com":     {pass:"Zuda2026$Alvaro",  name:"Álvaro de Zataráin Llaca",    initials:"AZ", isAdmin:false},
+  "aoates.urias@gmail.com":         {pass:"Zuda2026$Ale",     name:"Alejandra Oates Urías",       initials:"AU", isAdmin:false},
+  "marcebmin@gmail.com":            {pass:"Zuda2026$Marcela", name:"Marcela Barros Minvielle",    initials:"MB", isAdmin:false},
+  "admin":                          {pass:"zudaadmin26",      name:"Admin ZUDA",                  initials:"AD", isAdmin:true}
+};
+
+const META = 65000;
+const META_ESTUDIO = {'LILAS':383000,'PRADO NORTE':242000,'ARTZ PEDREGAL':265000};
+const CATALOG = {
+  paquete:[{name:"1 clase",price:380},{name:"3 clases (primera vez)",price:949},{name:"5 clases",price:1850},{name:"10 clases",price:3600},{name:"20 clases",price:6800},{name:"30 clases",price:9600},{name:"Office 10 clases",price:2400}],
+  mensualidad:[{name:"Platinum 16 clases",price:4400},{name:"Platinum 24 clases",price:4900},{name:"Ilimitado All Access",price:5600}],
+  anualidad:[{name:"Zuda Black All Access",price:58000}],
+  teens:[{name:"Teens 8 clases",price:1800},{name:"Teens 16 clases",price:2900}],
+  cubo:[{name:"Cubo All Access mensual",price:3400}],
+  recovery:[{name:"Recovery primera vez",price:250},{name:"Recovery 1 sesión",price:300},{name:"Recovery 5 sesiones",price:1450},{name:"Recovery 10 sesiones",price:2800}],
+  bebidas:[{name:"Agua Zoé 500 ml",price:35},{name:"Agua Zoé 900 ml",price:45}],
+  merch:[{name:"Calcetines Pilates",price:390},{name:"Tote Bag",price:350},{name:"Pullover",price:899},{name:"Player",price:499},{name:"Gorra",price:499},{name:"Hoodie",price:999}]
+};
+const CAT_LABELS = {paquete:'Paquetes',mensualidad:'Mensualidad',anualidad:'Anualidad',teens:'Teens',cubo:'Cubo',recovery:'Recovery',bebidas:'Bebidas',merch:'Merch'};
+
+let currentUser = null;
+let currentUserKey = null;
+let adminFilter = 'todos';
+let _pendingDeleteId = null;
+let _currentSales = [];
+
+// ─── AUTH ───
+function doLogin() {
+  const u = document.getElementById('input-user').value.trim().toLowerCase();
+  const p = document.getElementById('input-pass').value;
+  const err = document.getElementById('login-error');
+  if (!USERS[u] || USERS[u].pass !== p) { err.textContent = 'Usuario o contraseña incorrectos.'; return; }
+  err.textContent = '';
+  currentUser = USERS[u]; currentUserKey = u;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  document.getElementById('nav-avatar').textContent = currentUser.initials;
+  document.getElementById('nav-name').textContent = currentUser.name;
+
+  if (currentUser.isAdmin) {
+    document.getElementById('admin-screen').style.display = 'block';
+    document.querySelectorAll('.staff-only').forEach(el => el.style.display = 'none');
+    document.getElementById('nav-name').insertAdjacentHTML('afterend','<span class="admin-nav-tag">Admin</span>');
+    loadAdminView();
+  } else {
+    document.getElementById('admin-screen').style.display = 'none';
+    document.getElementById('hero-name').textContent = currentUser.name.split(' ')[0].toUpperCase();
+    document.getElementById('f-fecha').value = new Date().toISOString().split('T')[0];
+    document.getElementById('nav-countdown').style.display = 'flex';
+    initCatalog();
+    loadSales();
+
+    // Manual refresh button for estudio totals
+    document.getElementById('btn-refresh-estudios').addEventListener('click', async function() {
+      this.textContent = '↻ Actualizando...';
+      await loadEstudioTotals();
+      this.textContent = '↻ Actualizar';
+    });
+
+    // Auto-refresh estudio totals every 60 seconds
+    if (window._refreshInterval) clearInterval(window._refreshInterval);
+    window._refreshInterval = setInterval(() => {
+      if (currentUser && !currentUser.isAdmin) loadEstudioTotals();
+    }, 60000);
+  }
+}
+
+function doLogout() {
+  if (window._refreshInterval) { clearInterval(window._refreshInterval); window._refreshInterval = null; }
+  currentUser = null; currentUserKey = null; _currentSales = [];
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('admin-screen').style.display = 'none';
+  document.getElementById('nav-countdown').style.display = 'none';
+  document.querySelectorAll('.staff-only').forEach(el => el.style.display = '');
+  document.querySelectorAll('.admin-nav-tag').forEach(el => el.remove());
+  document.getElementById('staff-detail-wrap').innerHTML = '';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('input-user').value = '';
+  document.getElementById('input-pass').value = '';
+}
+
+// ─── CATALOG ───
+function initCatalog() {
+  const cat = document.getElementById('f-cat');
+  cat.innerHTML = '<option value="">— Selecciona categoría —</option>';
+  Object.keys(CATALOG).forEach(k => {
+    const o = document.createElement('option');
+    o.value = k; o.textContent = CAT_LABELS[k]; cat.appendChild(o);
+  });
+}
+
+function updatePackages() {
+  const cat = document.getElementById('f-cat').value;
+  const sel = document.getElementById('f-pkg');
+  sel.innerHTML = '<option value="">— Selecciona paquete —</option>';
+  if (!cat || !CATALOG[cat]) { updatePreview(); return; }
+  CATALOG[cat].forEach((item,i) => {
+    const o = document.createElement('option');
+    o.value = i; o.textContent = item.name + ' — $' + item.price.toLocaleString('es-MX');
+    sel.appendChild(o);
+  });
+  document.getElementById('prev-cat').textContent = CAT_LABELS[cat];
+  updatePreview();
+}
+
+function updatePreview() {
+  const cat = document.getElementById('f-cat').value;
+  const idx = document.getElementById('f-pkg').value;
+  const fecha = document.getElementById('f-fecha').value;
+  const estudio = document.getElementById('f-estudio').value;
+  document.getElementById('prev-fecha').textContent = fecha || '—';
+  const estEl = document.getElementById('prev-est');
+  estEl.textContent = estudio || '— elige estudio —';
+  estEl.style.color = estudio ? 'var(--white)' : 'var(--red)';
+  if (cat && idx !== '' && CATALOG[cat]) {
+    const item = CATALOG[cat][parseInt(idx)];
+    document.getElementById('prev-pkg').textContent = item.name;
+    document.getElementById('prev-monto').textContent = '$' + item.price.toLocaleString('es-MX');
+    document.getElementById('btn-add').classList.toggle('ready', !!estudio);
+  } else {
+    document.getElementById('prev-pkg').textContent = '—';
+    document.getElementById('prev-monto').textContent = '$0';
+    document.getElementById('btn-add').classList.remove('ready');
+  }
+}
+
+// ─── LOAD & RENDER SALES ───
+async function loadSales() {
+  document.getElementById('sales-tbody').innerHTML = '<tr><td colspan="6"><div class="empty-state">Cargando...</div></td></tr>';
+  try {
+    _currentSales = await dbGet(`usuario=eq.${encodeURIComponent(currentUserKey)}&order=created_at.desc`);
+    renderSales(_currentSales);
+    loadEstudioTotals();
+  } catch(e) {
+    document.getElementById('sales-tbody').innerHTML = '<tr><td colspan="6"><div class="empty-state">Error al cargar. Verifica tu conexión.</div></td></tr>';
+  }
+}
+
+function renderSales(sales) {
+  const total = sales.reduce((s,v) => s + Number(v.monto), 0);
+  const hit = total >= META;
+  const bono = hit ? Math.round(total * 0.03) : 0;
+  const falta = Math.max(0, META - total);
+  const pct = Math.min(100, Math.round(total / META * 100));
+  const byEst = {};
+  ['LILAS','PRADO NORTE','ARTZ PEDREGAL'].forEach(e => {
+    const t = sales.filter(s => s.estudio === e).reduce((s,v) => s + Number(v.monto), 0);
+    if (t > 0) byEst[e] = t;
+  });
+  const breakdown = Object.entries(byEst).map(([e,t]) => e.split(' ')[0] + ' $' + t.toLocaleString('es-MX')).join(' · ');
+
+  document.getElementById('kpi-total').textContent = '$' + total.toLocaleString('es-MX');
+  document.getElementById('kpi-falta').textContent = hit ? '¡Meta!' : '$' + falta.toLocaleString('es-MX');
+  document.getElementById('kpi-falta').style.color = hit ? 'var(--green)' : '';
+  document.getElementById('kpi-bono').textContent = '$' + bono.toLocaleString('es-MX');
+  document.getElementById('kpi-ventas').textContent = sales.length;
+  document.getElementById('prog-venta').textContent = '$' + total.toLocaleString('es-MX');
+  document.getElementById('prog-venta').style.color = hit ? 'var(--green)' : 'var(--white)';
+  document.getElementById('prog-sub').textContent = hit ? '¡Meta superada! ' + breakdown : 'Faltan $' + falta.toLocaleString('es-MX') + ' para el bono' + (breakdown ? ' · ' + breakdown : '');
+  document.getElementById('bar-fill').style.width = pct + '%';
+  document.getElementById('bar-fill').style.background = hit ? 'var(--green)' : 'var(--white)';
+  document.getElementById('bar-pct-lbl').textContent = pct + '%';
+  document.getElementById('prog-bono').textContent = '$' + bono.toLocaleString('es-MX');
+  document.getElementById('prog-bono').style.color = hit ? 'var(--green)' : 'var(--gray3)';
+  document.getElementById('prog-bono-sub').textContent = hit ? '3% sobre $' + total.toLocaleString('es-MX') : 'Activa a los $65,000 — suman todos los estudios';
+  const bEl = document.getElementById('box-bono-ind');
+  bEl.textContent = '$' + bono.toLocaleString('es-MX');
+  bEl.classList.toggle('active', hit);
+  document.getElementById('box-bono-note').textContent = hit
+    ? '¡Bono activo! 3% de $' + total.toLocaleString('es-MX') + '. Cada venta también suma al bono colectivo del estudio.'
+    : 'Necesitas $65,000 en total. Tus ventas de todos los estudios suman.';
+  const totEl = document.getElementById('box-bono-total');
+  totEl.textContent = '$' + bono.toLocaleString('es-MX');
+  totEl.style.color = hit ? 'var(--white)' : 'var(--gray3)';
+
+  const tbody = document.getElementById('sales-tbody');
+  if (!sales.length) { tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Aún no hay ventas registradas.</div></td></tr>'; return; }
+  tbody.innerHTML = sales.map(s => `<tr>
+    <td>${fmtDate(s.fecha)}</td>
+    <td>${s.estudio}</td>
+    <td class="td-pkg">${s.paquete}</td>
+    <td>${s.categoria}</td>
+    <td class="td-amt">$${Number(s.monto).toLocaleString('es-MX')}</td>
+    <td><button class="td-del" data-id="${s.id}" data-pkg="${s.paquete}" data-monto="${s.monto}" data-est="${s.estudio}">✕</button></td>
+  </tr>`).join('');
+}
+
+// ─── ADD SALE ───
+async function addSale() {
+  const cat = document.getElementById('f-cat').value;
+  const idx = document.getElementById('f-pkg').value;
+  const fecha = document.getElementById('f-fecha').value;
+  const estudio = document.getElementById('f-estudio').value;
+  const msg = document.getElementById('success-msg');
+  if (!cat || idx === '' || !fecha || !estudio) {
+    msg.style.color = 'var(--red)'; msg.textContent = 'Completa todos los campos.';
+    setTimeout(() => msg.textContent = '', 2500); return;
+  }
+  const item = CATALOG[cat][parseInt(idx)];
+  const btn = document.getElementById('btn-add');
+  btn.textContent = 'GUARDANDO...'; btn.classList.remove('ready');
+  try {
+    const result = await dbPost({ usuario:currentUserKey, nombre:currentUser.name, fecha, estudio, categoria:CAT_LABELS[cat]||cat, paquete:item.name, monto:item.price });
+    console.log('Venta guardada:', result);
+    msg.style.color = 'var(--green)';
+    msg.textContent = '✓ Guardado en ' + estudio + ': ' + item.name + ' · $' + item.price.toLocaleString('es-MX');
+    setTimeout(() => msg.textContent = '', 3500);
+    document.getElementById('f-estudio').value = '';
+    document.getElementById('f-cat').value = '';
+    document.getElementById('f-pkg').innerHTML = '<option value="">— Primero selecciona categoría —</option>';
+    ['prev-est','prev-cat','prev-pkg'].forEach(id => document.getElementById(id).textContent = '—');
+    document.getElementById('prev-est').style.color = 'var(--red)';
+    document.getElementById('prev-monto').textContent = '$0';
+    await loadSales();
+  } catch(e) {
+    console.error('Error al guardar venta:', e);
+    const errMsg = e.message || '';
+    let userMsg = 'Error al guardar. ';
+    if (errMsg.includes('Failed to fetch') || errMsg.includes('NetworkError') || errMsg.includes('CORS')) {
+      userMsg += 'Sin conexión a Supabase — verifica que el archivo esté publicado en un dominio, no abierto como archivo local.';
+    } else if (errMsg.includes('42501') || errMsg.includes('permission')) {
+      userMsg += 'Sin permisos — verifica las políticas RLS en Supabase.';
+    } else if (errMsg.includes('23502')) {
+      userMsg += 'Campo requerido vacío — contacta al admin.';
+    } else {
+      userMsg += errMsg.substring(0, 120);
+    }
+    msg.style.color = 'var(--red)'; msg.textContent = userMsg;
+    setTimeout(() => msg.textContent = '', 8000);
+  }
+  btn.textContent = '+ REGISTRAR VENTA';
+}
+
+// ─── DELETE ───
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('button.td-del');
+  if (!btn) return;
+  _pendingDeleteId = parseInt(btn.dataset.id);
+  document.getElementById('modal-body').textContent = btn.dataset.pkg + ' · $' + Number(btn.dataset.monto).toLocaleString('es-MX') + ' · ' + btn.dataset.est;
+  document.getElementById('modal-overlay').style.display = 'flex';
+});
+document.getElementById('modal-cancel').addEventListener('click', () => {
+  _pendingDeleteId = null;
+  document.getElementById('modal-overlay').style.display = 'none';
+});
+document.getElementById('modal-confirm').addEventListener('click', async () => {
+  document.getElementById('modal-overlay').style.display = 'none';
+  if (!_pendingDeleteId) return;
+  try { await dbDelete(_pendingDeleteId); _pendingDeleteId = null; await loadSales(); }
+  catch(e) { console.error('Delete error:', e); }
+});
+
+// ─── ESTUDIO TOTALS (staff) ───
+async function loadEstudioTotals() {
+  const grid = document.getElementById('est-grid');
+  const note = document.getElementById('est-sync-note');
+  if (!grid) return;
+  try {
+    const allSales = await dbGet('order=created_at.desc');
+    const mySales = allSales.filter(s => s.usuario === currentUserKey);
+    const estudios = ['LILAS','PRADO NORTE','ARTZ PEDREGAL'];
+    grid.innerHTML = estudios.map(est => {
+      const estSales = allSales.filter(s => s.estudio === est);
+      const estTotal = estSales.reduce((s,v) => s + Number(v.monto), 0);
+      const miVenta = mySales.filter(s => s.estudio === est).reduce((s,v) => s + Number(v.monto), 0);
+      const iVendo = miVenta > 0;
+      const meta = META_ESTUDIO[est] || 0;
+      const hit = estTotal >= meta;
+      const pct = meta > 0 ? Math.min(100, Math.round(estTotal / meta * 100)) : 0;
+      const falta = Math.max(0, meta - estTotal);
+      const exc = estTotal - meta;
+      const barColor = hit ? 'var(--green)' : pct > 60 ? 'var(--accent)' : 'var(--red)';
+      return `<div class="est-card" style="${iVendo ? 'background:#0a0f0a;' : ''}">
+        <div class="est-name" style="color:${iVendo ? 'var(--accent)' : 'var(--white)'}">${est}</div>
+        <span class="est-badge ${iVendo ? 'mine' : ''}">${iVendo ? 'Vendo aquí' : 'Red ZUDA'}</span>
+        ${iVendo ? `<div style="font-size:11px;color:var(--accent);margin-bottom:10px;">Mi aportación: $${miVenta.toLocaleString('es-MX')}</div>` : ''}
+        <div class="est-bar-track"><div class="est-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+          <span class="est-pct" style="color:${barColor}">${pct}%</span>
+          <span style="font-size:11px;color:var(--gray)">Meta $${(meta/1000).toFixed(0)}K</span>
+        </div>
+        <div class="est-row"><span>Venta del equipo</span><span style="color:${hit ? 'var(--green)' : 'var(--white)'}">$${estTotal.toLocaleString('es-MX')}</span></div>
+        <div class="est-row"><span>${hit ? 'Excedente' : 'Falta'}</span><span style="color:${hit ? 'var(--green)' : 'var(--red)'};">${hit ? '+$'+exc.toLocaleString('es-MX') : '$'+falta.toLocaleString('es-MX')}</span></div>
+        <div class="est-row"><span>Estado</span><span style="font-size:12px;color:${hit ? 'var(--green)' : 'var(--red)'};">${hit ? '✓ META' : '✗ EN PROGRESO'}</span></div>
+      </div>`;
+    }).join('');
+    if (note) note.textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}) + ' · Se actualiza automáticamente cada 60 segundos';
+  } catch(e) {
+    grid.innerHTML = '<div class="est-card" style="grid-column:1/-1"><div class="empty-state">Error cargando datos.</div></div>';
+  }
+}
+
+// ─── ADMIN ───
+async function loadAdminView() {
+  const syncEl = document.getElementById('sync-status');
+  syncEl.style.color = 'var(--gray)'; syncEl.textContent = 'Cargando datos desde Supabase...';
+  try {
+    const allSales = await dbGet('order=created_at.desc');
+    renderAdminView(allSales);
+    syncEl.style.color = 'var(--green)';
+    syncEl.textContent = '✓ Actualizado — ' + new Date().toLocaleTimeString('es-MX');
+    setTimeout(() => syncEl.textContent = '', 4000);
+  } catch(e) {
+    syncEl.style.color = 'var(--red)'; syncEl.textContent = 'Error al cargar datos.';
+  }
+
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active'); adminFilter = this.dataset.filter;
+      const allSales = await dbGet('order=created_at.desc');
+      renderAdminView(allSales);
+    });
+  });
+
+  document.getElementById('btn-refresh-admin').addEventListener('click', async () => {
+    document.getElementById('btn-refresh-admin').textContent = '↻ Cargando...';
+    await loadAdminView();
+    document.getElementById('btn-refresh-admin').textContent = '↻ Actualizar';
+  });
+
+  document.getElementById('btn-export-admin').addEventListener('click', async () => {
+    const allSales = await dbGet('order=created_at.desc');
+    exportCSV(allSales, 'zuda_ventas_todas_' + new Date().toISOString().split('T')[0] + '.csv');
+  });
+}
+
+function renderAdminView(allSales) {
+  const staffKeys = Object.keys(USERS).filter(k => !USERS[k].isAdmin);
+  const userData = staffKeys.map(k => {
+    const sales = allSales.filter(s => s.usuario === k);
+    const total = sales.reduce((s,v) => s + Number(v.monto), 0);
+    return { key:k, user:USERS[k], sales, total, estudiosVendidos:[...new Set(sales.map(s => s.estudio))].filter(Boolean) };
+  });
+
+  const filtered = userData.filter(d => {
+    if (adminFilter === 'todos') return true;
+    if (adminFilter === 'bajo') return d.total < META;
+    return d.estudiosVendidos.includes(adminFilter);
+  }).sort((a,b) => {
+    const aH = a.total >= META, bH = b.total >= META;
+    if (aH === bH) return bH ? b.total - a.total : a.total - b.total;
+    return aH ? 1 : -1;
+  });
+
+  const totalAll = userData.reduce((s,d) => s + d.total, 0);
+  const sobre = userData.filter(d => d.total >= META).length;
+  const bajo = userData.filter(d => d.total < META).length;
+  const bonos = userData.filter(d => d.total >= META).reduce((s,d) => s + Math.round(d.total * 0.03), 0);
+  document.getElementById('adm-kpi-total').textContent = '$' + totalAll.toLocaleString('es-MX');
+  document.getElementById('adm-kpi-sobre').textContent = sobre;
+  document.getElementById('adm-kpi-bajo').textContent = bajo;
+  document.getElementById('adm-kpi-bonos').textContent = '$' + bonos.toLocaleString('es-MX');
+
+  const tbody = document.getElementById('admin-tbody');
+  tbody.innerHTML = filtered.length ? filtered.map(d => {
+    const hit = d.total >= META;
+    const bono = hit ? Math.round(d.total * 0.03) : 0;
+    const falta = Math.max(0, META - d.total);
+    const exc = d.total - META;
+    const pct = Math.min(100, Math.round(d.total / META * 100));
+    const barColor = hit ? 'var(--green)' : 'var(--red)';
+    const estLabel = d.estudiosVendidos.length ? d.estudiosVendidos.map(e => e.split(' ')[0]).join(', ') : '—';
+    return `<tr class="${hit ? 'row-green' : 'row-red'}" data-key="${d.key}" style="cursor:pointer">
+      <td class="td-name" style="font-weight:500">${d.user.name}</td>
+      <td style="font-size:12px">${estLabel}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:15px">$${d.total.toLocaleString('es-MX')}</td>
+      <td style="color:${hit ? 'var(--green)' : 'var(--red)'};font-size:13px">${hit ? '+$'+exc.toLocaleString('es-MX') : '-$'+falta.toLocaleString('es-MX')}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:15px;color:${hit ? 'var(--green)' : 'var(--gray3)'}">$${bono.toLocaleString('es-MX')}</td>
+      <td class="td-bar-cell"><div class="mini-bar-track"><div class="mini-bar-fill" style="width:${pct}%;background:${barColor}"></div></div><div style="font-size:10px;color:var(--gray);margin-top:3px">${pct}% · ${d.sales.length} ventas</div></td>
+      <td class="td-status">${hit ? '✓ Meta' : '✗ Bajo'}</td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="7"><div class="empty-state">Sin resultados.</div></td></tr>';
+
+  // Estudios
+  const estudios = ['LILAS','PRADO NORTE','ARTZ PEDREGAL'];
+  document.getElementById('admin-estudios-tbody').innerHTML = estudios.map(est => {
+    const estSales = allSales.filter(s => s.estudio === est);
+    const estTotal = estSales.reduce((s,v) => s + Number(v.monto), 0);
+    const vendedores = new Set(estSales.map(s => s.usuario)).size;
+    const meta = META_ESTUDIO[est] || 0;
+    const hit = estTotal >= meta;
+    const pct = meta > 0 ? Math.min(100, Math.round(estTotal / meta * 100)) : 0;
+    return `<tr>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--white)">${est}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:${hit ? 'var(--green)' : 'var(--white)'}">$${estTotal.toLocaleString('es-MX')} <span style="font-family:'DM Sans',sans-serif;font-size:11px;color:var(--gray)">(${pct}% de $${(meta/1000).toFixed(0)}K)</span></td>
+      <td>${vendedores} vendedor${vendedores !== 1 ? 'es' : ''} · ${estSales.length} ventas</td>
+      <td style="color:${hit ? 'var(--green)' : 'var(--gray)'};">${hit ? '✓ META' : pct + '% avance'}</td>
+    </tr>`;
+  }).join('');
+
+  // Row click → detail
+  tbody.querySelectorAll('tr[data-key]').forEach(row => {
+    row.addEventListener('click', () => {
+      const d = userData.find(x => x.key === row.dataset.key);
+      if (d) showDetail(d);
+    });
+  });
+}
+
+function showDetail(d) {
+  const wrap = document.getElementById('staff-detail-wrap');
+  const hit = d.total >= META;
+  const bono = hit ? Math.round(d.total * 0.03) : 0;
+  const rows = d.sales.length
+    ? d.sales.map(s => `<tr><td>${fmtDate(s.fecha)}</td><td>${s.estudio}</td><td style="color:var(--white)">${s.paquete}</td><td>${s.categoria}</td><td style="font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--white)">$${Number(s.monto).toLocaleString('es-MX')}</td></tr>`).join('')
+    : '<tr><td colspan="5" style="text-align:center;color:var(--gray);padding:24px">Sin ventas</td></tr>';
+  wrap.innerHTML = `<div class="detail-panel">
+    <div class="detail-header">
+      <div>
+        <div class="detail-header-name">${d.user.name}</div>
+        <div style="font-size:12px;color:var(--gray);margin-top:4px">
+          Venta: <strong style="color:${hit ? 'var(--green)' : 'var(--red)'}">$${d.total.toLocaleString('es-MX')}</strong> &nbsp;·&nbsp;
+          Bono: <strong style="color:${hit ? 'var(--green)' : 'var(--gray3)'}">$${bono.toLocaleString('es-MX')}</strong> &nbsp;·&nbsp;
+          ${d.sales.length} ventas
+        </div>
+      </div>
+      <button class="detail-close" id="btn-close-detail">Cerrar ✕</button>
+    </div>
+    <div style="padding:20px;">
+      <table class="detail-sales-table">
+        <thead><tr><th>Fecha</th><th>Estudio</th><th>Producto</th><th>Categoría</th><th>Monto</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+  wrap.scrollIntoView({behavior:'smooth',block:'nearest'});
+  document.getElementById('btn-close-detail').addEventListener('click', () => wrap.innerHTML = '');
+}
+
+// ─── EXPORT CSV ───
+function exportCSV(sales, filename) {
+  if (!sales.length) { alert('No hay ventas para exportar.'); return; }
+  const header = 'Fecha,Estudio,Paquete,Categoría,Monto MXN,Nombre,Usuario,Registrado';
+  const rows = sales.map(s => [s.fecha,s.estudio,`"${s.paquete}"`,s.categoria,s.monto,`"${s.nombre}"`,s.usuario,s.created_at].join(','));
+  const blob = new Blob([[header,...rows].join('\n')], {type:'text/csv'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click();
+}
+
+// ─── COUNTDOWN ───
+function runCountdown() {
+  const END = new Date('2026-07-01T00:00:00');
+  function tick() {
+    const chip = document.getElementById('nav-countdown');
+    const txt = document.getElementById('nav-cd-text');
+    if (!chip || !txt) return;
+    const rem = END - new Date();
+    if (rem <= 0) { txt.textContent = 'RETO CERRADO'; txt.style.color = 'var(--green)'; return; }
+    const d = Math.floor(rem/86400000), h = Math.floor((rem%86400000)/3600000);
+    const m = Math.floor((rem%3600000)/60000), s = Math.floor((rem%60000)/1000);
+    const days = rem/86400000;
+    txt.style.color = days < 7 ? '#e74c3c' : days < 21 ? 'var(--accent)' : 'var(--green)';
+    chip.style.borderColor = days < 7 ? '#3d1a1a' : days < 21 ? '#3d330a' : '#1a3d1a';
+    chip.style.background = days < 7 ? '#150a0a' : days < 21 ? '#150f0a' : '#0a150a';
+    txt.textContent = d + 'd ' + String(h).padStart(2,'0') + 'h ' + String(m).padStart(2,'0') + 'm ' + String(s).padStart(2,'0') + 's';
+  }
+  tick(); setInterval(tick, 1000);
+}
+runCountdown();
+
+// ─── HELPERS ───
+function fmtDate(d) {
+  if (!d) return '—';
+  const [y,mo,day] = d.split('-');
+  const months = ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  return parseInt(day) + ' ' + months[parseInt(mo)] + ' ' + y;
+}
+
+// ─── WIRING ───
+document.getElementById('btn-login').addEventListener('click', doLogin);
+document.getElementById('btn-logout').addEventListener('click', doLogout);
+document.getElementById('btn-add').addEventListener('click', addSale);
+document.getElementById('btn-export').addEventListener('click', async () => {
+  const sales = await dbGet(`usuario=eq.${encodeURIComponent(currentUserKey)}&order=created_at.desc`);
+  exportCSV(sales, 'mis_ventas_' + new Date().toISOString().split('T')[0] + '.csv');
+});
+document.getElementById('btn-toggle-pass').addEventListener('click', function() {
+  const inp = document.getElementById('input-pass');
+  const show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  document.getElementById('icon-eye').style.display = show ? 'none' : '';
+  document.getElementById('icon-eye-off').style.display = show ? '' : 'none';
+});
+document.getElementById('input-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('input-user').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('input-pass').focus(); });
+document.getElementById('f-cat').addEventListener('change', updatePackages);
+document.getElementById('f-pkg').addEventListener('change', updatePreview);
+document.getElementById('f-estudio').addEventListener('change', updatePreview);
+document.getElementById('f-fecha').addEventListener('change', updatePreview);
+</script>
+</body>
+</html>
