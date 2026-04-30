@@ -188,7 +188,7 @@ tr:hover td { background:#111; }
 
     <!-- STAFF: HERO -->
     <div class="hero-band staff-only" id="hero-band">
-      <div class="eyebrow">Piloto Mayo–Junio 2026 · Bono individual 3%</div>
+      <div class="eyebrow">Piloto Mayo–Junio 2026 · Bono individual 4%</div>
       <div class="hero-title">HOLA,<br><span id="hero-name">—</span></div>
       <div class="kpi-row">
         <div class="kpi"><div class="kpi-val" id="kpi-total">$0</div><div class="kpi-lbl">Venta bimestral</div></div>
@@ -226,9 +226,9 @@ tr:hover td { background:#111; }
       <div class="sec-hd"><span class="sec-num">02</span><span class="sec-title">DESGLOSE DEL BONO</span></div>
       <div class="bonus-grid">
         <div class="bonus-box">
-          <div class="bonus-lbl">Bono individual · 3% sobre venta total</div>
+          <div class="bonus-lbl">Bono individual · 4% sobre venta total</div>
           <div class="bonus-amt" id="box-bono-ind">$0</div>
-          <div class="bonus-note" id="box-bono-note">Necesitas $65,000 en ventas para activarlo. Aplica sobre el total.</div>
+          <div class="bonus-note" id="box-bono-note">Necesitas $65,000 (o $60,000 si vendes en Artz) en ventas para activarlo. Aplica sobre el total.</div>
         </div>
         <div class="bonus-box" style="border-left:1px solid var(--border)">
           <div class="bonus-lbl">Pago estimado · julio 2026</div>
@@ -445,6 +445,8 @@ const USERS = {
 
 const META = 65000;
 const META_ESTUDIO = {'LILAS':383000,'PRADO NORTE':242000,'ARTZ PEDREGAL':265000};
+const META_IND = {'LILAS':65000,'PRADO NORTE':65000,'ARTZ PEDREGAL':60000};
+const BONO_IND_PCT = 0.04;
 const CATALOG = {
   paquete:[{name:"1 clase",price:380},{name:"3 clases (primera vez)",price:949},{name:"5 clases",price:1850},{name:"10 clases",price:3600},{name:"20 clases",price:6800},{name:"30 clases",price:9600},{name:"Office 10 clases",price:2400}],
   mensualidad:[{name:"Platinum 16 clases",price:4400},{name:"Platinum 24 clases",price:4900},{name:"Ilimitado All Access",price:5600}],
@@ -577,16 +579,27 @@ async function loadSales() {
 
 function renderSales(sales) {
   const total = sales.reduce((s,v) => s + Number(v.monto), 0);
-  const hit = total >= META;
-  const bono = hit ? Math.round(total * 0.03) : 0;
-  const falta = Math.max(0, META - total);
-  const pct = Math.min(100, Math.round(total / META * 100));
+
+  // Individual meta: use the lowest threshold among estudios where user sold,
+  // or default $65K. If they sold in ARTZ (60K) and LILAS (65K), use 65K
+  // (they need to clear the threshold for each estudio they're competing in)
+  // Simplest rule: meta = $65K unless ALL their sales are in ARTZ → $60K
+  const myEstudios = [...new Set(sales.map(s => s.estudio).filter(Boolean))];
+  const allArtz = myEstudios.length > 0 && myEstudios.every(e => e === 'ARTZ PEDREGAL');
+  const metaInd = allArtz ? 60000 : META;
+
+  const hit = total >= metaInd;
+  const bono = hit ? Math.round(total * BONO_IND_PCT) : 0;
+  const falta = Math.max(0, metaInd - total);
+  const pct = Math.min(100, Math.round(total / metaInd * 100));
+
   const byEst = {};
   ['LILAS','PRADO NORTE','ARTZ PEDREGAL'].forEach(e => {
     const t = sales.filter(s => s.estudio === e).reduce((s,v) => s + Number(v.monto), 0);
     if (t > 0) byEst[e] = t;
   });
   const breakdown = Object.entries(byEst).map(([e,t]) => e.split(' ')[0] + ' $' + t.toLocaleString('es-MX')).join(' · ');
+  const metaLabel = '$' + metaInd.toLocaleString('es-MX');
 
   document.getElementById('kpi-total').textContent = '$' + total.toLocaleString('es-MX');
   document.getElementById('kpi-falta').textContent = hit ? '¡Meta!' : '$' + falta.toLocaleString('es-MX');
@@ -601,16 +614,22 @@ function renderSales(sales) {
   document.getElementById('bar-pct-lbl').textContent = pct + '%';
   document.getElementById('prog-bono').textContent = '$' + bono.toLocaleString('es-MX');
   document.getElementById('prog-bono').style.color = hit ? 'var(--green)' : 'var(--gray3)';
-  document.getElementById('prog-bono-sub').textContent = hit ? '3% sobre $' + total.toLocaleString('es-MX') : 'Activa a los $65,000 — suman todos los estudios';
+  document.getElementById('prog-bono-sub').textContent = hit
+    ? '4% sobre $' + total.toLocaleString('es-MX') + ' — todos los estudios suman'
+    : 'Activa a los ' + metaLabel + ' — suman todos los estudios';
   const bEl = document.getElementById('box-bono-ind');
   bEl.textContent = '$' + bono.toLocaleString('es-MX');
   bEl.classList.toggle('active', hit);
   document.getElementById('box-bono-note').textContent = hit
-    ? '¡Bono activo! 3% de $' + total.toLocaleString('es-MX') + '. Cada venta también suma al bono colectivo del estudio.'
-    : 'Necesitas $65,000 en total. Tus ventas de todos los estudios suman.';
+    ? '¡Bono activo! 4% de $' + total.toLocaleString('es-MX') + '. Cada venta también suma al bono colectivo del estudio.'
+    : 'Necesitas ' + metaLabel + ' en total. Tus ventas de todos los estudios suman.';
   const totEl = document.getElementById('box-bono-total');
   totEl.textContent = '$' + bono.toLocaleString('es-MX');
   totEl.style.color = hit ? 'var(--white)' : 'var(--gray3)';
+
+  // Update bar label meta amount dynamically
+  const barMetaLabel = document.querySelector('.bar-labels span:last-child');
+  if (barMetaLabel) barMetaLabel.textContent = 'Meta ' + metaLabel;
 
   const tbody = document.getElementById('sales-tbody');
   if (!sales.length) { tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Aún no hay ventas registradas.</div></td></tr>'; return; }
@@ -769,23 +788,27 @@ function renderAdminView(allSales) {
   const userData = staffKeys.map(k => {
     const sales = allSales.filter(s => s.usuario === k);
     const total = sales.reduce((s,v) => s + Number(v.monto), 0);
-    return { key:k, user:USERS[k], sales, total, estudiosVendidos:[...new Set(sales.map(s => s.estudio))].filter(Boolean) };
+    const estudiosVendidos = [...new Set(sales.map(s => s.estudio))].filter(Boolean);
+    // Meta individual: $60K if only ARTZ, $65K otherwise
+    const allArtz = estudiosVendidos.length > 0 && estudiosVendidos.every(e => e === 'ARTZ PEDREGAL');
+    const metaInd = allArtz ? 60000 : META;
+    return { key:k, user:USERS[k], sales, total, estudiosVendidos, metaInd };
   });
 
   const filtered = userData.filter(d => {
     if (adminFilter === 'todos') return true;
-    if (adminFilter === 'bajo') return d.total < META;
+    if (adminFilter === 'bajo') return d.total < d.metaInd;
     return d.estudiosVendidos.includes(adminFilter);
   }).sort((a,b) => {
-    const aH = a.total >= META, bH = b.total >= META;
+    const aH = a.total >= a.metaInd, bH = b.total >= b.metaInd;
     if (aH === bH) return bH ? b.total - a.total : a.total - b.total;
     return aH ? 1 : -1;
   });
 
   const totalAll = userData.reduce((s,d) => s + d.total, 0);
-  const sobre = userData.filter(d => d.total >= META).length;
-  const bajo = userData.filter(d => d.total < META).length;
-  const bonos = userData.filter(d => d.total >= META).reduce((s,d) => s + Math.round(d.total * 0.03), 0);
+  const sobre = userData.filter(d => d.total >= d.metaInd).length;
+  const bajo = userData.filter(d => d.total < d.metaInd).length;
+  const bonos = userData.filter(d => d.total >= d.metaInd).reduce((s,d) => s + Math.round(d.total * BONO_IND_PCT), 0);
   document.getElementById('adm-kpi-total').textContent = '$' + totalAll.toLocaleString('es-MX');
   document.getElementById('adm-kpi-sobre').textContent = sobre;
   document.getElementById('adm-kpi-bajo').textContent = bajo;
@@ -793,11 +816,11 @@ function renderAdminView(allSales) {
 
   const tbody = document.getElementById('admin-tbody');
   tbody.innerHTML = filtered.length ? filtered.map(d => {
-    const hit = d.total >= META;
-    const bono = hit ? Math.round(d.total * 0.03) : 0;
-    const falta = Math.max(0, META - d.total);
-    const exc = d.total - META;
-    const pct = Math.min(100, Math.round(d.total / META * 100));
+    const hit = d.total >= d.metaInd;
+    const bono = hit ? Math.round(d.total * BONO_IND_PCT) : 0;
+    const falta = Math.max(0, d.metaInd - d.total);
+    const exc = d.total - d.metaInd;
+    const pct = Math.min(100, Math.round(d.total / d.metaInd * 100));
     const barColor = hit ? 'var(--green)' : 'var(--red)';
     const estLabel = d.estudiosVendidos.length ? d.estudiosVendidos.map(e => e.split(' ')[0]).join(', ') : '—';
     return `<tr class="${hit ? 'row-green' : 'row-red'}" data-key="${d.key}" style="cursor:pointer">
@@ -857,8 +880,8 @@ function showDetail(d) {
 
   function buildDetail(sales) {
     const total = sales.reduce((s,v) => s + Number(v.monto), 0);
-    const isHit = total >= META;
-    const b = isHit ? Math.round(total * 0.03) : 0;
+    const isHit = total >= d.metaInd;
+    const b = isHit ? Math.round(total * BONO_IND_PCT) : 0;
     return `<div class="detail-panel">
       <div class="detail-header">
         <div>
@@ -914,8 +937,8 @@ function showDetail(d) {
         document.getElementById('detail-tbody').innerHTML = renderDetailRows(detailSales);
         // Update header totals
         const newTotal = detailSales.reduce((s,v) => s + Number(v.monto), 0);
-        const isHit = newTotal >= META;
-        const b = isHit ? Math.round(newTotal * 0.03) : 0;
+        const isHit = newTotal >= d.metaInd;
+        const b = isHit ? Math.round(newTotal * BONO_IND_PCT) : 0;
         wrap.querySelector('.detail-header div div:last-child').innerHTML = `
           Venta: <strong style="color:${isHit ? 'var(--green)' : 'var(--red)'}">$${newTotal.toLocaleString('es-MX')}</strong> &nbsp;·&nbsp;
           Bono: <strong style="color:${isHit ? 'var(--green)' : 'var(--gray3)'}">$${b.toLocaleString('es-MX')}</strong> &nbsp;·&nbsp;
