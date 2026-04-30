@@ -420,27 +420,27 @@ async function dbDelete(id) {
 
 // ─── USUARIOS ───
 const USERS = {
-  "gabolm88@gmail.com":             {pass:"Zuda2026$Gabo",    name:"Gabriel Lara Marín",          initials:"GL", isAdmin:false},
-  "andreadelaf@icloud.com":         {pass:"Zuda2026$Andrea",  name:"Andrea De La Fuente Piña",    initials:"AF", isAdmin:false},
-  "aolverasanroman@gmail.com":      {pass:"Zuda2026$Alexa",   name:"Alexa Olvera Sanromán",       initials:"AO", isAdmin:false},
-  "jelwanmariano1214@gmail.com":    {pass:"Zuda2026$Mariano", name:"Mariano Jelwan Martínez",     initials:"MJ", isAdmin:false},
-  "karymontiel111@gmail.com":       {pass:"Zuda2026$Karyme",  name:"Karyme Montiel García",       initials:"KM", isAdmin:false},
-  "elisornia.dg@gmail.com":         {pass:"Zuda2026$Elisa",   name:"Elisa Flores Recio",          initials:"EF", isAdmin:false},
-  "isaapenguelly@gmail.com":        {pass:"Zuda2026$Isa",     name:"Isabella Penguelly Anaya",    initials:"IP", isAdmin:false},
-  "rferreraa54@gmail.com":          {pass:"Zuda2026$Regina",  name:"Regina Ferrera Abogado",      initials:"RF", isAdmin:false},
-  "valeriafrid03@gmail.com":        {pass:"Zuda2026$Valeria", name:"Valeria Joanna Frid Gebel",   initials:"VF", isAdmin:false},
-  "liora.waldmanmenasse@gmail.com": {pass:"Zuda2026$Liora",   name:"Liora Waldman Menasse",       initials:"LW", isAdmin:false},
-  "jimenezabarcasara@gmail.com":    {pass:"Zuda2026$Sara",    name:"Sara Jiménez Abarca",         initials:"SJ", isAdmin:false},
-  "valealvareze2004@gmail.com":     {pass:"Zuda2026$Vale",    name:"Valentina Álvarez Espíndola", initials:"VA", isAdmin:false},
-  "josemvazquez048@gmail.com":      {pass:"Zuda2026$Jose",    name:"José Manuel Vázquez Rendón",  initials:"JV", isAdmin:false},
-  "f.cohen2501@gmail.com":          {pass:"Zuda2026$Fanny",   name:"Fanny Cohen Darwich",         initials:"FC", isAdmin:false},
-  "marianahdzrivera12@gmail.com":   {pass:"Zuda2026$Mariana", name:"Mariana Hernández Rivera",    initials:"MH", isAdmin:false},
-  "nicolasflores94@live.com":       {pass:"Zuda2026$Nicolas", name:"Nicolás Flores Valencia",     initials:"NF", isAdmin:false},
-  "marialaura5485@gmail.com":       {pass:"Zuda2026$Laura",   name:"María Laura Machado Rivas",   initials:"ML", isAdmin:false},
-  "alvarin.zatarain@gmail.com":     {pass:"Zuda2026$Alvaro",  name:"Álvaro de Zataráin Llaca",    initials:"AZ", isAdmin:false},
-  "aoates.urias@gmail.com":         {pass:"Zuda2026$Ale",     name:"Alejandra Oates Urías",       initials:"AU", isAdmin:false},
-  "marcebmin@gmail.com":            {pass:"Zuda2026$Marcela", name:"Marcela Barros Minvielle",    initials:"MB", isAdmin:false},
-  "admin":                          {pass:"zudaadmin26",      name:"Admin ZUDA",                  initials:"AD", isAdmin:true}
+  "gabolm88@gmail.com":             {pass:"Zuda2026$Gabo",    name:"Gabriel Lara Marín",          initials:"GL", isAdmin:false, estudio:"ARTZ PEDREGAL"},
+  "andreadelaf@icloud.com":         {pass:"Zuda2026$Andrea",  name:"Andrea De La Fuente Piña",    initials:"AF", isAdmin:false, estudio:"ARTZ PEDREGAL"},
+  "aolverasanroman@gmail.com":      {pass:"Zuda2026$Alexa",   name:"Alexa Olvera Sanromán",       initials:"AO", isAdmin:false, estudio:"ARTZ PEDREGAL"},
+  "jelwanmariano1214@gmail.com":    {pass:"Zuda2026$Mariano", name:"Mariano Jelwan Martínez",     initials:"MJ", isAdmin:false, estudio:"ARTZ PEDREGAL"},
+  "karymontiel111@gmail.com":       {pass:"Zuda2026$Karyme",  name:"Karyme Montiel García",       initials:"KM", isAdmin:false, estudio:"ARTZ PEDREGAL"},
+  "elisornia.dg@gmail.com":         {pass:"Zuda2026$Elisa",   name:"Elisa Flores Recio",          initials:"EF", isAdmin:false, estudio:null},
+  "isaapenguelly@gmail.com":        {pass:"Zuda2026$Isa",     name:"Isabella Penguelly Anaya",    initials:"IP", isAdmin:false, estudio:null},
+  "rferreraa54@gmail.com":          {pass:"Zuda2026$Regina",  name:"Regina Ferrera Abogado",      initials:"RF", isAdmin:false, estudio:null},
+  "valeriafrid03@gmail.com":        {pass:"Zuda2026$Valeria", name:"Valeria Joanna Frid Gebel",   initials:"VF", isAdmin:false, estudio:null},
+  "liora.waldmanmenasse@gmail.com": {pass:"Zuda2026$Liora",   name:"Liora Waldman Menasse",       initials:"LW", isAdmin:false, estudio:null},
+  "jimenezabarcasara@gmail.com":    {pass:"Zuda2026$Sara",    name:"Sara Jiménez Abarca",         initials:"SJ", isAdmin:false, estudio:null},
+  "valealvareze2004@gmail.com":     {pass:"Zuda2026$Vale",    name:"Valentina Álvarez Espíndola", initials:"VA", isAdmin:false, estudio:null},
+  "josemvazquez048@gmail.com":      {pass:"Zuda2026$Jose",    name:"José Manuel Vázquez Rendón",  initials:"JV", isAdmin:false, estudio:null},
+  "f.cohen2501@gmail.com":          {pass:"Zuda2026$Fanny",   name:"Fanny Cohen Darwich",         initials:"FC", isAdmin:false, estudio:null},
+  "marianahdzrivera12@gmail.com":   {pass:"Zuda2026$Mariana", name:"Mariana Hernández Rivera",    initials:"MH", isAdmin:false, estudio:null},
+  "nicolasflores94@live.com":       {pass:"Zuda2026$Nicolas", name:"Nicolás Flores Valencia",     initials:"NF", isAdmin:false, estudio:null},
+  "marialaura5485@gmail.com":       {pass:"Zuda2026$Laura",   name:"María Laura Machado Rivas",   initials:"ML", isAdmin:false, estudio:null},
+  "alvarin.zatarain@gmail.com":     {pass:"Zuda2026$Alvaro",  name:"Álvaro de Zataráin Llaca",    initials:"AZ", isAdmin:false, estudio:null},
+  "aoates.urias@gmail.com":         {pass:"Zuda2026$Ale",     name:"Alejandra Oates Urías",       initials:"AU", isAdmin:false, estudio:null},
+  "marcebmin@gmail.com":            {pass:"Zuda2026$Marcela", name:"Marcela Barros Minvielle",    initials:"MB", isAdmin:false, estudio:null},
+  "admin":                          {pass:"zudaadmin26",      name:"Admin ZUDA",                  initials:"AD", isAdmin:true,  estudio:null}
 };
 
 const META = 65000;
@@ -580,13 +580,8 @@ async function loadSales() {
 function renderSales(sales) {
   const total = sales.reduce((s,v) => s + Number(v.monto), 0);
 
-  // Individual meta: use the lowest threshold among estudios where user sold,
-  // or default $65K. If they sold in ARTZ (60K) and LILAS (65K), use 65K
-  // (they need to clear the threshold for each estudio they're competing in)
-  // Simplest rule: meta = $65K unless ALL their sales are in ARTZ → $60K
-  const myEstudios = [...new Set(sales.map(s => s.estudio).filter(Boolean))];
-  const allArtz = myEstudios.length > 0 && myEstudios.every(e => e === 'ARTZ PEDREGAL');
-  const metaInd = allArtz ? 60000 : META;
+  // Meta individual basada en el estudio asignado al usuario
+  const metaInd = (currentUser.estudio === 'ARTZ PEDREGAL') ? 60000 : META;
 
   const hit = total >= metaInd;
   const bono = hit ? Math.round(total * BONO_IND_PCT) : 0;
@@ -789,9 +784,7 @@ function renderAdminView(allSales) {
     const sales = allSales.filter(s => s.usuario === k);
     const total = sales.reduce((s,v) => s + Number(v.monto), 0);
     const estudiosVendidos = [...new Set(sales.map(s => s.estudio))].filter(Boolean);
-    // Meta individual: $60K if only ARTZ, $65K otherwise
-    const allArtz = estudiosVendidos.length > 0 && estudiosVendidos.every(e => e === 'ARTZ PEDREGAL');
-    const metaInd = allArtz ? 60000 : META;
+    const metaInd = (USERS[k].estudio === 'ARTZ PEDREGAL') ? 60000 : META;
     return { key:k, user:USERS[k], sales, total, estudiosVendidos, metaInd };
   });
 
