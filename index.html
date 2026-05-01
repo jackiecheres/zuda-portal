@@ -919,7 +919,7 @@ async function loadAdminView() {
 }
 
 function renderAdminView(allSales) {
-  const staffKeys = Object.keys(USERS).filter(k => !USERS[k].isAdmin);
+  const staffKeys = Object.keys(USERS).filter(k => !USERS[k].isAdmin && !USERS[k].isManager);
   const userData = staffKeys.map(k => {
     const sales = allSales.filter(s => s.usuario === k);
     const total = sales.reduce((s,v) => s + Number(v.monto), 0);
