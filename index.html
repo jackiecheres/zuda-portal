@@ -311,7 +311,136 @@ tr:hover td { background:#111; }
       </div>
     </div>
 
-    <!-- ADMIN -->
+    <!-- MANAGER SCREEN -->
+    <div id="manager-screen" style="display:none;">
+
+      <!-- HERO -->
+      <div class="hero-band">
+        <div class="eyebrow" id="mgr-eyebrow">Manager · Piloto Mayo–Junio 2026</div>
+        <div class="hero-title">HOLA,<br><span id="mgr-hero-name">—</span></div>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-val" id="mgr-kpi-venta">$0</div><div class="kpi-lbl">Venta del estudio</div></div>
+          <div class="kpi"><div class="kpi-val" id="mgr-kpi-meta">—</div><div class="kpi-lbl">Meta bimestral</div></div>
+          <div class="kpi"><div class="kpi-val" id="mgr-kpi-bono">$0</div><div class="kpi-lbl">Bono estimado</div></div>
+          <div class="kpi"><div class="kpi-val" id="mgr-kpi-staff">0</div><div class="kpi-lbl">Staff vendiendo</div></div>
+        </div>
+      </div>
+
+      <!-- 01 PROGRESO DEL ESTUDIO -->
+      <div class="section">
+        <div class="sec-hd"><span class="sec-num">01</span><span class="sec-title">PROGRESO DEL ESTUDIO</span></div>
+        <div class="progress-wrap">
+          <div class="progress-header">
+            <div class="prog-cell">
+              <div class="prog-lbl">Venta acumulada bimestral</div>
+              <div class="prog-val" id="mgr-prog-venta">$0</div>
+              <div class="prog-sub" id="mgr-prog-sub">Cargando datos...</div>
+            </div>
+            <div class="prog-cell">
+              <div class="prog-lbl">Bono manager estimado</div>
+              <div class="prog-val" id="mgr-prog-bono" style="color:var(--gray3)">$0</div>
+              <div class="prog-sub" id="mgr-prog-bono-sub">2% base + 3% sobre excedente</div>
+            </div>
+          </div>
+          <div class="bar-container">
+            <div class="bar-track"><div class="bar-fill" id="mgr-bar-fill" style="width:0%"></div></div>
+            <div class="bar-labels"><span>$0</span><span id="mgr-bar-pct" class="bar-pct">0%</span><span id="mgr-bar-meta">—</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 02 DESGLOSE DEL BONO -->
+      <div class="section">
+        <div class="sec-hd"><span class="sec-num">02</span><span class="sec-title">DESGLOSE DEL BONO</span></div>
+        <div class="bonus-grid">
+          <div class="bonus-box">
+            <div class="bonus-lbl">Bono base · 2% sobre venta total del estudio</div>
+            <div class="bonus-amt" id="mgr-bono-base" style="color:var(--gray3)">$0</div>
+            <div class="bonus-note" id="mgr-bono-base-note">Activa cuando el estudio alcanza la meta bimestral.</div>
+          </div>
+          <div class="bonus-box" style="border-left:1px solid var(--border)">
+            <div class="bonus-lbl">Bono adicional · 3% sobre excedente</div>
+            <div class="bonus-amt" id="mgr-bono-extra" style="color:var(--gray3)">$0</div>
+            <div class="bonus-note" id="mgr-bono-extra-note">Solo aplica sobre el monto por encima de la meta.</div>
+          </div>
+        </div>
+        <div style="border:1px solid var(--border);border-top:none;background:#080808;padding:24px 32px;display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);">Total bono manager · Pago julio 2026</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:0.04em;" id="mgr-bono-total">$0</div>
+        </div>
+      </div>
+
+      <!-- 03 VENTAS DEL EQUIPO -->
+      <div class="section">
+        <div class="sec-hd" style="justify-content:space-between;align-items:center;">
+          <div style="display:flex;align-items:baseline;gap:16px;"><span class="sec-num">03</span><span class="sec-title">VENTAS DEL EQUIPO</span></div>
+          <button id="btn-refresh-mgr" style="padding:7px 16px;border:1px solid var(--border);background:none;color:var(--gray);font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;">↻ Actualizar</button>
+        </div>
+        <div class="admin-table-wrap">
+          <table>
+            <colgroup><col style="width:25%"><col style="width:15%"><col style="width:18%"><col style="width:18%"><col style="width:12%"><col style="width:12%"></colgroup>
+            <thead><tr><th>Nombre</th><th>Ventas</th><th>Venta acum.</th><th>Falta / Excedente</th><th>Bono est.</th><th>Estado</th></tr></thead>
+            <tbody id="mgr-staff-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 04 REGISTRAR MI VENTA -->
+      <div class="section">
+        <div class="sec-hd"><span class="sec-num">04</span><span class="sec-title">REGISTRAR MI VENTA</span></div>
+        <div class="form-grid">
+          <div class="form-panel">
+            <div class="form-title">DATOS DE LA VENTA</div>
+            <div class="field">
+              <label>Fecha de la venta</label>
+              <input type="date" id="mgr-f-fecha">
+            </div>
+            <div class="field">
+              <label>Estudio</label>
+              <input type="text" id="mgr-f-estudio" readonly style="width:100%;padding:11px 14px;background:var(--gray2);border:1px solid var(--border);color:var(--accent);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;">
+            </div>
+            <div class="field">
+              <label>Categoría</label>
+              <select id="mgr-f-cat"></select>
+            </div>
+            <div class="field">
+              <label>Paquete / Membresía</label>
+              <select id="mgr-f-pkg"></select>
+            </div>
+          </div>
+          <div class="form-panel">
+            <div class="form-title">RESUMEN</div>
+            <div class="sale-preview">
+              <div class="sp-row"><span>Categoría</span><span id="mgr-prev-cat">—</span></div>
+              <div class="sp-row"><span>Paquete</span><span id="mgr-prev-pkg">—</span></div>
+              <div class="sp-row"><span>Estudio</span><span id="mgr-prev-est" style="color:var(--accent)">—</span></div>
+              <div class="sp-row"><span>Fecha</span><span id="mgr-prev-fecha">—</span></div>
+              <div class="sp-row big" style="border-top:1px solid var(--border);margin-top:10px;padding-top:10px;">
+                <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--gray)">Monto</span>
+                <span id="mgr-prev-monto">$0</span>
+              </div>
+            </div>
+            <button class="btn-add" id="mgr-btn-add">+ REGISTRAR VENTA</button>
+            <div class="success-msg" id="mgr-success-msg"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 05 MIS VENTAS -->
+      <div class="section" style="border-bottom:none;padding-bottom:60px;">
+        <div class="sec-hd"><span class="sec-num">05</span><span class="sec-title">MIS VENTAS</span></div>
+        <button class="export-btn" id="mgr-btn-export">↓ Exportar mis ventas CSV</button>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Fecha</th><th>Estudio</th><th>Paquete / Membresía</th><th>Categoría</th><th>Monto</th><th></th></tr></thead>
+            <tbody id="mgr-sales-tbody"><tr><td colspan="6"><div class="empty-state">Cargando...</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /manager-screen -->
+
+    <!-- ADMIN SCREEN -->
     <div id="admin-screen">
       <div class="hero-band">
         <div class="eyebrow">Vista de administrador · Piloto Mayo–Junio 2026</div>
@@ -437,9 +566,9 @@ const USERS = {
   "marianahdzrivera12@gmail.com":   {pass:"Zuda2026$Mariana", name:"Mariana Hernández Rivera",    initials:"MH", isAdmin:false, estudio:null},
   "nicolasflores94@live.com":       {pass:"Zuda2026$Nicolas", name:"Nicolás Flores Valencia",     initials:"NF", isAdmin:false, estudio:null},
   "marialaura5485@gmail.com":       {pass:"Zuda2026$Laura",   name:"María Laura Machado Rivas",   initials:"ML", isAdmin:false, estudio:null},
-  "alvarin.zatarain@gmail.com":     {pass:"Zuda2026$Alvaro",  name:"Álvaro de Zataráin Llaca",    initials:"AZ", isAdmin:false, estudio:null},
-  "aoates.urias@gmail.com":         {pass:"Zuda2026$Ale",     name:"Alejandra Oates Urías",       initials:"AU", isAdmin:false, estudio:null},
-  "marcebmin@gmail.com":            {pass:"Zuda2026$Marcela", name:"Marcela Barros Minvielle",    initials:"MB", isAdmin:false, estudio:null},
+  "alvarin.zatarain@gmail.com":     {pass:"Zuda2026$Alvaro",  name:"Álvaro de Zataráin Llaca",    initials:"AZ", isAdmin:false, isManager:true,  estudio:"PRADO NORTE"},
+  "aoates.urias@gmail.com":         {pass:"Zuda2026$Ale",     name:"Alejandra Oates Urías",       initials:"AU", isAdmin:false, isManager:true,  estudio:"ARTZ PEDREGAL"},
+  "marcebmin@gmail.com":            {pass:"Zuda2026$Marcela", name:"Marcela Barros Minvielle",    initials:"MB", isAdmin:false, isManager:true,  estudio:"LILAS"},
   "admin":                          {pass:"zudaadmin26",      name:"Admin ZUDA",                  initials:"AD", isAdmin:true,  estudio:null}
 };
 
@@ -455,9 +584,10 @@ const CATALOG = {
   cubo:[{name:"Cubo All Access mensual",price:3400}],
   recovery:[{name:"Recovery primera vez",price:250},{name:"Recovery 1 sesión",price:300},{name:"Recovery 5 sesiones",price:1450},{name:"Recovery 10 sesiones",price:2800}],
   bebidas:[{name:"Agua Zoé 500 ml",price:35},{name:"Agua Zoé 900 ml",price:45}],
-  merch:[{name:"Calcetines Pilates",price:390},{name:"Tote Bag",price:350},{name:"Pullover",price:899},{name:"Player",price:499},{name:"Gorra",price:499},{name:"Hoodie",price:999}]
+  merch:[{name:"Calcetines Pilates",price:390},{name:"Tote Bag",price:350},{name:"Pullover",price:899},{name:"Player",price:499},{name:"Gorra",price:499},{name:"Hoodie",price:999}],
+  wellness:[{name:"InBody Socios",price:199},{name:"InBody Regular",price:299}]
 };
-const CAT_LABELS = {paquete:'Paquetes',mensualidad:'Mensualidad',anualidad:'Anualidad',teens:'Teens',cubo:'Cubo',recovery:'Recovery',bebidas:'Bebidas',merch:'Merch'};
+const CAT_LABELS = {paquete:'Paquetes',mensualidad:'Mensualidad',anualidad:'Anualidad',teens:'Teens',cubo:'Cubo',recovery:'Recovery',bebidas:'Bebidas',merch:'Merch',wellness:'Zuda Wellness'};
 
 let currentUser = null;
 let currentUserKey = null;
@@ -480,9 +610,17 @@ function doLogin() {
 
   if (currentUser.isAdmin) {
     document.getElementById('admin-screen').style.display = 'block';
+    document.getElementById('manager-screen').style.display = 'none';
     document.querySelectorAll('.staff-only').forEach(el => el.style.display = 'none');
     document.getElementById('nav-name').insertAdjacentHTML('afterend','<span class="admin-nav-tag">Admin</span>');
     loadAdminView();
+  } else if (currentUser.isManager) {
+    document.getElementById('admin-screen').style.display = 'none';
+    document.getElementById('manager-screen').style.display = 'block';
+    document.querySelectorAll('.staff-only').forEach(el => el.style.display = 'none');
+    document.getElementById('nav-name').insertAdjacentHTML('afterend','<span class="admin-nav-tag" style="color:var(--accent);border-color:var(--accent);">Manager</span>');
+    document.getElementById('nav-countdown').style.display = 'flex';
+    loadManagerView();
   } else {
     document.getElementById('admin-screen').style.display = 'none';
     document.getElementById('hero-name').textContent = currentUser.name.split(' ')[0].toUpperCase();
@@ -508,9 +646,11 @@ function doLogin() {
 
 function doLogout() {
   if (window._refreshInterval) { clearInterval(window._refreshInterval); window._refreshInterval = null; }
+  if (window._mgrRefreshInterval) { clearInterval(window._mgrRefreshInterval); window._mgrRefreshInterval = null; }
   currentUser = null; currentUserKey = null; _currentSales = [];
   document.getElementById('app-screen').style.display = 'none';
   document.getElementById('admin-screen').style.display = 'none';
+  document.getElementById('manager-screen').style.display = 'none';
   document.getElementById('nav-countdown').style.display = 'none';
   document.querySelectorAll('.staff-only').forEach(el => el.style.display = '');
   document.querySelectorAll('.admin-nav-tag').forEach(el => el.remove());
@@ -952,6 +1092,236 @@ function showDetail(d) {
       document.getElementById('modal-overlay').style.display = 'none';
     });
   });
+}
+
+// ─── MANAGER VIEW ───
+async function loadManagerView() {
+  const est = currentUser.estudio;
+  const meta = META_ESTUDIO[est] || 0;
+
+  // Setup static fields
+  document.getElementById('mgr-hero-name').textContent = currentUser.name.split(' ')[0].toUpperCase();
+  document.getElementById('mgr-eyebrow').textContent = 'Manager · ' + est + ' · Piloto Mayo–Junio 2026';
+  document.getElementById('mgr-f-fecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('mgr-f-estudio').value = est;
+  document.getElementById('mgr-prev-est').textContent = est;
+  document.getElementById('mgr-kpi-meta').textContent = '$' + meta.toLocaleString('es-MX');
+  document.getElementById('mgr-bar-meta').textContent = 'Meta $' + (meta/1000).toFixed(0) + 'K';
+
+  initManagerCatalog();
+  await refreshManagerData();
+
+  document.getElementById('btn-refresh-mgr').addEventListener('click', async function() {
+    this.textContent = '↻ Actualizando...';
+    await refreshManagerData();
+    this.textContent = '↻ Actualizar';
+  });
+
+  document.getElementById('mgr-btn-add').addEventListener('click', addManagerSale);
+  document.getElementById('mgr-btn-export').addEventListener('click', async () => {
+    const sales = await dbGet(`usuario=eq.${encodeURIComponent(currentUserKey)}&order=created_at.desc`);
+    exportCSV(sales, 'mis_ventas_manager_' + new Date().toISOString().split('T')[0] + '.csv');
+  });
+
+  // Auto-refresh every 60s
+  if (window._mgrRefreshInterval) clearInterval(window._mgrRefreshInterval);
+  window._mgrRefreshInterval = setInterval(() => {
+    if (currentUser && currentUser.isManager) refreshManagerData();
+  }, 60000);
+}
+
+async function refreshManagerData() {
+  const est = currentUser.estudio;
+  const meta = META_ESTUDIO[est] || 0;
+
+  try {
+    const allSales = await dbGet('order=created_at.desc');
+    const estSales = allSales.filter(s => s.estudio === est);
+    const mySales = allSales.filter(s => s.usuario === currentUserKey);
+    const estTotal = estSales.reduce((s,v) => s + Number(v.monto), 0);
+
+    // Manager bonus calc
+    const hitMeta = estTotal >= meta;
+    const bonoBase = hitMeta ? Math.round(estTotal * 0.02) : 0;
+    const excedente = hitMeta ? Math.max(0, estTotal - meta) : 0;
+    const bonoExtra = Math.round(excedente * 0.03);
+    const bonoTotal = bonoBase + bonoExtra;
+    const falta = Math.max(0, meta - estTotal);
+    const pct = Math.min(100, Math.round(estTotal / meta * 100));
+
+    // KPIs
+    document.getElementById('mgr-kpi-venta').textContent = '$' + estTotal.toLocaleString('es-MX');
+    document.getElementById('mgr-kpi-bono').textContent = '$' + bonoTotal.toLocaleString('es-MX');
+    const staffVendiendo = new Set(estSales.map(s => s.usuario)).size;
+    document.getElementById('mgr-kpi-staff').textContent = staffVendiendo;
+
+    // Progress
+    document.getElementById('mgr-prog-venta').textContent = '$' + estTotal.toLocaleString('es-MX');
+    document.getElementById('mgr-prog-venta').style.color = hitMeta ? 'var(--green)' : 'var(--white)';
+    document.getElementById('mgr-prog-sub').textContent = hitMeta
+      ? '¡Meta alcanzada! Excedente: $' + excedente.toLocaleString('es-MX')
+      : 'Faltan $' + falta.toLocaleString('es-MX') + ' para activar el bono';
+    document.getElementById('mgr-bar-fill').style.width = pct + '%';
+    document.getElementById('mgr-bar-fill').style.background = hitMeta ? 'var(--green)' : 'var(--white)';
+    document.getElementById('mgr-bar-pct').textContent = pct + '%';
+    document.getElementById('mgr-prog-bono').textContent = '$' + bonoTotal.toLocaleString('es-MX');
+    document.getElementById('mgr-prog-bono').style.color = hitMeta ? 'var(--green)' : 'var(--gray3)';
+    document.getElementById('mgr-prog-bono-sub').textContent = hitMeta
+      ? 'Base $' + bonoBase.toLocaleString('es-MX') + ' + Excedente $' + bonoExtra.toLocaleString('es-MX')
+      : '2% base + 3% sobre excedente — activa al llegar a meta';
+
+    // Bono boxes
+    const baseEl = document.getElementById('mgr-bono-base');
+    baseEl.textContent = '$' + bonoBase.toLocaleString('es-MX');
+    baseEl.style.color = hitMeta ? 'var(--white)' : 'var(--gray3)';
+    document.getElementById('mgr-bono-base-note').textContent = hitMeta
+      ? '2% de $' + estTotal.toLocaleString('es-MX') + ' — ¡meta alcanzada!'
+      : 'Activa cuando el estudio alcanza $' + meta.toLocaleString('es-MX');
+    const extraEl = document.getElementById('mgr-bono-extra');
+    extraEl.textContent = '$' + bonoExtra.toLocaleString('es-MX');
+    extraEl.style.color = excedente > 0 ? 'var(--green)' : 'var(--gray3)';
+    document.getElementById('mgr-bono-extra-note').textContent = excedente > 0
+      ? '3% de $' + excedente.toLocaleString('es-MX') + ' en excedente'
+      : 'Aplica solo sobre la venta por encima de la meta';
+    const totalEl = document.getElementById('mgr-bono-total');
+    totalEl.textContent = '$' + bonoTotal.toLocaleString('es-MX');
+    totalEl.style.color = hitMeta ? 'var(--white)' : 'var(--gray3)';
+
+    // Staff table
+    renderManagerStaffTable(allSales, est);
+
+    // My sales
+    renderManagerSales(mySales);
+
+  } catch(e) {
+    console.error('Manager refresh error:', e);
+  }
+}
+
+function renderManagerStaffTable(allSales, est) {
+  const staffKeys = Object.keys(USERS).filter(k => !USERS[k].isAdmin && !USERS[k].isManager);
+  const estSalesAll = allSales.filter(s => s.estudio === est);
+
+  // Build per-staff data for this estudio
+  const staffData = staffKeys
+    .map(k => {
+      const sales = estSalesAll.filter(s => s.usuario === k);
+      const total = sales.reduce((s,v) => s + Number(v.monto), 0);
+      return { key:k, user:USERS[k], sales, total };
+    })
+    .filter(d => d.total > 0) // only show staff who sold here
+    .sort((a,b) => b.total - a.total);
+
+  const tbody = document.getElementById('mgr-staff-tbody');
+  if (!staffData.length) {
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Aún no hay ventas de staff en este estudio.</div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = staffData.map(d => {
+    const metaInd = (USERS[d.key].estudio === 'ARTZ PEDREGAL') ? 60000 : META;
+    const hit = d.total >= metaInd;
+    const falta = Math.max(0, metaInd - d.total);
+    const exc = d.total - metaInd;
+    const bono = hit ? Math.round(d.total * BONO_IND_PCT) : 0;
+    return `<tr class="${hit ? 'row-green' : 'row-red'}">
+      <td class="td-name" style="font-weight:500">${d.user.name}</td>
+      <td>${d.sales.length}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:15px">$${d.total.toLocaleString('es-MX')}</td>
+      <td style="color:${hit ? 'var(--green)' : 'var(--red)'};font-size:13px">${hit ? '+$'+exc.toLocaleString('es-MX') : '-$'+falta.toLocaleString('es-MX')}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:15px;color:${hit ? 'var(--green)' : 'var(--gray3)'}">$${bono.toLocaleString('es-MX')}</td>
+      <td class="td-status">${hit ? '✓ Meta' : '✗ Bajo'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderManagerSales(sales) {
+  const tbody = document.getElementById('mgr-sales-tbody');
+  if (!sales.length) {
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Aún no hay ventas registradas.</div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = sales.map(s => `<tr>
+    <td>${fmtDate(s.fecha)}</td>
+    <td>${s.estudio}</td>
+    <td class="td-pkg">${s.paquete}</td>
+    <td>${s.categoria}</td>
+    <td class="td-amt">$${Number(s.monto).toLocaleString('es-MX')}</td>
+    <td><button class="td-del" data-id="${s.id}" data-pkg="${s.paquete}" data-monto="${s.monto}" data-est="${s.estudio}">✕</button></td>
+  </tr>`).join('');
+}
+
+function initManagerCatalog() {
+  const cat = document.getElementById('mgr-f-cat');
+  cat.innerHTML = '<option value="">— Selecciona categoría —</option>';
+  Object.keys(CATALOG).forEach(k => {
+    const o = document.createElement('option');
+    o.value = k; o.textContent = CAT_LABELS[k]; cat.appendChild(o);
+  });
+  cat.addEventListener('change', updateManagerPkgs);
+  document.getElementById('mgr-f-pkg').addEventListener('change', updateManagerPreview);
+  document.getElementById('mgr-f-fecha').addEventListener('change', updateManagerPreview);
+}
+
+function updateManagerPkgs() {
+  const cat = document.getElementById('mgr-f-cat').value;
+  const sel = document.getElementById('mgr-f-pkg');
+  sel.innerHTML = '<option value="">— Selecciona paquete —</option>';
+  if (!cat || !CATALOG[cat]) { updateManagerPreview(); return; }
+  CATALOG[cat].forEach((item,i) => {
+    const o = document.createElement('option');
+    o.value = i; o.textContent = item.name + ' — $' + item.price.toLocaleString('es-MX');
+    sel.appendChild(o);
+  });
+  document.getElementById('mgr-prev-cat').textContent = CAT_LABELS[cat];
+  updateManagerPreview();
+}
+
+function updateManagerPreview() {
+  const cat = document.getElementById('mgr-f-cat').value;
+  const idx = document.getElementById('mgr-f-pkg').value;
+  const fecha = document.getElementById('mgr-f-fecha').value;
+  document.getElementById('mgr-prev-fecha').textContent = fecha || '—';
+  if (cat && idx !== '' && CATALOG[cat]) {
+    const item = CATALOG[cat][parseInt(idx)];
+    document.getElementById('mgr-prev-pkg').textContent = item.name;
+    document.getElementById('mgr-prev-monto').textContent = '$' + item.price.toLocaleString('es-MX');
+    document.getElementById('mgr-btn-add').classList.add('ready');
+  } else {
+    document.getElementById('mgr-prev-pkg').textContent = '—';
+    document.getElementById('mgr-prev-monto').textContent = '$0';
+    document.getElementById('mgr-btn-add').classList.remove('ready');
+  }
+}
+
+async function addManagerSale() {
+  const cat = document.getElementById('mgr-f-cat').value;
+  const idx = document.getElementById('mgr-f-pkg').value;
+  const fecha = document.getElementById('mgr-f-fecha').value;
+  const estudio = currentUser.estudio;
+  const msg = document.getElementById('mgr-success-msg');
+  if (!cat || idx === '' || !fecha) {
+    msg.style.color = 'var(--red)'; msg.textContent = 'Completa todos los campos.';
+    setTimeout(() => msg.textContent = '', 2500); return;
+  }
+  const item = CATALOG[cat][parseInt(idx)];
+  const btn = document.getElementById('mgr-btn-add');
+  btn.textContent = 'GUARDANDO...'; btn.classList.remove('ready');
+  try {
+    await dbPost({ usuario:currentUserKey, nombre:currentUser.name, fecha, estudio, categoria:CAT_LABELS[cat]||cat, paquete:item.name, monto:item.price });
+    msg.style.color = 'var(--green)';
+    msg.textContent = '✓ Guardado: ' + item.name + ' · $' + item.price.toLocaleString('es-MX');
+    setTimeout(() => msg.textContent = '', 3500);
+    document.getElementById('mgr-f-cat').value = '';
+    document.getElementById('mgr-f-pkg').innerHTML = '<option value="">— Primero selecciona categoría —</option>';
+    document.getElementById('mgr-prev-cat').textContent = '—';
+    document.getElementById('mgr-prev-pkg').textContent = '—';
+    document.getElementById('mgr-prev-monto').textContent = '$0';
+    await refreshManagerData();
+  } catch(e) {
+    msg.style.color = 'var(--red)'; msg.textContent = 'Error al guardar. Intenta de nuevo.';
+  }
+  btn.textContent = '+ REGISTRAR VENTA';
 }
 
 // ─── EXPORT CSV ───
