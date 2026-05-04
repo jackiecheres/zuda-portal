@@ -488,7 +488,7 @@ tr:hover td { background:#111; }
         <div class="admin-table-wrap">
           <table>
             <colgroup><col style="width:22%"><col style="width:30%"><col style="width:23%"><col style="width:25%"></colgroup>
-            <thead><tr><th>Estudio</th><th>Venta total</th><th>Vendedores · Ventas</th><th>Avance</th></tr></thead>
+            <thead><tr><th>Estudio</th><th>Venta total</th><th>Hoy vs Ayer</th><th>Vendedores · Ventas</th><th>Avance</th></tr></thead>
             <tbody id="admin-estudios-tbody"></tbody>
           </table>
         </div>
@@ -553,6 +553,74 @@ tr:hover td { background:#111; }
 
   </div><!-- /main -->
 </div><!-- /app -->
+
+<!-- DIRECTOR SCREEN -->
+<div id="director-screen" style="display:none;position:fixed;inset:0;background:var(--black);z-index:200;overflow-y:auto;">
+  <nav style="position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:60px;border-bottom:1px solid var(--border);background:rgba(13,13,13,0.97);backdrop-filter:blur(12px);">
+    <img src="" alt="ZUDA" id="dir-logo" style="height:36px;width:auto;display:block;">
+    <div id="dir-countdown-nav" style="display:flex;align-items:center;gap:10px;padding:7px 16px;border:1px solid #1a3d1a;background:#0a150a;">
+      <span style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gray);">Reto</span>
+      <span id="dir-cd-nav" style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:0.08em;color:var(--green);">--</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <span style="font-size:13px;color:var(--gray);" id="dir-nav-name">—</span>
+      <span style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);padding:3px 10px;">Dirección</span>
+      <button id="btn-logout-dir" style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);cursor:pointer;padding:6px 12px;border:1px solid var(--border);background:none;">Salir</button>
+    </div>
+  </nav>
+
+  <div style="max-width:1060px;margin:0 auto;padding:0 40px;">
+
+    <div class="hero-band">
+      <div class="eyebrow">Vista Dirección · Solo lectura · Piloto Mayo–Junio 2026</div>
+      <div class="hero-title">VENTAS<br><span>BIMESTRE</span></div>
+      <div class="admin-kpi-row">
+        <div class="kpi"><div class="kpi-val" id="dir-kpi-total">—</div><div class="kpi-lbl">Venta total equipo</div></div>
+        <div class="kpi"><div class="kpi-val" id="dir-kpi-hoy">$0</div><div class="kpi-lbl">Venta hoy</div></div>
+        <div class="kpi"><div class="kpi-val" id="dir-kpi-sobre">0</div><div class="kpi-lbl">Sobre meta</div></div>
+        <div class="kpi"><div class="kpi-val" id="dir-kpi-bajo" style="color:var(--red)">0</div><div class="kpi-lbl">Bajo meta</div></div>
+      </div>
+    </div>
+
+    <!-- VENTA HOY VS AYER -->
+    <div class="section">
+      <div class="sec-hd"><span class="sec-num">01</span><span class="sec-title">VENTA DEL DÍA</span></div>
+      <div id="dir-dia-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);">
+        <div style="padding:24px;background:var(--black);"><div class="empty-state">Cargando...</div></div>
+      </div>
+    </div>
+
+    <!-- PROGRESO POR ESTUDIO -->
+    <div class="section">
+      <div class="sec-hd"><span class="sec-num">02</span><span class="sec-title">PROGRESO POR ESTUDIO</span></div>
+      <div class="est-grid" id="dir-est-grid">
+        <div class="est-card" style="grid-column:1/-1"><div class="empty-state">Cargando...</div></div>
+      </div>
+    </div>
+
+    <!-- STAFF TABLE -->
+    <div class="section" style="border-bottom:none;padding-bottom:60px;">
+      <div class="sec-hd" style="justify-content:space-between;align-items:center;">
+        <div style="display:flex;align-items:baseline;gap:16px;"><span class="sec-num">03</span><span class="sec-title">VENTAS POR STAFF</span></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="dir-filter-btn active" data-filter="todos" style="padding:7px 14px;border:1px solid var(--gray);background:var(--gray3);color:var(--white);font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;">Todos</button>
+          <button class="dir-filter-btn" data-filter="LILAS" style="padding:7px 14px;border:1px solid var(--border);background:none;color:var(--gray);font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;">Lilas</button>
+          <button class="dir-filter-btn" data-filter="PRADO NORTE" style="padding:7px 14px;border:1px solid var(--border);background:none;color:var(--gray);font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;">Prado Norte</button>
+          <button class="dir-filter-btn" data-filter="ARTZ PEDREGAL" style="padding:7px 14px;border:1px solid var(--border);background:none;color:var(--gray);font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;">Artz</button>
+          <button id="btn-refresh-dir" style="padding:7px 14px;border:1px solid var(--border);background:none;color:var(--gray);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;">↻</button>
+        </div>
+      </div>
+      <div class="admin-table-wrap">
+        <table>
+          <colgroup><col style="width:6%"><col style="width:22%"><col style="width:13%"><col style="width:13%"><col style="width:13%"><col style="width:11%"><col style="width:11%"><col style="width:11%"></colgroup>
+          <thead><tr><th>#</th><th>Nombre</th><th>Estudios</th><th>Venta acum.</th><th>Hoy</th><th>% Meta</th><th>Bono est.</th><th>Estado</th></tr></thead>
+          <tbody id="dir-staff-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /director-screen -->
 
 <!-- MODAL ELIMINAR -->
 <div id="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:999;align-items:center;justify-content:center;">
@@ -628,7 +696,8 @@ const USERS = {
   "alvarin.zatarain@gmail.com":     {pass:"Zuda2026$Alvaro",  name:"Álvaro de Zataráin Llaca",    initials:"AZ", isAdmin:false, isManager:true,  estudio:"PRADO NORTE"},
   "aoates.urias@gmail.com":         {pass:"Zuda2026$Ale",     name:"Alejandra Oates Urías",       initials:"AU", isAdmin:false, isManager:true,  estudio:"ARTZ PEDREGAL"},
   "marcebmin@gmail.com":            {pass:"Zuda2026$Marcela", name:"Marcela Barros Minvielle",    initials:"MB", isAdmin:false, isManager:true,  estudio:"LILAS"},
-  "admin":                          {pass:"zudaadmin26",      name:"Admin ZUDA",                  initials:"AD", isAdmin:true,  estudio:null}
+  "admin":                          {pass:"zudaadmin26",      name:"Admin ZUDA",                  initials:"AD", isAdmin:true,  estudio:null},
+  "admin2":                         {pass:"zudaadmin26",      name:"Dirección ZUDA",              initials:"DZ", isAdmin:false, isDirector:true, estudio:null}
 };
 
 const META = 65000;
@@ -670,9 +739,18 @@ function doLogin() {
   if (currentUser.isAdmin) {
     document.getElementById('admin-screen').style.display = 'block';
     document.getElementById('manager-screen').style.display = 'none';
+    document.getElementById('director-screen').style.display = 'none';
     document.querySelectorAll('.staff-only').forEach(el => el.style.display = 'none');
     document.getElementById('nav-name').insertAdjacentHTML('afterend','<span class="admin-nav-tag">Admin</span>');
     loadAdminView();
+  } else if (currentUser.isDirector) {
+    document.getElementById('app-screen').style.display = 'none';
+    document.getElementById('director-screen').style.display = 'block';
+    document.getElementById('dir-nav-name').textContent = currentUser.name;
+    // Copy logo to director nav
+    const logoImg = document.querySelector('nav img');
+    if (logoImg) document.getElementById('dir-logo').src = logoImg.src;
+    loadDirectorView();
   } else if (currentUser.isManager) {
     document.getElementById('admin-screen').style.display = 'none';
     document.getElementById('manager-screen').style.display = 'block';
@@ -710,6 +788,7 @@ function doLogout() {
   document.getElementById('app-screen').style.display = 'none';
   document.getElementById('admin-screen').style.display = 'none';
   document.getElementById('manager-screen').style.display = 'none';
+  document.getElementById('director-screen').style.display = 'none';
   document.getElementById('nav-countdown').style.display = 'none';
   document.querySelectorAll('.staff-only').forEach(el => el.style.display = '');
   document.querySelectorAll('.admin-nav-tag').forEach(el => el.remove());
@@ -1049,17 +1128,29 @@ function renderAdminView(allSales) {
   }).join('') : '<tr><td colspan="7"><div class="empty-state">Sin resultados.</div></td></tr>';
 
   // Estudios
-  const estudios = ['LILAS','PRADO NORTE','ARTZ PEDREGAL'];
+  const today = new Date().toISOString().split('T')[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
   document.getElementById('admin-estudios-tbody').innerHTML = estudios.map(est => {
     const estSales = allSales.filter(s => s.estudio === est);
     const estTotal = estSales.reduce((s,v) => s + Number(v.monto), 0);
+    const hoy = estSales.filter(s => s.fecha === today).reduce((s,v) => s + Number(v.monto), 0);
+    const ayer = estSales.filter(s => s.fecha === yesterday).reduce((s,v) => s + Number(v.monto), 0);
+    const diff = hoy - ayer;
+    const noData = hoy === 0 && ayer === 0;
+    const up = diff >= 0;
+    const arrow = noData ? '—' : (up ? '▲ ' : '▼ ');
+    const arrowColor = noData ? 'var(--gray)' : (up ? 'var(--green)' : 'var(--red)');
     const vendedores = new Set(estSales.map(s => s.usuario)).size;
     const meta = META_ESTUDIO[est] || 0;
     const hit = estTotal >= meta;
     const pct = meta > 0 ? Math.min(100, Math.round(estTotal / meta * 100)) : 0;
     return `<tr>
       <td style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--white)">${est}</td>
-      <td style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:${hit ? 'var(--green)' : 'var(--white)'}">$${estTotal.toLocaleString('es-MX')} <span style="font-family:'DM Sans',sans-serif;font-size:11px;color:var(--gray)">(${pct}% de $${(meta/1000).toFixed(0)}K)</span></td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:${hit ? 'var(--green)' : 'var(--white)'}">$${estTotal.toLocaleString('es-MX')} <span style="font-family:'DM Sans',sans-serif;font-size:11px;color:var(--gray)">(${pct}%)</span></td>
+      <td>
+        <span style="color:${arrowColor};font-size:13px;">${arrow}$${hoy.toLocaleString('es-MX')}</span>
+        <span style="font-size:11px;color:var(--gray);margin-left:6px;">vs $${ayer.toLocaleString('es-MX')} ayer</span>
+      </td>
       <td>${vendedores} vendedor${vendedores !== 1 ? 'es' : ''} · ${estSales.length} ventas</td>
       <td style="color:${hit ? 'var(--green)' : 'var(--gray)'};">${hit ? '✓ META' : pct + '% avance'}</td>
     </tr>`;
@@ -1403,6 +1494,192 @@ async function addManagerSale() {
     msg.style.color = 'var(--red)'; msg.textContent = 'Error al guardar. Intenta de nuevo.';
   }
   btn.textContent = '+ REGISTRAR VENTA';
+}
+
+// ─── DIRECTOR VIEW ───
+let dirFilter = 'todos';
+
+async function loadDirectorView() {
+  await refreshDirectorData();
+
+  // Countdown
+  runDirectorCountdown();
+
+  // Logout
+  document.getElementById('btn-logout-dir').addEventListener('click', doLogout);
+
+  // Refresh
+  document.getElementById('btn-refresh-dir').addEventListener('click', async () => {
+    await refreshDirectorData();
+  });
+
+  // Filter buttons
+  document.querySelectorAll('.dir-filter-btn').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      document.querySelectorAll('.dir-filter-btn').forEach(b => {
+        b.style.background = 'none'; b.style.color = 'var(--gray)'; b.style.borderColor = 'var(--border)';
+      });
+      this.style.background = 'var(--gray3)'; this.style.color = 'var(--white)'; this.style.borderColor = 'var(--gray)';
+      dirFilter = this.dataset.filter;
+      const allSales = await dbGet('order=created_at.desc');
+      renderDirStaffTable(allSales);
+    });
+  });
+
+  // Auto-refresh every 60s
+  if (window._dirRefreshInterval) clearInterval(window._dirRefreshInterval);
+  window._dirRefreshInterval = setInterval(refreshDirectorData, 60000);
+}
+
+async function refreshDirectorData() {
+  try {
+    const allSales = await dbGet('order=created_at.desc');
+    const today = new Date().toISOString().split('T')[0];
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+    const totalAll = allSales.reduce((s,v) => s + Number(v.monto), 0);
+    const ventaHoy = allSales.filter(s => s.fecha === today).reduce((s,v) => s + Number(v.monto), 0);
+
+    const staffKeys = Object.keys(USERS).filter(k => !USERS[k].isAdmin && !USERS[k].isManager && !USERS[k].isDirector);
+    const userData = staffKeys.map(k => {
+      const sales = allSales.filter(s => s.usuario === k);
+      const total = sales.reduce((s,v) => s + Number(v.monto), 0);
+      const metaInd = (USERS[k].estudio === 'ARTZ PEDREGAL') ? 60000 : META;
+      return { total, metaInd };
+    });
+    const sobre = userData.filter(d => d.total >= d.metaInd).length;
+    const bajo = userData.filter(d => d.total < d.metaInd).length;
+
+    document.getElementById('dir-kpi-total').textContent = '$' + totalAll.toLocaleString('es-MX');
+    document.getElementById('dir-kpi-hoy').textContent = '$' + ventaHoy.toLocaleString('es-MX');
+    document.getElementById('dir-kpi-sobre').textContent = sobre;
+    document.getElementById('dir-kpi-bajo').textContent = bajo;
+    document.getElementById('dir-updated') && (document.getElementById('dir-updated').textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-MX', {hour:'2-digit',minute:'2-digit'}));
+
+    // Venta del día por estudio
+    renderDirDiaGrid(allSales, today, yesterday);
+
+    // Progreso por estudio
+    renderDirEstudios(allSales);
+
+    // Staff table
+    renderDirStaffTable(allSales);
+
+  } catch(e) { console.error('Director refresh error:', e); }
+}
+
+function renderDirDiaGrid(allSales, today, yesterday) {
+  const estudios = ['LILAS','PRADO NORTE','ARTZ PEDREGAL'];
+  document.getElementById('dir-dia-grid').innerHTML = estudios.map(est => {
+    const hoy = allSales.filter(s => s.estudio === est && s.fecha === today).reduce((s,v) => s + Number(v.monto), 0);
+    const ayer = allSales.filter(s => s.estudio === est && s.fecha === yesterday).reduce((s,v) => s + Number(v.monto), 0);
+    const diff = hoy - ayer;
+    const noData = hoy === 0 && ayer === 0;
+    const up = diff >= 0;
+    const arrow = noData ? '—' : (up ? '▲' : '▼');
+    const arrowColor = noData ? 'var(--gray)' : (up ? 'var(--green)' : 'var(--red)');
+    const diffText = noData ? 'Sin ventas' : (up ? '+$' : '-$') + Math.abs(diff).toLocaleString('es-MX') + ' vs ayer';
+    return `<div style="background:var(--black);padding:28px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.07em;color:var(--gray);margin-bottom:16px;">${est}</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:0.03em;line-height:1;color:${hoy > 0 ? 'var(--white)' : 'var(--gray3)'};">$${hoy.toLocaleString('es-MX')}</div>
+      <div style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;margin-top:10px;color:var(--gray);">Hoy</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:10px;border-top:1px solid var(--border);">
+        <span style="font-size:16px;color:${arrowColor};">${arrow}</span>
+        <span style="font-size:12px;color:${arrowColor};">${diffText}</span>
+      </div>
+      <div style="font-size:11px;color:var(--gray);margin-top:4px;">Ayer: $${ayer.toLocaleString('es-MX')}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderDirEstudios(allSales) {
+  const estudios = ['LILAS','PRADO NORTE','ARTZ PEDREGAL'];
+  document.getElementById('dir-est-grid').innerHTML = estudios.map(est => {
+    const estSales = allSales.filter(s => s.estudio === est);
+    const total = estSales.reduce((s,v) => s + Number(v.monto), 0);
+    const meta = META_ESTUDIO[est] || 0;
+    const hit = total >= meta;
+    const pct = meta > 0 ? Math.min(100, Math.round(total / meta * 100)) : 0;
+    const falta = Math.max(0, meta - total);
+    const exc = total - meta;
+    const barColor = hit ? 'var(--green)' : pct > 60 ? 'var(--accent)' : 'var(--red)';
+    return `<div class="est-card">
+      <div class="est-name" style="color:var(--white)">${est}</div>
+      <span class="est-badge">${hit ? '✓ Meta alcanzada' : 'En progreso'}</span>
+      <div class="est-bar-track"><div class="est-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+        <span class="est-pct" style="color:${barColor}">${pct}%</span>
+        <span style="font-size:11px;color:var(--gray)">Meta $${(meta/1000).toFixed(0)}K</span>
+      </div>
+      <div class="est-row"><span>Venta acumulada</span><span style="color:${hit ? 'var(--green)' : 'var(--white)'}">$${total.toLocaleString('es-MX')}</span></div>
+      <div class="est-row"><span>${hit ? 'Excedente' : 'Falta'}</span><span style="color:${hit ? 'var(--green)' : 'var(--red)'};">${hit ? '+$'+exc.toLocaleString('es-MX') : '$'+falta.toLocaleString('es-MX')}</span></div>
+      <div class="est-row"><span>Estado</span><span style="font-size:12px;color:${hit ? 'var(--green)' : 'var(--red)'};">${hit ? '✓ META' : '✗ EN PROGRESO'}</span></div>
+    </div>`;
+  }).join('');
+}
+
+function renderDirStaffTable(allSales) {
+  const today = new Date().toISOString().split('T')[0];
+  const staffKeys = Object.keys(USERS).filter(k => !USERS[k].isAdmin && !USERS[k].isManager && !USERS[k].isDirector);
+
+  const userData = staffKeys.map(k => {
+    const sales = allSales.filter(s => s.usuario === k);
+    const total = sales.reduce((s,v) => s + Number(v.monto), 0);
+    const hoy = sales.filter(s => s.fecha === today).reduce((s,v) => s + Number(v.monto), 0);
+    const estudiosVendidos = [...new Set(sales.map(s => s.estudio))].filter(Boolean);
+    const metaInd = (USERS[k].estudio === 'ARTZ PEDREGAL') ? 60000 : META;
+    const pct = Math.min(100, Math.round(total / metaInd * 100));
+    const hit = total >= metaInd;
+    return { key:k, user:USERS[k], total, hoy, estudiosVendidos, metaInd, pct, hit };
+  });
+
+  const filtered = userData.filter(d => {
+    if (dirFilter === 'todos') return true;
+    return d.estudiosVendidos.includes(dirFilter);
+  }).sort((a,b) => b.total - a.total);
+
+  const tbody = document.getElementById('dir-staff-tbody');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state">Sin resultados.</div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((d,i) => {
+    const bono = d.hit ? Math.round(d.total * BONO_IND_PCT) : 0;
+    const barColor = d.hit ? 'var(--green)' : 'var(--red)';
+    const estLabel = d.estudiosVendidos.length ? d.estudiosVendidos.map(e => e.split(' ')[0]).join(', ') : '—';
+    return `<tr class="${d.hit ? 'row-green' : 'row-red'}">
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--gray)">${i+1}</td>
+      <td class="td-name" style="font-weight:500">${d.user.name}</td>
+      <td style="font-size:12px">${estLabel}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:15px">$${d.total.toLocaleString('es-MX')}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:14px;color:${d.hoy > 0 ? 'var(--accent)' : 'var(--gray3)'}">$${d.hoy.toLocaleString('es-MX')}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div class="mini-bar-track" style="width:60px;"><div class="mini-bar-fill" style="width:${d.pct}%;background:${barColor}"></div></div>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:14px;color:${barColor}">${d.pct}%</span>
+        </div>
+      </td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:14px;color:${d.hit ? 'var(--green)' : 'var(--gray3)'}">$${bono.toLocaleString('es-MX')}</td>
+      <td class="td-status">${d.hit ? '✓ Meta' : '✗ Bajo'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function runDirectorCountdown() {
+  const END = new Date('2026-07-01T00:00:00');
+  function tick() {
+    const txt = document.getElementById('dir-cd-nav');
+    if (!txt) return;
+    const rem = END - new Date();
+    if (rem <= 0) { txt.textContent = 'RETO CERRADO'; return; }
+    const d = Math.floor(rem/86400000), h = Math.floor((rem%86400000)/3600000);
+    const m = Math.floor((rem%3600000)/60000), s = Math.floor((rem%60000)/1000);
+    const days = rem/86400000;
+    txt.style.color = days < 7 ? '#e74c3c' : days < 21 ? 'var(--accent)' : 'var(--green)';
+    txt.textContent = d + 'd ' + String(h).padStart(2,'0') + 'h ' + String(m).padStart(2,'0') + 'm ' + String(s).padStart(2,'0') + 's';
+  }
+  tick(); setInterval(tick, 1000);
 }
 
 // ─── TABLERO COMPARTIBLE ───
