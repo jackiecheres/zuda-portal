@@ -453,6 +453,15 @@ tr:hover td { background:#111; }
         </div>
       </div>
 
+      <!-- ADMIN TABS -->
+      <div style="display:flex;gap:1px;background:var(--border);border:1px solid var(--border);border-bottom:none;margin-top:32px;">
+        <button id="tab-dashboard" class="admin-tab active" style="flex:1;padding:14px 20px;background:var(--black);border:none;color:var(--white);font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:0.1em;cursor:pointer;transition:background 0.2s;">DASHBOARD</button>
+        <button id="tab-tablero" class="admin-tab" style="flex:1;padding:14px 20px;background:var(--gray2);border:none;color:var(--gray);font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:0.1em;cursor:pointer;transition:background 0.2s;">📊 TABLERO PARA COMPARTIR</button>
+      </div>
+
+      <!-- TAB: DASHBOARD -->
+      <div id="panel-dashboard">
+
       <div class="section">
         <div class="sec-hd"><span class="sec-num">01</span><span class="sec-title">PROGRESO POR PERSONA</span></div>
         <div class="admin-filter-bar">
@@ -490,6 +499,56 @@ tr:hover td { background:#111; }
         <button class="export-btn" id="btn-export-admin">↓ Exportar todas las ventas CSV</button>
         <div style="font-size:12px;color:var(--gray);margin-top:8px;line-height:1.6;">CSV consolidado de todas las ventas desde Supabase.</div>
       </div>
+
+      </div><!-- /panel-dashboard -->
+
+      <!-- TAB: TABLERO -->
+      <div id="panel-tablero" style="display:none;padding-bottom:60px;">
+
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:32px 0 20px;">
+          <div style="font-size:12px;color:var(--gray);line-height:1.6;">Vista lista para captura de pantalla o descarga. Compártela con tu equipo para motivarlos.</div>
+          <div style="display:flex;gap:8px;">
+            <button id="btn-refresh-tablero" style="padding:10px 18px;border:1px solid var(--border);background:none;color:var(--gray);font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;">↻ Actualizar</button>
+            <button id="btn-download-tablero" style="padding:10px 18px;border:1px solid var(--white);background:var(--white);color:var(--black);font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.1em;cursor:pointer;">↓ DESCARGAR IMAGEN</button>
+          </div>
+        </div>
+
+        <!-- TARJETA PARA COMPARTIR -->
+        <div id="tablero-card" style="background:#0D0D0D;border:1px solid var(--border);padding:40px;max-width:900px;">
+
+          <!-- Header -->
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:36px;padding-bottom:24px;border-bottom:1px solid var(--border);">
+            <div>
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:0.2em;color:var(--gray);margin-bottom:6px;">ZUDA · RETO MAYO–JUNIO 2026</div>
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:0.06em;line-height:1;">TABLERO<br>DE VENTAS</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Tiempo restante</div>
+              <div id="tbl-countdown" style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:0.06em;color:var(--green);line-height:1;">--</div>
+              <div style="font-size:10px;color:var(--gray);margin-top:4px;" id="tbl-date">—</div>
+            </div>
+          </div>
+
+          <!-- Estudios -->
+          <div style="margin-bottom:32px;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:0.15em;color:var(--gray);margin-bottom:16px;">PROGRESO POR ESTUDIO</div>
+            <div id="tbl-estudios" style="display:flex;flex-direction:column;gap:12px;"></div>
+          </div>
+
+          <!-- Ranking -->
+          <div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:0.15em;color:var(--gray);margin-bottom:16px;">🏆 MEJORES VENDEDORES</div>
+            <div id="tbl-ranking" style="display:flex;flex-direction:column;gap:0;border:1px solid var(--border);"></div>
+          </div>
+
+          <!-- Footer -->
+          <div style="margin-top:28px;padding-top:20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:10px;color:var(--gray);letter-spacing:0.08em;">PILOTO BIMESTRAL · INTERNO</div>
+            <div id="tbl-updated" style="font-size:10px;color:var(--gray);letter-spacing:0.06em;">—</div>
+          </div>
+        </div>
+
+      </div><!-- /panel-tablero -->
     </div>
 
   </div><!-- /main -->
@@ -906,6 +965,32 @@ async function loadAdminView() {
     });
   });
 
+  // Tab switching
+  document.getElementById('tab-dashboard').addEventListener('click', function() {
+    document.getElementById('panel-dashboard').style.display = '';
+    document.getElementById('panel-tablero').style.display = 'none';
+    this.style.background = 'var(--black)'; this.style.color = 'var(--white)';
+    document.getElementById('tab-tablero').style.background = 'var(--gray2)';
+    document.getElementById('tab-tablero').style.color = 'var(--gray)';
+  });
+  document.getElementById('tab-tablero').addEventListener('click', async function() {
+    document.getElementById('panel-dashboard').style.display = 'none';
+    document.getElementById('panel-tablero').style.display = '';
+    this.style.background = 'var(--black)'; this.style.color = 'var(--white)';
+    document.getElementById('tab-dashboard').style.background = 'var(--gray2)';
+    document.getElementById('tab-dashboard').style.color = 'var(--gray)';
+    const allSales = await dbGet('order=created_at.desc');
+    renderTablero(allSales);
+  });
+
+  document.getElementById('btn-refresh-tablero').addEventListener('click', async () => {
+    const allSales = await dbGet('order=created_at.desc');
+    renderTablero(allSales);
+  });
+
+  document.getElementById('btn-download-tablero').addEventListener('click', downloadTablero);
+
+
   document.getElementById('btn-refresh-admin').addEventListener('click', async () => {
     document.getElementById('btn-refresh-admin').textContent = '↻ Cargando...';
     await loadAdminView();
@@ -932,11 +1017,7 @@ function renderAdminView(allSales) {
     if (adminFilter === 'todos') return true;
     if (adminFilter === 'bajo') return d.total < d.metaInd;
     return d.estudiosVendidos.includes(adminFilter);
-  }).sort((a,b) => {
-    const aH = a.total >= a.metaInd, bH = b.total >= b.metaInd;
-    if (aH === bH) return bH ? b.total - a.total : a.total - b.total;
-    return aH ? 1 : -1;
-  });
+  }).sort((a,b) => b.total - a.total); // siempre de mayor a menor venta
 
   const totalAll = userData.reduce((s,d) => s + d.total, 0);
   const sobre = userData.filter(d => d.total >= d.metaInd).length;
@@ -1322,6 +1403,101 @@ async function addManagerSale() {
     msg.style.color = 'var(--red)'; msg.textContent = 'Error al guardar. Intenta de nuevo.';
   }
   btn.textContent = '+ REGISTRAR VENTA';
+}
+
+// ─── TABLERO COMPARTIBLE ───
+function renderTablero(allSales) {
+  // Countdown
+  const END = new Date('2026-07-01T00:00:00');
+  const rem = END - new Date();
+  const d = Math.max(0, Math.floor(rem / 86400000));
+  const h = Math.floor((rem % 86400000) / 3600000);
+  const m = Math.floor((rem % 3600000) / 60000);
+  const days = rem / 86400000;
+  const cdColor = days < 7 ? '#e74c3c' : days < 21 ? 'var(--accent)' : 'var(--green)';
+  document.getElementById('tbl-countdown').textContent = d + 'd ' + String(h).padStart(2,'0') + 'h ' + String(m).padStart(2,'0') + 'm';
+  document.getElementById('tbl-countdown').style.color = cdColor;
+  document.getElementById('tbl-date').textContent = new Date().toLocaleDateString('es-MX', {weekday:'long', day:'numeric', month:'long'});
+  document.getElementById('tbl-updated').textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
+
+  // Estudios
+  const estudios = ['LILAS','PRADO NORTE','ARTZ PEDREGAL'];
+  document.getElementById('tbl-estudios').innerHTML = estudios.map(est => {
+    const estSales = allSales.filter(s => s.estudio === est);
+    const total = estSales.reduce((s,v) => s + Number(v.monto), 0);
+    const meta = META_ESTUDIO[est] || 0;
+    const pct = meta > 0 ? Math.min(100, Math.round(total / meta * 100)) : 0;
+    const hit = total >= meta;
+    const falta = Math.max(0, meta - total);
+    const barColor = hit ? 'var(--green)' : pct > 60 ? 'var(--accent)' : '#e74c3c';
+    return `<div style="display:grid;grid-template-columns:120px 1fr 90px 100px;align-items:center;gap:16px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.06em;color:${hit ? 'var(--green)' : 'var(--white)'}">${est}</div>
+      <div>
+        <div style="height:8px;background:var(--gray3);border-radius:4px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:${barColor};border-radius:4px;transition:width 0.6s ease;"></div>
+        </div>
+      </div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.04em;color:${barColor};text-align:right;">${pct}%</div>
+      <div style="font-size:11px;color:var(--gray);text-align:right;">${hit ? '✓ META' : '-$'+falta.toLocaleString('es-MX')}</div>
+    </div>`;
+  }).join('');
+
+  // Ranking — only staff (no managers, no admin)
+  const staffKeys = Object.keys(USERS).filter(k => !USERS[k].isAdmin && !USERS[k].isManager);
+  const ranking = staffKeys.map(k => {
+    const sales = allSales.filter(s => s.usuario === k);
+    const total = sales.reduce((s,v) => s + Number(v.monto), 0);
+    const metaInd = (USERS[k].estudio === 'ARTZ PEDREGAL') ? 60000 : META;
+    const pct = Math.min(100, Math.round(total / metaInd * 100));
+    const hit = total >= metaInd;
+    return { name: USERS[k].name.split(' ')[0] + ' ' + USERS[k].name.split(' ')[1], total, pct, hit, metaInd };
+  }).filter(d => d.total > 0).sort((a,b) => b.total - a.total);
+
+  if (!ranking.length) {
+    document.getElementById('tbl-ranking').innerHTML = '<div style="padding:24px;text-align:center;color:var(--gray);font-size:13px;">Aún no hay ventas registradas.</div>';
+    return;
+  }
+
+  const medals = ['🥇','🥈','🥉'];
+  document.getElementById('tbl-ranking').innerHTML = ranking.map((d,i) => {
+    const barColor = d.hit ? 'var(--green)' : d.pct > 60 ? 'var(--accent)' : 'var(--gray3)';
+    const isTop = i < 3;
+    return `<div style="display:grid;grid-template-columns:32px 1fr 110px 60px;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid #111;background:${isTop && i===0 ? '#0a0f0a' : 'transparent'};">
+      <div style="font-size:${i < 3 ? '18px' : '12px'};text-align:center;${i >= 3 ? 'color:var(--gray);font-family:\'DM Sans\',sans-serif;' : ''}">${i < 3 ? medals[i] : (i+1)}</div>
+      <div>
+        <div style="font-size:13px;color:var(--white);font-weight:500;margin-bottom:4px;">${d.name}</div>
+        <div style="height:4px;background:var(--gray3);border-radius:2px;overflow:hidden;">
+          <div style="height:100%;width:${d.pct}%;background:${barColor};border-radius:2px;"></div>
+        </div>
+      </div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.04em;text-align:right;color:${d.hit ? 'var(--green)' : 'var(--white)'};">$${d.total.toLocaleString('es-MX')}</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:${barColor};text-align:right;">${d.pct}%</div>
+    </div>`;
+  }).join('');
+}
+
+async function downloadTablero() {
+  // Use html2canvas to capture the card
+  const card = document.getElementById('tablero-card');
+  if (typeof html2canvas === 'undefined') {
+    // Load html2canvas dynamically
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+      s.onload = resolve; s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+  const canvas = await html2canvas(card, {
+    backgroundColor: '#0D0D0D',
+    scale: 2,
+    useCORS: true,
+    logging: false
+  });
+  const a = document.createElement('a');
+  a.download = 'zuda_tablero_' + new Date().toISOString().split('T')[0] + '.png';
+  a.href = canvas.toDataURL('image/png');
+  a.click();
 }
 
 // ─── EXPORT CSV ───
