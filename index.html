@@ -655,7 +655,16 @@ tr:hover td { background:#111; }
 </div>
 
 <script>
-// ─── SUPABASE CONFIG ───
+// ─── TIMEZONE CDMX ───
+function getCDMXDate(offsetDays = 0) {
+  const now = new Date();
+  const cdmx = new Date(now.toLocaleString('en-US', { timeZone: 'America/Mexico_City' }));
+  cdmx.setDate(cdmx.getDate() + offsetDays);
+  const y = cdmx.getFullYear();
+  const m = String(cdmx.getMonth() + 1).padStart(2, '0');
+  const d = String(cdmx.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
 const SB_URL = 'https://xgjqidgeifjrrjrpeprg.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhnanFpZGdlaWZqcnJqcnBlcHJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0OTk0MTQsImV4cCI6MjA5MzA3NTQxNH0.QaLdrPcPVyjPN4wEfnTcqn3eEksT_jwVLYjciiGLGgY';
 const HDR = {
@@ -781,7 +790,7 @@ function doLogin() {
   } else {
     document.getElementById('admin-screen').style.display = 'none';
     document.getElementById('hero-name').textContent = currentUser.name.split(' ')[0].toUpperCase();
-    document.getElementById('f-fecha').value = new Date().toISOString().split('T')[0];
+    document.getElementById('f-fecha').value = getCDMXDate();
     document.getElementById('nav-countdown').style.display = 'flex';
     initCatalog();
     loadSales();
@@ -1098,14 +1107,14 @@ async function loadAdminView() {
 
   document.getElementById('btn-export-admin').addEventListener('click', async () => {
     const allSales = await dbGet('order=created_at.desc');
-    exportCSV(allSales, 'zuda_ventas_todas_' + new Date().toISOString().split('T')[0] + '.csv');
+    exportCSV(allSales, 'zuda_ventas_todas_' + getCDMXDate() + '.csv');
   });
 }
 
 function renderAdminView(allSales) {
   const staffKeys = Object.keys(USERS).filter(k => !USERS[k].isAdmin && !USERS[k].isManager && !USERS[k].isDirector);
-  const today = new Date().toISOString().split('T')[0];
-  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  const today = getCDMXDate();
+  const yesterday = getCDMXDate(-1);
 
   const userData = staffKeys.map(k => {
     const sales = allSales.filter(s => s.usuario === k);
@@ -1347,7 +1356,7 @@ async function loadManagerView() {
   // Setup static fields
   document.getElementById('mgr-hero-name').textContent = currentUser.name.split(' ')[0].toUpperCase();
   document.getElementById('mgr-eyebrow').textContent = 'Manager · ' + est + ' · Piloto Mayo–Junio 2026';
-  document.getElementById('mgr-f-fecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('mgr-f-fecha').value = getCDMXDate();
   document.getElementById('mgr-f-estudio').value = est;
   document.getElementById('mgr-prev-est').textContent = est;
   document.getElementById('mgr-kpi-meta').textContent = '$' + meta.toLocaleString('es-MX');
@@ -1365,7 +1374,7 @@ async function loadManagerView() {
   document.getElementById('mgr-btn-add').addEventListener('click', addManagerSale);
   document.getElementById('mgr-btn-export').addEventListener('click', async () => {
     const sales = await dbGet(`usuario=eq.${encodeURIComponent(currentUserKey)}&order=created_at.desc`);
-    exportCSV(sales, 'mis_ventas_manager_' + new Date().toISOString().split('T')[0] + '.csv');
+    exportCSV(sales, 'mis_ventas_manager_' + getCDMXDate() + '.csv');
   });
 
   // Auto-refresh every 60s
@@ -1607,8 +1616,8 @@ async function loadDirectorView() {
 async function refreshDirectorData() {
   try {
     const allSales = await dbGet('order=created_at.desc');
-    const today = new Date().toISOString().split('T')[0];
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    const today = getCDMXDate();
+    const yesterday = getCDMXDate(-1);
 
     const totalAll = allSales.reduce((s,v) => s + Number(v.monto), 0);
     const ventaHoy = allSales.filter(s => s.fecha === today).reduce((s,v) => s + Number(v.monto), 0);
@@ -1692,7 +1701,7 @@ function renderDirEstudios(allSales) {
 }
 
 function renderDirStaffTable(allSales) {
-  const today = new Date().toISOString().split('T')[0];
+  const today = getCDMXDate();
   const staffKeys = Object.keys(USERS).filter(k => !USERS[k].isAdmin && !USERS[k].isManager && !USERS[k].isDirector);
 
   const userData = staffKeys.map(k => {
@@ -1845,7 +1854,7 @@ async function downloadTablero() {
     windowWidth: 1100
   });
   const a = document.createElement('a');
-  a.download = 'zuda_tablero_' + new Date().toISOString().split('T')[0] + '.png';
+  a.download = 'zuda_tablero_' + getCDMXDate() + '.png';
   a.href = canvas.toDataURL('image/png');
   a.click();
 }
@@ -1894,7 +1903,7 @@ document.getElementById('btn-logout').addEventListener('click', doLogout);
 document.getElementById('btn-add').addEventListener('click', addSale);
 document.getElementById('btn-export').addEventListener('click', async () => {
   const sales = await dbGet(`usuario=eq.${encodeURIComponent(currentUserKey)}&order=created_at.desc`);
-  exportCSV(sales, 'mis_ventas_' + new Date().toISOString().split('T')[0] + '.csv');
+  exportCSV(sales, 'mis_ventas_' + getCDMXDate() + '.csv');
 });
 document.getElementById('btn-toggle-pass').addEventListener('click', function() {
   const inp = document.getElementById('input-pass');
