@@ -521,6 +521,38 @@ tr:hover td { background:#111; }
         <button class="export-btn" id="btn-export-admin">↓ Exportar todas las ventas CSV</button>
       </div>
 
+      <!-- VENTAS DEL DÍA DETALLADO -->
+      <div class="section" style="border-bottom:none;padding-bottom:60px;">
+        <div class="sec-hd" style="justify-content:space-between;align-items:center;">
+          <div style="display:flex;align-items:baseline;gap:16px;"><span class="sec-num">06</span><span class="sec-title">VENTAS POR FECHA</span></div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px;">
+          <div>
+            <label style="display:block;font-size:10px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Fecha</label>
+            <input type="date" id="adm-fecha-filter" style="padding:9px 14px;background:var(--gray2);border:1px solid var(--border);color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;">
+          </div>
+          <div>
+            <label style="display:block;font-size:10px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Estudio</label>
+            <select id="adm-est-filter" style="padding:9px 14px;background:var(--gray2);border:1px solid var(--border);color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;appearance:none;padding-right:32px;">
+              <option value="">Todos los estudios</option>
+              <option value="LILAS">Lilas</option>
+              <option value="PRADO NORTE">Prado Norte</option>
+              <option value="ARTZ PEDREGAL">Artz Pedregal</option>
+            </select>
+          </div>
+          <div style="padding-top:22px;">
+            <button id="adm-fecha-btn" style="padding:9px 20px;border:1px solid var(--white);background:none;color:var(--white);font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.1em;cursor:pointer;">VER VENTAS</button>
+          </div>
+          <div id="adm-fecha-total" style="padding-top:22px;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:0.04em;color:var(--gray3);"></div>
+        </div>
+        <div class="table-wrap" id="adm-fecha-wrap" style="display:none;">
+          <table>
+            <thead><tr><th>Hora</th><th>Nombre</th><th>Estudio</th><th>Producto</th><th>Categoría</th><th>Monto</th></tr></thead>
+            <tbody id="adm-fecha-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
       </div><!-- /panel-dashboard -->
 
       <!-- TAB: TABLERO -->
@@ -1126,10 +1158,43 @@ async function loadAdminView() {
     const allSales = await dbGet('order=created_at.desc');
     exportCSV(allSales, 'zuda_ventas_todas_' + getCDMXDate() + '.csv');
   });
+
+  // Date filter for ventas por fecha
+  document.getElementById('adm-fecha-filter').value = getCDMXDate();
+  document.getElementById('adm-fecha-btn').addEventListener('click', async () => {
+    const fecha = document.getElementById('adm-fecha-filter').value;
+    const est = document.getElementById('adm-est-filter').value;
+    if (!fecha) return;
+    let q = `fecha=eq.${fecha}&order=created_at.asc`;
+    if (est) q += `&estudio=eq.${encodeURIComponent(est)}`;
+    const sales = await dbGet(q);
+    const total = sales.reduce((s,v) => s + Number(v.monto), 0);
+    const wrap = document.getElementById('adm-fecha-wrap');
+    const tbody = document.getElementById('adm-fecha-tbody');
+    const totalEl = document.getElementById('adm-fecha-total');
+    totalEl.textContent = sales.length ? '$' + total.toLocaleString('es-MX') + ' · ' + sales.length + ' ventas' : 'Sin ventas';
+    totalEl.style.color = sales.length ? 'var(--white)' : 'var(--gray)';
+    if (!sales.length) {
+      tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Sin ventas para esta fecha y estudio.</div></td></tr>';
+    } else {
+      tbody.innerHTML = sales.map(s => {
+        const hora = s.created_at ? new Date(s.created_at).toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit', timeZone:'America/Mexico_City'}) : '—';
+        return `<tr>
+          <td style="color:var(--gray)">${hora}</td>
+          <td style="font-weight:500;color:var(--white)">${s.nombre}</td>
+          <td>${s.estudio}</td>
+          <td class="td-pkg">${s.paquete}</td>
+          <td>${s.categoria}</td>
+          <td class="td-amt">$${Number(s.monto).toLocaleString('es-MX')}</td>
+        </tr>`;
+      }).join('');
+    }
+    wrap.style.display = '';
+  });
 }
 
 function renderAdminView(allSales) {
-  const staffKeys = Object.keys(USERS).filter(k => !USERS[k].isAdmin && !USERS[k].isManager && !USERS[k].isDirector);
+  const staffKeys = Object.keys(USERS).filter(k => !USERS[k].isAdmin && !USERS[k].isDirector);
   const today = getCDMXDate();
   const yesterday = getCDMXDate(-1);
 
@@ -1138,16 +1203,18 @@ function renderAdminView(allSales) {
     const total = sales.reduce((s,v) => s + Number(v.monto), 0);
     const hoy = sales.filter(s => s.fecha === today).reduce((s,v) => s + Number(v.monto), 0);
     const estudiosVendidos = [...new Set(sales.map(s => s.estudio))].filter(Boolean);
-    const metaInd = (USERS[k].estudio === 'ARTZ PEDREGAL') ? 60000 : META;
-    return { key:k, user:USERS[k], sales, total, hoy, estudiosVendidos, metaInd };
+    const isManager = !!USERS[k].isManager;
+    const metaInd = isManager ? null : (USERS[k].estudio === 'ARTZ PEDREGAL') ? 60000 : META;
+    return { key:k, user:USERS[k], sales, total, hoy, estudiosVendidos, metaInd, isManager };
   });
 
-  // KPIs
+  // KPIs — only count staff (not managers) for individual meta
+  const staffOnly = userData.filter(d => !d.isManager);
   const totalAll = userData.reduce((s,d) => s + d.total, 0);
   const ventaHoy = allSales.filter(s => s.fecha === today).reduce((s,v) => s + Number(v.monto), 0);
-  const sobre = userData.filter(d => d.total >= d.metaInd).length;
-  const bajo = userData.filter(d => d.total < d.metaInd).length;
-  const bonos = userData.filter(d => d.total >= d.metaInd).reduce((s,d) => s + Math.round(d.total * BONO_IND_PCT), 0);
+  const sobre = staffOnly.filter(d => d.total >= d.metaInd).length;
+  const bajo = staffOnly.filter(d => d.total < d.metaInd).length;
+  const bonos = staffOnly.filter(d => d.total >= d.metaInd).reduce((s,d) => s + Math.round(d.total * BONO_IND_PCT), 0);
   document.getElementById('adm-kpi-total').textContent = '$' + totalAll.toLocaleString('es-MX');
   document.getElementById('adm-kpi-sobre').textContent = sobre;
   document.getElementById('adm-kpi-bajo').textContent = bajo;
@@ -1213,23 +1280,31 @@ function renderAdminView(allSales) {
     </div>`;
   }).join('');
 
-  // Staff table — filtered
+  // Staff + managers table — filtered
   const filtered = userData.filter(d => {
     if (adminFilter === 'todos') return true;
-    if (adminFilter === 'bajo') return d.total < d.metaInd;
+    if (adminFilter === 'bajo') return !d.isManager && d.total < d.metaInd;
     return d.estudiosVendidos.includes(adminFilter);
   }).sort((a,b) => b.total - a.total);
 
   const tbody = document.getElementById('admin-tbody');
   tbody.innerHTML = filtered.length ? filtered.map((d,i) => {
-    const hit = d.total >= d.metaInd;
-    const bono = hit ? Math.round(d.total * BONO_IND_PCT) : 0;
-    const pct = Math.min(100, Math.round(d.total / d.metaInd * 100));
-    const barColor = hit ? 'var(--green)' : 'var(--red)';
+    const hit = d.isManager ? null : d.total >= d.metaInd;
+    const bono = (!d.isManager && hit) ? Math.round(d.total * BONO_IND_PCT) : 0;
+    const metaForPct = d.isManager ? (META_ESTUDIO[d.user.estudio] || 1) : d.metaInd;
+    const pct = Math.min(100, Math.round(d.total / metaForPct * 100));
+    const barColor = d.isManager ? 'var(--accent)' : (hit ? 'var(--green)' : 'var(--red)');
+    const rowCls = d.isManager ? '' : (hit ? 'row-green' : 'row-red');
     const estLabel = d.estudiosVendidos.length ? d.estudiosVendidos.map(e => e.split(' ')[0]).join(', ') : '—';
-    return `<tr class="${hit ? 'row-green' : 'row-red'}" data-key="${d.key}" style="cursor:pointer">
+    const nameCell = d.isManager
+      ? `${d.user.name} <span style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;border:1px solid var(--accent);color:var(--accent);padding:1px 6px;margin-left:6px;">Manager</span>`
+      : d.user.name;
+    const statusCell = d.isManager
+      ? `<span style="font-size:11px;color:var(--accent);">Bono estudio</span>`
+      : (hit ? '✓ Meta' : '✗ Bajo');
+    return `<tr class="${rowCls}" data-key="${d.key}" style="cursor:pointer;${d.isManager ? 'background:#0a0a05!important;' : ''}">
       <td style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--gray)">${i+1}</td>
-      <td class="td-name" style="font-weight:500">${d.user.name}</td>
+      <td class="td-name" style="font-weight:500">${nameCell}</td>
       <td style="font-size:12px">${estLabel}</td>
       <td style="font-family:'Bebas Neue',sans-serif;font-size:15px">$${d.total.toLocaleString('es-MX')}</td>
       <td style="font-family:'Bebas Neue',sans-serif;font-size:14px;color:${d.hoy > 0 ? 'var(--accent)' : 'var(--gray3)'}">$${d.hoy.toLocaleString('es-MX')}</td>
@@ -1239,9 +1314,9 @@ function renderAdminView(allSales) {
           <span style="font-family:'Bebas Neue',sans-serif;font-size:13px;color:${barColor}">${pct}%</span>
         </div>
       </td>
-      <td style="font-family:'Bebas Neue',sans-serif;font-size:14px;color:${hit ? 'var(--green)' : 'var(--gray3)'}">$${bono.toLocaleString('es-MX')}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:14px;color:${(!d.isManager && hit) ? 'var(--green)' : 'var(--gray3)'}">$${bono.toLocaleString('es-MX')}</td>
       <td class="td-bar-cell"><div class="mini-bar-track"><div class="mini-bar-fill" style="width:${pct}%;background:${barColor}"></div></div><div style="font-size:10px;color:var(--gray);margin-top:3px">${d.sales.length} ventas</div></td>
-      <td class="td-status">${hit ? '✓ Meta' : '✗ Bajo'}</td>
+      <td class="td-status">${statusCell}</td>
     </tr>`;
   }).join('') : '<tr><td colspan="9"><div class="empty-state">Sin resultados.</div></td></tr>';
 
