@@ -207,6 +207,7 @@ tr:hover td { background:#111; }
             <div class="prog-lbl">Venta acumulada bimestral</div>
             <div class="prog-val" id="prog-venta">$0</div>
             <div class="prog-sub" id="prog-sub">Registra tus ventas abajo para comenzar</div>
+            <div id="prog-sub-daily" style="font-size:12px;margin-top:6px;font-weight:500;"></div>
           </div>
           <div class="prog-cell">
             <div class="prog-lbl">Bono individual estimado</div>
@@ -666,6 +667,13 @@ function getCDMXDate(offsetDays = 0) {
   now.setDate(now.getDate() + offsetDays);
   return formatter.format(now); // returns YYYY-MM-DD
 }
+
+function getDaysLeft() {
+  const END = new Date('2026-07-01T00:00:00');
+  const now = new Date();
+  const msLeft = END - now;
+  return Math.max(1, Math.ceil(msLeft / 86400000));
+}
 const SB_URL = 'https://xgjqidgeifjrrjrpeprg.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhnanFpZGdlaWZqcnJqcnBlcHJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0OTk0MTQsImV4cCI6MjA5MzA3NTQxNH0.QaLdrPcPVyjPN4wEfnTcqn3eEksT_jwVLYjciiGLGgY';
 const HDR = {
@@ -912,6 +920,14 @@ function renderSales(sales) {
   document.getElementById('prog-venta').textContent = '$' + total.toLocaleString('es-MX');
   document.getElementById('prog-venta').style.color = hit ? 'var(--green)' : 'var(--white)';
   document.getElementById('prog-sub').textContent = hit ? '¡Meta superada! ' + breakdown : 'Faltan $' + falta.toLocaleString('es-MX') + ' para el bono' + (breakdown ? ' · ' + breakdown : '');
+  // Daily pace needed
+  const daysLeft = getDaysLeft();
+  const necesarioDia = hit ? 0 : Math.ceil(falta / daysLeft);
+  const dailyEl = document.getElementById('prog-sub-daily');
+  if (dailyEl) {
+    dailyEl.textContent = hit ? '¡Meta individual alcanzada!' : `Necesitas ~$${necesarioDia.toLocaleString('es-MX')}/día en los ${daysLeft} días que quedan`;
+    dailyEl.style.color = hit ? 'var(--green)' : 'var(--accent)';
+  }
   document.getElementById('bar-fill').style.width = pct + '%';
   document.getElementById('bar-fill').style.background = hit ? 'var(--green)' : 'var(--white)';
   document.getElementById('bar-pct-lbl').textContent = pct + '%';
@@ -1139,15 +1155,22 @@ function renderAdminView(allSales) {
 
   // Venta del día por estudio
   const estudios = ['LILAS','PRADO NORTE','ARTZ PEDREGAL'];
+  const daysLeft = getDaysLeft();
   document.getElementById('adm-dia-grid').innerHTML = estudios.map(est => {
-    const hoy = allSales.filter(s => s.estudio === est && s.fecha === today).reduce((s,v) => s + Number(v.monto), 0);
-    const ayer = allSales.filter(s => s.estudio === est && s.fecha === yesterday).reduce((s,v) => s + Number(v.monto), 0);
+    const estSales = allSales.filter(s => s.estudio === est);
+    const acum = estSales.reduce((s,v) => s + Number(v.monto), 0);
+    const hoy = estSales.filter(s => s.fecha === today).reduce((s,v) => s + Number(v.monto), 0);
+    const ayer = estSales.filter(s => s.fecha === yesterday).reduce((s,v) => s + Number(v.monto), 0);
+    const meta = META_ESTUDIO[est] || 0;
+    const falta = Math.max(0, meta - acum);
+    const necesarioDia = falta > 0 ? Math.ceil(falta / daysLeft) : 0;
     const diff = hoy - ayer;
     const noData = hoy === 0 && ayer === 0;
     const up = diff >= 0;
     const arrow = noData ? '—' : (up ? '▲' : '▼');
     const arrowColor = noData ? 'var(--gray)' : (up ? 'var(--green)' : 'var(--red)');
     const diffText = noData ? 'Sin ventas hoy' : (up ? '+$' : '-$') + Math.abs(diff).toLocaleString('es-MX') + ' vs ayer';
+    const hitMeta = acum >= meta;
     return `<div style="background:var(--black);padding:28px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.07em;color:var(--gray);margin-bottom:16px;">${est}</div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:0.03em;line-height:1;color:${hoy > 0 ? 'var(--white)' : 'var(--gray3)'};">$${hoy.toLocaleString('es-MX')}</div>
@@ -1157,6 +1180,13 @@ function renderAdminView(allSales) {
         <span style="font-size:12px;color:${arrowColor};">${diffText}</span>
       </div>
       <div style="font-size:11px;color:var(--gray);margin-top:4px;">Ayer: $${ayer.toLocaleString('es-MX')}</div>
+      <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
+        ${hitMeta
+          ? `<div style="font-size:12px;color:var(--green);">✓ Meta del estudio alcanzada</div>`
+          : `<div style="font-size:11px;color:var(--gray);margin-bottom:4px;">Necesario por día (${daysLeft} días)</div>
+             <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:0.04em;color:var(--accent);">$${necesarioDia.toLocaleString('es-MX')}</div>`
+        }
+      </div>
     </div>`;
   }).join('');
 
@@ -1653,15 +1683,22 @@ async function refreshDirectorData() {
 
 function renderDirDiaGrid(allSales, today, yesterday) {
   const estudios = ['LILAS','PRADO NORTE','ARTZ PEDREGAL'];
+  const daysLeft = getDaysLeft();
   document.getElementById('dir-dia-grid').innerHTML = estudios.map(est => {
-    const hoy = allSales.filter(s => s.estudio === est && s.fecha === today).reduce((s,v) => s + Number(v.monto), 0);
-    const ayer = allSales.filter(s => s.estudio === est && s.fecha === yesterday).reduce((s,v) => s + Number(v.monto), 0);
+    const estSales = allSales.filter(s => s.estudio === est);
+    const acum = estSales.reduce((s,v) => s + Number(v.monto), 0);
+    const hoy = estSales.filter(s => s.fecha === today).reduce((s,v) => s + Number(v.monto), 0);
+    const ayer = estSales.filter(s => s.fecha === yesterday).reduce((s,v) => s + Number(v.monto), 0);
+    const meta = META_ESTUDIO[est] || 0;
+    const falta = Math.max(0, meta - acum);
+    const necesarioDia = falta > 0 ? Math.ceil(falta / daysLeft) : 0;
     const diff = hoy - ayer;
     const noData = hoy === 0 && ayer === 0;
     const up = diff >= 0;
     const arrow = noData ? '—' : (up ? '▲' : '▼');
     const arrowColor = noData ? 'var(--gray)' : (up ? 'var(--green)' : 'var(--red)');
     const diffText = noData ? 'Sin ventas' : (up ? '+$' : '-$') + Math.abs(diff).toLocaleString('es-MX') + ' vs ayer';
+    const hitMeta = acum >= meta;
     return `<div style="background:var(--black);padding:28px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.07em;color:var(--gray);margin-bottom:16px;">${est}</div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:0.03em;line-height:1;color:${hoy > 0 ? 'var(--white)' : 'var(--gray3)'};">$${hoy.toLocaleString('es-MX')}</div>
@@ -1671,6 +1708,13 @@ function renderDirDiaGrid(allSales, today, yesterday) {
         <span style="font-size:12px;color:${arrowColor};">${diffText}</span>
       </div>
       <div style="font-size:11px;color:var(--gray);margin-top:4px;">Ayer: $${ayer.toLocaleString('es-MX')}</div>
+      <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
+        ${hitMeta
+          ? `<div style="font-size:12px;color:var(--green);">✓ Meta del estudio alcanzada</div>`
+          : `<div style="font-size:11px;color:var(--gray);margin-bottom:4px;">Necesario por día (${daysLeft} días)</div>
+             <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:0.04em;color:var(--accent);">$${necesarioDia.toLocaleString('es-MX')}</div>`
+        }
+      </div>
     </div>`;
   }).join('');
 }
@@ -1782,6 +1826,7 @@ function renderTablero(allSales) {
 
   // Estudios
   const estudios = ['LILAS','PRADO NORTE','ARTZ PEDREGAL'];
+  const daysLeftTbl = getDaysLeft();
   document.getElementById('tbl-estudios').innerHTML = estudios.map(est => {
     const estSales = allSales.filter(s => s.estudio === est);
     const total = estSales.reduce((s,v) => s + Number(v.monto), 0);
@@ -1789,8 +1834,9 @@ function renderTablero(allSales) {
     const pct = meta > 0 ? Math.min(100, Math.round(total / meta * 100)) : 0;
     const hit = total >= meta;
     const falta = Math.max(0, meta - total);
+    const necesarioDia = hit ? 0 : Math.ceil(falta / daysLeftTbl);
     const barColor = hit ? 'var(--green)' : pct > 60 ? 'var(--accent)' : '#e74c3c';
-    return `<div style="display:grid;grid-template-columns:150px 1fr 100px 130px;align-items:center;gap:20px;">
+    return `<div style="display:grid;grid-template-columns:150px 1fr 100px 180px;align-items:center;gap:20px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.06em;color:${hit ? 'var(--green)' : 'var(--white)'}">${est}</div>
       <div>
         <div style="height:12px;background:var(--gray3);border-radius:6px;overflow:hidden;">
@@ -1798,7 +1844,13 @@ function renderTablero(allSales) {
         </div>
       </div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:0.04em;color:${barColor};text-align:right;">${pct}%</div>
-      <div style="font-size:13px;color:${hit ? 'var(--green)' : 'var(--gray)'};text-align:right;">${hit ? '✓ META ALCANZADA' : '-$'+falta.toLocaleString('es-MX')}</div>
+      <div style="text-align:right;">
+        ${hit
+          ? `<div style="font-size:13px;color:var(--green);">✓ META ALCANZADA</div>`
+          : `<div style="font-size:11px;color:var(--gray);">Meta diaria necesaria</div>
+             <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.04em;color:var(--accent);">$${necesarioDia.toLocaleString('es-MX')}/día</div>`
+        }
+      </div>
     </div>`;
   }).join('');
 
