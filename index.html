@@ -657,13 +657,14 @@ tr:hover td { background:#111; }
 <script>
 // ─── TIMEZONE CDMX ───
 function getCDMXDate(offsetDays = 0) {
+  // Always use Mexico City timezone regardless of browser/device locale
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Mexico_City',
+    year: 'numeric', month: '2-digit', day: '2-digit'
+  });
   const now = new Date();
-  const cdmx = new Date(now.toLocaleString('en-US', { timeZone: 'America/Mexico_City' }));
-  cdmx.setDate(cdmx.getDate() + offsetDays);
-  const y = cdmx.getFullYear();
-  const m = String(cdmx.getMonth() + 1).padStart(2, '0');
-  const d = String(cdmx.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
+  now.setDate(now.getDate() + offsetDays);
+  return formatter.format(now); // returns YYYY-MM-DD
 }
 const SB_URL = 'https://xgjqidgeifjrrjrpeprg.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhnanFpZGdlaWZqcnJqcnBlcHJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0OTk0MTQsImV4cCI6MjA5MzA3NTQxNH0.QaLdrPcPVyjPN4wEfnTcqn3eEksT_jwVLYjciiGLGgY';
