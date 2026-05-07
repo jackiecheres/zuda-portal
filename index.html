@@ -1673,21 +1673,42 @@ function renderMgrEstGrid(allSales, myEst) {
   const grid = document.getElementById('mgr-est-grid');
   if (!grid) return;
   const estudios = ['LILAS','PRADO NORTE','ARTZ PEDREGAL'];
+  const today = getCDMXDate();
+  const yesterday = getCDMXDate(-1);
   const daysLeft = getDaysLeft();
+
   grid.innerHTML = estudios.map(est => {
     const estSales = allSales.filter(s => s.estudio === est);
     const total = estSales.reduce((s,v) => s + Number(v.monto), 0);
+    const hoy = estSales.filter(s => s.fecha === today).reduce((s,v) => s + Number(v.monto), 0);
+    const ayer = estSales.filter(s => s.fecha === yesterday).reduce((s,v) => s + Number(v.monto), 0);
     const meta = META_ESTUDIO[est] || 0;
     const hit = total >= meta;
     const pct = meta > 0 ? Math.min(100, Math.round(total / meta * 100)) : 0;
     const falta = Math.max(0, meta - total);
     const exc = total - meta;
-    const necesarioDia = falta > 0 ? Math.ceil(falta / daysLeft) : 0;
+    const necesarioDia = hit ? 0 : Math.ceil(falta / daysLeft);
     const barColor = hit ? 'var(--green)' : pct > 60 ? 'var(--accent)' : 'var(--red)';
     const isMine = est === myEst;
+    const diff = hoy - ayer;
+    const noData = hoy === 0 && ayer === 0;
+    const arrow = noData ? '' : (diff >= 0 ? '▲' : '▼');
+    const arrowColor = diff >= 0 ? 'var(--green)' : 'var(--red)';
+
     return `<div class="est-card" style="${isMine ? 'background:#0a0f0a;' : ''}">
       <div class="est-name" style="color:${isMine ? 'var(--accent)' : 'var(--white)'}">${est}</div>
       <span class="est-badge ${isMine ? 'mine' : ''}">${isMine ? 'Mi estudio' : 'Red ZUDA'}</span>
+
+      <!-- Hoy vs ayer -->
+      <div style="background:var(--gray2);padding:10px 12px;margin-bottom:12px;border:1px solid var(--border);">
+        <div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);margin-bottom:4px;">Hoy</div>
+        <div style="display:flex;align-items:baseline;gap:8px;">
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:0.03em;color:${hoy > 0 ? 'var(--white)' : 'var(--gray3)'};">$${hoy.toLocaleString('es-MX')}</span>
+          ${noData ? '' : `<span style="font-size:12px;color:${arrowColor};">${arrow} ${diff >= 0 ? '+$' : '-$'}${Math.abs(diff).toLocaleString('es-MX')} vs ayer</span>`}
+        </div>
+        <div style="font-size:10px;color:var(--gray);margin-top:2px;">Ayer: $${ayer.toLocaleString('es-MX')}</div>
+      </div>
+
       <div class="est-bar-track"><div class="est-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
       <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
         <span class="est-pct" style="color:${barColor}">${pct}%</span>
@@ -1695,7 +1716,8 @@ function renderMgrEstGrid(allSales, myEst) {
       </div>
       <div class="est-row"><span>Venta acumulada</span><span style="color:${hit ? 'var(--green)' : 'var(--white)'}">$${total.toLocaleString('es-MX')}</span></div>
       <div class="est-row"><span>${hit ? 'Excedente' : 'Falta'}</span><span style="color:${hit ? 'var(--green)' : 'var(--red)'};">${hit ? '+$'+exc.toLocaleString('es-MX') : '$'+falta.toLocaleString('es-MX')}</span></div>
-      ${!hit ? `<div class="est-row"><span>Necesario/día</span><span style="color:var(--accent)">$${necesarioDia.toLocaleString('es-MX')}</span></div>` : ''}
+      ${!hit ? `<div class="est-row"><span>Necesario/día (${daysLeft}d)</span><span style="color:var(--accent);">$${necesarioDia.toLocaleString('es-MX')}</span></div>` : ''}
+      <div class="est-row"><span>Estado</span><span style="font-size:12px;color:${hit ? 'var(--green)' : 'var(--red)'};">${hit ? '✓ META' : '✗ EN PROGRESO'}</span></div>
     </div>`;
   }).join('');
 }
