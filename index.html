@@ -208,6 +208,7 @@ tr:hover td { background:#111; }
             <div class="prog-val" id="prog-venta">$0</div>
             <div class="prog-sub" id="prog-sub">Registra tus ventas abajo para comenzar</div>
             <div id="prog-sub-daily" style="font-size:12px;margin-top:6px;font-weight:500;"></div>
+            <div id="prog-sub-hoy" style="font-size:12px;margin-top:4px;"></div>
           </div>
           <div class="prog-cell">
             <div class="prog-lbl">Bono individual estimado</div>
@@ -371,24 +372,40 @@ tr:hover td { background:#111; }
         </div>
       </div>
 
-      <!-- 03 VENTAS DEL EQUIPO -->
+      <!-- 03 VENTA HOY VS AYER DEL ESTUDIO -->
+      <div class="section">
+        <div class="sec-hd"><span class="sec-num">03</span><span class="sec-title">VENTA DEL DÍA</span></div>
+        <div id="mgr-dia-grid" style="display:grid;grid-template-columns:1fr;gap:1px;background:var(--border);border:1px solid var(--border);">
+          <div style="padding:24px;background:var(--black);"><div class="empty-state">Cargando...</div></div>
+        </div>
+      </div>
+
+      <!-- 04 RED DE ESTUDIOS -->
+      <div class="section">
+        <div class="sec-hd"><span class="sec-num">04</span><span class="sec-title">RED DE ESTUDIOS</span></div>
+        <div class="est-grid" id="mgr-est-grid">
+          <div class="est-card" style="grid-column:1/-1"><div class="empty-state">Cargando...</div></div>
+        </div>
+      </div>
+
+      <!-- 05 VENTAS DEL EQUIPO -->
       <div class="section">
         <div class="sec-hd" style="justify-content:space-between;align-items:center;">
-          <div style="display:flex;align-items:baseline;gap:16px;"><span class="sec-num">03</span><span class="sec-title">VENTAS DEL EQUIPO</span></div>
+          <div style="display:flex;align-items:baseline;gap:16px;"><span class="sec-num">05</span><span class="sec-title">VENTAS DEL EQUIPO</span></div>
           <button id="btn-refresh-mgr" style="padding:7px 16px;border:1px solid var(--border);background:none;color:var(--gray);font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;">↻ Actualizar</button>
         </div>
         <div class="admin-table-wrap">
           <table>
-            <colgroup><col style="width:25%"><col style="width:15%"><col style="width:18%"><col style="width:18%"><col style="width:12%"><col style="width:12%"></colgroup>
-            <thead><tr><th>Nombre</th><th>Ventas</th><th>Venta acum.</th><th>Falta / Excedente</th><th>Bono est.</th><th>Estado</th></tr></thead>
+            <colgroup><col style="width:25%"><col style="width:12%"><col style="width:15%"><col style="width:13%"><col style="width:13%"><col style="width:11%"><col style="width:11%"></colgroup>
+            <thead><tr><th>Nombre</th><th>Ventas</th><th>Venta acum.</th><th>Hoy</th><th>Falta / Excedente</th><th>Bono est.</th><th>Estado</th></tr></thead>
             <tbody id="mgr-staff-tbody"></tbody>
           </table>
         </div>
       </div>
 
-      <!-- 04 REGISTRAR MI VENTA -->
+      <!-- 06 REGISTRAR MI VENTA -->
       <div class="section">
-        <div class="sec-hd"><span class="sec-num">04</span><span class="sec-title">REGISTRAR MI VENTA</span></div>
+        <div class="sec-hd"><span class="sec-num">06</span><span class="sec-title">REGISTRAR MI VENTA</span></div>
         <div class="form-grid">
           <div class="form-panel">
             <div class="form-title">DATOS DE LA VENTA</div>
@@ -427,9 +444,9 @@ tr:hover td { background:#111; }
         </div>
       </div>
 
-      <!-- 05 MIS VENTAS -->
+      <!-- 07 MIS VENTAS -->
       <div class="section" style="border-bottom:none;padding-bottom:60px;">
-        <div class="sec-hd"><span class="sec-num">05</span><span class="sec-title">MIS VENTAS</span></div>
+        <div class="sec-hd"><span class="sec-num">07</span><span class="sec-title">MIS VENTAS</span></div>
         <button class="export-btn" id="mgr-btn-export">↓ Exportar mis ventas CSV</button>
         <div class="table-wrap">
           <table>
@@ -959,6 +976,22 @@ function renderSales(sales) {
   if (dailyEl) {
     dailyEl.textContent = hit ? '¡Meta individual alcanzada!' : `Necesitas ~$${necesarioDia.toLocaleString('es-MX')}/día en los ${daysLeft} días que quedan`;
     dailyEl.style.color = hit ? 'var(--green)' : 'var(--accent)';
+  }
+  // Hoy vs ayer
+  const today = getCDMXDate();
+  const yesterday = getCDMXDate(-1);
+  const ventaHoy = sales.filter(s => s.fecha === today).reduce((s,v) => s + Number(v.monto), 0);
+  const ventaAyer = sales.filter(s => s.fecha === yesterday).reduce((s,v) => s + Number(v.monto), 0);
+  const hoyEl = document.getElementById('prog-sub-hoy');
+  if (hoyEl) {
+    if (ventaHoy === 0 && ventaAyer === 0) {
+      hoyEl.textContent = '';
+    } else {
+      const diff = ventaHoy - ventaAyer;
+      const arrow = diff >= 0 ? '▲' : '▼';
+      const color = diff >= 0 ? 'var(--green)' : 'var(--red)';
+      hoyEl.innerHTML = `<span style="color:${color}">${arrow} Hoy $${ventaHoy.toLocaleString('es-MX')}</span> <span style="color:var(--gray)">vs ayer $${ventaAyer.toLocaleString('es-MX')}</span>`;
+    }
   }
   document.getElementById('bar-fill').style.width = pct + '%';
   document.getElementById('bar-fill').style.background = hit ? 'var(--green)' : 'var(--white)';
@@ -1547,6 +1580,12 @@ async function refreshManagerData() {
     totalEl.textContent = '$' + bonoTotal.toLocaleString('es-MX');
     totalEl.style.color = hitMeta ? 'var(--white)' : 'var(--gray3)';
 
+    // Venta del día
+    renderMgrDiaGrid(allSales, est, today, yesterday);
+
+    // Red de estudios
+    renderMgrEstGrid(allSales, est);
+
     // Staff table
     renderManagerStaffTable(allSales, est);
 
@@ -1558,23 +1597,99 @@ async function refreshManagerData() {
   }
 }
 
+function renderMgrDiaGrid(allSales, myEst, today, yesterday) {
+  const grid = document.getElementById('mgr-dia-grid');
+  if (!grid) return;
+  const estSales = allSales.filter(s => s.estudio === myEst);
+  const acum = estSales.reduce((s,v) => s + Number(v.monto), 0);
+  const hoy = estSales.filter(s => s.fecha === today).reduce((s,v) => s + Number(v.monto), 0);
+  const ayer = estSales.filter(s => s.fecha === yesterday).reduce((s,v) => s + Number(v.monto), 0);
+  const meta = META_ESTUDIO[myEst] || 0;
+  const falta = Math.max(0, meta - acum);
+  const daysLeft = getDaysLeft();
+  const necesarioDia = falta > 0 ? Math.ceil(falta / daysLeft) : 0;
+  const diff = hoy - ayer;
+  const noData = hoy === 0 && ayer === 0;
+  const up = diff >= 0;
+  const arrow = noData ? '—' : (up ? '▲' : '▼');
+  const arrowColor = noData ? 'var(--gray)' : (up ? 'var(--green)' : 'var(--red)');
+  const diffText = noData ? 'Sin ventas hoy' : (up ? '+$' : '-$') + Math.abs(diff).toLocaleString('es-MX') + ' vs ayer';
+  const hitMeta = acum >= meta;
+  grid.innerHTML = `<div style="background:var(--black);padding:28px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;align-items:start;">
+    <div>
+      <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:8px;">Venta hoy · ${myEst}</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:0.03em;line-height:1;color:${hoy > 0 ? 'var(--white)' : 'var(--gray3)'};">$${hoy.toLocaleString('es-MX')}</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+        <span style="font-size:18px;color:${arrowColor};">${arrow}</span>
+        <span style="font-size:12px;color:${arrowColor};">${diffText}</span>
+      </div>
+      <div style="font-size:11px;color:var(--gray);margin-top:4px;">Ayer: $${ayer.toLocaleString('es-MX')}</div>
+    </div>
+    <div style="border-left:1px solid var(--border);padding-left:24px;">
+      <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:8px;">Venta acumulada</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:0.03em;line-height:1;color:${hitMeta ? 'var(--green)' : 'var(--white)'};">$${acum.toLocaleString('es-MX')}</div>
+      <div style="font-size:11px;color:var(--gray);margin-top:8px;">Meta $${(meta/1000).toFixed(0)}K · ${hitMeta ? '✓ Alcanzada' : '$'+falta.toLocaleString('es-MX')+' faltante'}</div>
+    </div>
+    <div style="border-left:1px solid var(--border);padding-left:24px;">
+      ${hitMeta
+        ? `<div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:8px;">Estado</div>
+           <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--green);">✓ META</div>`
+        : `<div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:8px;">Necesario por día (${daysLeft} días)</div>
+           <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:0.03em;color:var(--accent);">$${necesarioDia.toLocaleString('es-MX')}</div>`
+      }
+    </div>
+  </div>`;
+}
+
+function renderMgrEstGrid(allSales, myEst) {
+  const grid = document.getElementById('mgr-est-grid');
+  if (!grid) return;
+  const estudios = ['LILAS','PRADO NORTE','ARTZ PEDREGAL'];
+  const daysLeft = getDaysLeft();
+  grid.innerHTML = estudios.map(est => {
+    const estSales = allSales.filter(s => s.estudio === est);
+    const total = estSales.reduce((s,v) => s + Number(v.monto), 0);
+    const meta = META_ESTUDIO[est] || 0;
+    const hit = total >= meta;
+    const pct = meta > 0 ? Math.min(100, Math.round(total / meta * 100)) : 0;
+    const falta = Math.max(0, meta - total);
+    const exc = total - meta;
+    const necesarioDia = falta > 0 ? Math.ceil(falta / daysLeft) : 0;
+    const barColor = hit ? 'var(--green)' : pct > 60 ? 'var(--accent)' : 'var(--red)';
+    const isMine = est === myEst;
+    return `<div class="est-card" style="${isMine ? 'background:#0a0f0a;' : ''}">
+      <div class="est-name" style="color:${isMine ? 'var(--accent)' : 'var(--white)'}">${est}</div>
+      <span class="est-badge ${isMine ? 'mine' : ''}">${isMine ? 'Mi estudio' : 'Red ZUDA'}</span>
+      <div class="est-bar-track"><div class="est-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+        <span class="est-pct" style="color:${barColor}">${pct}%</span>
+        <span style="font-size:11px;color:var(--gray)">Meta $${(meta/1000).toFixed(0)}K</span>
+      </div>
+      <div class="est-row"><span>Venta acumulada</span><span style="color:${hit ? 'var(--green)' : 'var(--white)'}">$${total.toLocaleString('es-MX')}</span></div>
+      <div class="est-row"><span>${hit ? 'Excedente' : 'Falta'}</span><span style="color:${hit ? 'var(--green)' : 'var(--red)'};">${hit ? '+$'+exc.toLocaleString('es-MX') : '$'+falta.toLocaleString('es-MX')}</span></div>
+      ${!hit ? `<div class="est-row"><span>Necesario/día</span><span style="color:var(--accent)">$${necesarioDia.toLocaleString('es-MX')}</span></div>` : ''}
+    </div>`;
+  }).join('');
+}
+
 function renderManagerStaffTable(allSales, est) {
+  const today = getCDMXDate();
   const staffKeys = Object.keys(USERS).filter(k => !USERS[k].isAdmin && !USERS[k].isManager);
   const estSalesAll = allSales.filter(s => s.estudio === est);
 
-  // Build per-staff data for this estudio
   const staffData = staffKeys
     .map(k => {
       const sales = estSalesAll.filter(s => s.usuario === k);
       const total = sales.reduce((s,v) => s + Number(v.monto), 0);
-      return { key:k, user:USERS[k], sales, total };
+      const hoy = sales.filter(s => s.fecha === today).reduce((s,v) => s + Number(v.monto), 0);
+      return { key:k, user:USERS[k], sales, total, hoy };
     })
-    .filter(d => d.total > 0) // only show staff who sold here
+    .filter(d => d.total > 0)
     .sort((a,b) => b.total - a.total);
 
   const tbody = document.getElementById('mgr-staff-tbody');
   if (!staffData.length) {
-    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Aún no hay ventas de staff en este estudio.</div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state">Aún no hay ventas de staff en este estudio.</div></td></tr>';
     return;
   }
 
@@ -1588,6 +1703,7 @@ function renderManagerStaffTable(allSales, est) {
       <td class="td-name" style="font-weight:500">${d.user.name}</td>
       <td>${d.sales.length}</td>
       <td style="font-family:'Bebas Neue',sans-serif;font-size:15px">$${d.total.toLocaleString('es-MX')}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:14px;color:${d.hoy > 0 ? 'var(--accent)' : 'var(--gray3)'}">$${d.hoy.toLocaleString('es-MX')}</td>
       <td style="color:${hit ? 'var(--green)' : 'var(--red)'};font-size:13px">${hit ? '+$'+exc.toLocaleString('es-MX') : '-$'+falta.toLocaleString('es-MX')}</td>
       <td style="font-family:'Bebas Neue',sans-serif;font-size:15px;color:${hit ? 'var(--green)' : 'var(--gray3)'}">$${bono.toLocaleString('es-MX')}</td>
       <td class="td-status">${hit ? '✓ Meta' : '✗ Bajo'}</td>
