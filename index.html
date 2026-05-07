@@ -1100,22 +1100,46 @@ async function loadEstudioTotals() {
   try {
     const allSales = await dbGet('order=created_at.desc');
     const mySales = allSales.filter(s => s.usuario === currentUserKey);
+    const today = getCDMXDate();
+    const yesterday = getCDMXDate(-1);
+    const daysLeft = getDaysLeft();
     const estudios = ['LILAS','PRADO NORTE','ARTZ PEDREGAL'];
+
     grid.innerHTML = estudios.map(est => {
       const estSales = allSales.filter(s => s.estudio === est);
       const estTotal = estSales.reduce((s,v) => s + Number(v.monto), 0);
       const miVenta = mySales.filter(s => s.estudio === est).reduce((s,v) => s + Number(v.monto), 0);
+      const hoy = estSales.filter(s => s.fecha === today).reduce((s,v) => s + Number(v.monto), 0);
+      const ayer = estSales.filter(s => s.fecha === yesterday).reduce((s,v) => s + Number(v.monto), 0);
       const iVendo = miVenta > 0;
       const meta = META_ESTUDIO[est] || 0;
       const hit = estTotal >= meta;
       const pct = meta > 0 ? Math.min(100, Math.round(estTotal / meta * 100)) : 0;
       const falta = Math.max(0, meta - estTotal);
       const exc = estTotal - meta;
+      const necesarioDia = hit ? 0 : Math.ceil(falta / daysLeft);
       const barColor = hit ? 'var(--green)' : pct > 60 ? 'var(--accent)' : 'var(--red)';
+      const diff = hoy - ayer;
+      const noData = hoy === 0 && ayer === 0;
+      const arrow = noData ? '' : (diff >= 0 ? '▲' : '▼');
+      const arrowColor = diff >= 0 ? 'var(--green)' : 'var(--red)';
+
       return `<div class="est-card" style="${iVendo ? 'background:#0a0f0a;' : ''}">
         <div class="est-name" style="color:${iVendo ? 'var(--accent)' : 'var(--white)'}">${est}</div>
         <span class="est-badge ${iVendo ? 'mine' : ''}">${iVendo ? 'Vendo aquí' : 'Red ZUDA'}</span>
-        ${iVendo ? `<div style="font-size:11px;color:var(--accent);margin-bottom:10px;">Mi aportación: $${miVenta.toLocaleString('es-MX')}</div>` : ''}
+        ${iVendo ? `<div style="font-size:11px;color:var(--accent);margin-bottom:8px;">Mi aportación: $${miVenta.toLocaleString('es-MX')}</div>` : ''}
+
+        <!-- Venta hoy vs ayer -->
+        <div style="background:var(--gray2);padding:10px 12px;margin-bottom:12px;border:1px solid var(--border);">
+          <div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);margin-bottom:4px;">Hoy</div>
+          <div style="display:flex;align-items:baseline;gap:8px;">
+            <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:0.03em;color:${hoy > 0 ? 'var(--white)' : 'var(--gray3)'};">$${hoy.toLocaleString('es-MX')}</span>
+            ${noData ? '' : `<span style="font-size:12px;color:${arrowColor};">${arrow} ${diff >= 0 ? '+$' : '-$'}${Math.abs(diff).toLocaleString('es-MX')} vs ayer</span>`}
+          </div>
+          <div style="font-size:10px;color:var(--gray);margin-top:2px;">Ayer: $${ayer.toLocaleString('es-MX')}</div>
+        </div>
+
+        <!-- Barra progreso -->
         <div class="est-bar-track"><div class="est-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
         <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
           <span class="est-pct" style="color:${barColor}">${pct}%</span>
@@ -1123,10 +1147,12 @@ async function loadEstudioTotals() {
         </div>
         <div class="est-row"><span>Venta del equipo</span><span style="color:${hit ? 'var(--green)' : 'var(--white)'}">$${estTotal.toLocaleString('es-MX')}</span></div>
         <div class="est-row"><span>${hit ? 'Excedente' : 'Falta'}</span><span style="color:${hit ? 'var(--green)' : 'var(--red)'};">${hit ? '+$'+exc.toLocaleString('es-MX') : '$'+falta.toLocaleString('es-MX')}</span></div>
+        ${!hit ? `<div class="est-row"><span>Necesario/día (${daysLeft}d)</span><span style="color:var(--accent);">$${necesarioDia.toLocaleString('es-MX')}</span></div>` : ''}
         <div class="est-row"><span>Estado</span><span style="font-size:12px;color:${hit ? 'var(--green)' : 'var(--red)'};">${hit ? '✓ META' : '✗ EN PROGRESO'}</span></div>
       </div>`;
     }).join('');
-    if (note) note.textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}) + ' · Se actualiza automáticamente cada 60 segundos';
+
+    if (note) note.textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}) + ' · Se actualiza cada 60s';
   } catch(e) {
     grid.innerHTML = '<div class="est-card" style="grid-column:1/-1"><div class="empty-state">Error cargando datos.</div></div>';
   }
@@ -1529,6 +1555,8 @@ async function refreshManagerData() {
 
   try {
     const allSales = await dbGet('order=created_at.desc');
+    const today = getCDMXDate();
+    const yesterday = getCDMXDate(-1);
     const estSales = allSales.filter(s => s.estudio === est);
     const mySales = allSales.filter(s => s.usuario === currentUserKey);
     const estTotal = estSales.reduce((s,v) => s + Number(v.monto), 0);
