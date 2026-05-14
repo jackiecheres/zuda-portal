@@ -538,16 +538,34 @@ tr:hover td { background:#111; }
         <button class="export-btn" id="btn-export-admin">↓ Exportar todas las ventas CSV</button>
       </div>
 
-      <!-- VENTAS DEL DÍA DETALLADO -->
+      <!-- VENTAS POR RANGO DE FECHAS -->
       <div class="section" style="border-bottom:none;padding-bottom:60px;">
-        <div class="sec-hd" style="justify-content:space-between;align-items:center;">
-          <div style="display:flex;align-items:baseline;gap:16px;"><span class="sec-num">06</span><span class="sec-title">VENTAS POR FECHA</span></div>
-        </div>
-        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px;">
+        <div class="sec-hd"><span class="sec-num">06</span><span class="sec-title">VENTAS POR FECHA</span></div>
+
+        <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:20px;">
+          <!-- Fecha inicio -->
           <div>
-            <label style="display:block;font-size:10px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Fecha</label>
-            <input type="date" id="adm-fecha-filter" style="padding:9px 14px;background:var(--gray2);border:1px solid var(--border);color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;">
+            <label style="display:block;font-size:10px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Fecha inicio</label>
+            <input type="date" id="adm-fecha-desde" style="padding:9px 14px;background:var(--gray2);border:1px solid var(--border);color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;cursor:pointer;">
           </div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--gray);padding-bottom:10px;">—</div>
+          <!-- Fecha fin -->
+          <div>
+            <label style="display:block;font-size:10px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Fecha fin</label>
+            <input type="date" id="adm-fecha-hasta" style="padding:9px 14px;background:var(--gray2);border:1px solid var(--border);color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;cursor:pointer;">
+          </div>
+          <!-- Atajos rápidos -->
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <label style="font-size:10px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);">Atajos</label>
+            <div style="display:flex;gap:6px;">
+              <button class="fecha-shortcut" data-range="hoy" style="padding:6px 12px;border:1px solid var(--border);background:none;color:var(--gray);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;transition:all 0.2s;">Hoy</button>
+              <button class="fecha-shortcut" data-range="ayer" style="padding:6px 12px;border:1px solid var(--border);background:none;color:var(--gray);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;transition:all 0.2s;">Ayer</button>
+              <button class="fecha-shortcut" data-range="semana" style="padding:6px 12px;border:1px solid var(--border);background:none;color:var(--gray);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;transition:all 0.2s;">Últ. 7 días</button>
+              <button class="fecha-shortcut" data-range="mes" style="padding:6px 12px;border:1px solid var(--border);background:none;color:var(--gray);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;transition:all 0.2s;">Este mes</button>
+              <button class="fecha-shortcut" data-range="bimestre" style="padding:6px 12px;border:1px solid var(--border);background:none;color:var(--gray);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;transition:all 0.2s;">Bimestre</button>
+            </div>
+          </div>
+          <!-- Estudio -->
           <div>
             <label style="display:block;font-size:10px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Estudio</label>
             <select id="adm-est-filter" style="padding:9px 14px;background:var(--gray2);border:1px solid var(--border);color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;appearance:none;padding-right:32px;">
@@ -557,17 +575,29 @@ tr:hover td { background:#111; }
               <option value="ARTZ PEDREGAL">Artz Pedregal</option>
             </select>
           </div>
-          <div style="padding-top:22px;">
+          <!-- Botón -->
+          <div>
             <button id="adm-fecha-btn" style="padding:9px 20px;border:1px solid var(--white);background:none;color:var(--white);font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.1em;cursor:pointer;">VER VENTAS</button>
           </div>
-          <div id="adm-fecha-total" style="padding-top:22px;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:0.04em;color:var(--gray3);"></div>
         </div>
+
+        <!-- Resumen del rango -->
+        <div id="adm-rango-resumen" style="display:none;border:1px solid var(--border);background:#080808;padding:20px 24px;margin-bottom:16px;display:none;">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);">
+            <div style="background:#080808;padding:16px 20px;"><div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Total del período</div><div id="res-total" style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:0.04em;">—</div></div>
+            <div style="background:#080808;padding:16px 20px;"><div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Ventas registradas</div><div id="res-ventas" style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:0.04em;">—</div></div>
+            <div style="background:#080808;padding:16px 20px;"><div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Promedio por día</div><div id="res-promedio" style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:0.04em;">—</div></div>
+            <div style="background:#080808;padding:16px 20px;"><div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Período</div><div id="res-periodo" style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.04em;margin-top:4px;">—</div></div>
+          </div>
+        </div>
+
         <div class="table-wrap" id="adm-fecha-wrap" style="display:none;">
           <table>
-            <thead><tr><th>Hora</th><th>Nombre</th><th>Estudio</th><th>Producto</th><th>Categoría</th><th>Monto</th></tr></thead>
+            <thead><tr><th>Fecha</th><th>Hora</th><th>Nombre</th><th>Estudio</th><th>Producto</th><th>Categoría</th><th>Monto</th></tr></thead>
             <tbody id="adm-fecha-tbody"></tbody>
           </table>
         </div>
+        <button id="adm-export-rango" style="display:none;margin-top:12px;padding:9px 18px;border:1px solid var(--border);background:none;color:var(--gray);font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;">↓ Exportar este período CSV</button>
       </div>
 
       </div><!-- /panel-dashboard -->
@@ -799,11 +829,11 @@ const CATALOG = {
   teens:[{name:"Teens 8 clases",price:1800},{name:"Teens 16 clases",price:2900}],
   cubo:[{name:"Cubo All Access mensual",price:3400}],
   recovery:[{name:"Recovery primera vez",price:250},{name:"Recovery 1 sesión",price:300},{name:"Recovery 5 sesiones",price:1450},{name:"Recovery 10 sesiones",price:2800},{name:"Terapia de Descarga",price:950}],
-  bebidas:[{name:"Agua Zoé 500 ml",price:35},{name:"Agua Zoé 900 ml",price:45}],
+  bebidas:[{name:"Agua Zoé 500 ml",price:35},{name:"Agua Zoé 900 ml",price:45},{name:"Caja Electrolitos LMNT",price:1100},{name:"Sobre Electrolitos LMNT",price:40}],
   merch:[{name:"Calcetines Pilates",price:390},{name:"Tote Bag",price:350},{name:"Pullover",price:899},{name:"Player",price:499},{name:"Gorra",price:499},{name:"Hoodie",price:999}],
   wellness:[{name:"InBody Socios",price:199},{name:"InBody Regular",price:299}]
 };
-const CAT_LABELS = {paquete:'Paquetes',mensualidad:'Mensualidad',anualidad:'Anualidad',teens:'Teens',cubo:'Cubo',recovery:'Recovery',bebidas:'Bebidas',merch:'Merch',wellness:'Zuda Wellness'};
+const CAT_LABELS = {paquete:'Paquetes',mensualidad:'Mensualidad',anualidad:'Anualidad',teens:'Teens',cubo:'Cubo',recovery:'Recovery',bebidas:'Alimentos y Bebidas',merch:'Merch',wellness:'Zuda Wellness'};
 
 let currentUser = null;
 let currentUserKey = null;
@@ -1219,27 +1249,74 @@ async function loadAdminView() {
     exportCSV(allSales, 'zuda_ventas_todas_' + getCDMXDate() + '.csv');
   });
 
-  // Date filter for ventas por fecha
-  document.getElementById('adm-fecha-filter').value = getCDMXDate();
+  // Date range filter
+  document.getElementById('adm-fecha-desde').value = getCDMXDate();
+  document.getElementById('adm-fecha-hasta').value = getCDMXDate();
+
+  // Shortcuts
+  document.querySelectorAll('.fecha-shortcut').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.fecha-shortcut').forEach(b => { b.style.background='none'; b.style.color='var(--gray)'; b.style.borderColor='var(--border)'; });
+      this.style.background = 'var(--gray3)'; this.style.color = 'var(--white)'; this.style.borderColor = 'var(--gray)';
+      const range = this.dataset.range;
+      const today = getCDMXDate();
+      if (range === 'hoy') {
+        document.getElementById('adm-fecha-desde').value = today;
+        document.getElementById('adm-fecha-hasta').value = today;
+      } else if (range === 'ayer') {
+        const y = getCDMXDate(-1);
+        document.getElementById('adm-fecha-desde').value = y;
+        document.getElementById('adm-fecha-hasta').value = y;
+      } else if (range === 'semana') {
+        document.getElementById('adm-fecha-desde').value = getCDMXDate(-6);
+        document.getElementById('adm-fecha-hasta').value = today;
+      } else if (range === 'mes') {
+        const now = new Date(new Date().toLocaleString('en-US', {timeZone:'America/Mexico_City'}));
+        const firstDay = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+        document.getElementById('adm-fecha-desde').value = firstDay;
+        document.getElementById('adm-fecha-hasta').value = today;
+      } else if (range === 'bimestre') {
+        document.getElementById('adm-fecha-desde').value = '2026-05-01';
+        document.getElementById('adm-fecha-hasta').value = '2026-06-30';
+      }
+    });
+  });
+
   document.getElementById('adm-fecha-btn').addEventListener('click', async () => {
-    const fecha = document.getElementById('adm-fecha-filter').value;
+    const desde = document.getElementById('adm-fecha-desde').value;
+    const hasta = document.getElementById('adm-fecha-hasta').value;
     const est = document.getElementById('adm-est-filter').value;
-    if (!fecha) return;
-    let q = `fecha=eq.${fecha}&order=created_at.asc`;
+    if (!desde || !hasta) return;
+
+    let q = `fecha=gte.${desde}&fecha=lte.${hasta}&order=fecha.asc,created_at.asc`;
     if (est) q += `&estudio=eq.${encodeURIComponent(est)}`;
     const sales = await dbGet(q);
+
     const total = sales.reduce((s,v) => s + Number(v.monto), 0);
     const wrap = document.getElementById('adm-fecha-wrap');
     const tbody = document.getElementById('adm-fecha-tbody');
-    const totalEl = document.getElementById('adm-fecha-total');
-    totalEl.textContent = sales.length ? '$' + total.toLocaleString('es-MX') + ' · ' + sales.length + ' ventas' : 'Sin ventas';
-    totalEl.style.color = sales.length ? 'var(--white)' : 'var(--gray)';
+    const resumen = document.getElementById('adm-rango-resumen');
+    const exportBtn = document.getElementById('adm-export-rango');
+
+    // Calculate days in range
+    const d1 = new Date(desde), d2 = new Date(hasta);
+    const dias = Math.max(1, Math.round((d2 - d1) / 86400000) + 1);
+    const promedio = sales.length ? Math.round(total / dias) : 0;
+
+    // Resumen KPIs
+    document.getElementById('res-total').textContent = '$' + total.toLocaleString('es-MX');
+    document.getElementById('res-ventas').textContent = sales.length;
+    document.getElementById('res-promedio').textContent = '$' + promedio.toLocaleString('es-MX');
+    document.getElementById('res-periodo').textContent = fmtDate(desde) + ' → ' + fmtDate(hasta) + ' (' + dias + ' días)';
+    resumen.style.display = sales.length ? 'block' : 'none';
+
     if (!sales.length) {
-      tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Sin ventas para esta fecha y estudio.</div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state">Sin ventas para este período y filtro.</div></td></tr>';
     } else {
       tbody.innerHTML = sales.map(s => {
         const hora = s.created_at ? new Date(s.created_at).toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit', timeZone:'America/Mexico_City'}) : '—';
         return `<tr>
+          <td>${fmtDate(s.fecha)}</td>
           <td style="color:var(--gray)">${hora}</td>
           <td style="font-weight:500;color:var(--white)">${s.nombre}</td>
           <td>${s.estudio}</td>
@@ -1250,6 +1327,10 @@ async function loadAdminView() {
       }).join('');
     }
     wrap.style.display = '';
+    exportBtn.style.display = sales.length ? '' : 'none';
+
+    // Export button for this range
+    exportBtn.onclick = () => exportCSV(sales, `zuda_ventas_${desde}_${hasta}.csv`);
   });
 }
 
