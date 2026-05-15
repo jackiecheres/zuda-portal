@@ -279,6 +279,19 @@ tr:hover td { background:#111; }
             <label>Paquete / Membresía</label>
             <select id="f-pkg"><option value="">— Primero selecciona categoría —</option></select>
           </div>
+          <div class="field">
+            <label>Descuento <span style="font-size:10px;color:var(--gray);">(opcional)</span></label>
+            <select id="f-descuento">
+              <option value="0">Sin descuento</option>
+              <option value="10">10%</option>
+              <option value="15">15%</option>
+              <option value="20">20%</option>
+            </select>
+          </div>
+          <div class="field" id="f-motivo-wrap" style="display:none;">
+            <label>Motivo del descuento</label>
+            <input type="text" id="f-motivo" placeholder="Escribe el motivo..." style="width:100%;padding:11px 14px;background:var(--gray2);border:1px solid var(--border);color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;">
+          </div>
         </div>
         <div class="form-panel">
           <div class="form-title">RESUMEN</div>
@@ -287,8 +300,11 @@ tr:hover td { background:#111; }
             <div class="sp-row"><span>Paquete</span><span id="prev-pkg">—</span></div>
             <div class="sp-row"><span>Estudio</span><span id="prev-est" style="color:var(--red)">— elige estudio —</span></div>
             <div class="sp-row"><span>Fecha</span><span id="prev-fecha">—</span></div>
+            <div class="sp-row" id="prev-descuento-row" style="display:none;"><span>Descuento</span><span id="prev-descuento" style="color:var(--accent)">—</span></div>
+            <div class="sp-row" id="prev-motivo-row" style="display:none;"><span>Motivo</span><span id="prev-motivo-txt" style="color:var(--gray);font-size:12px;">—</span></div>
+            <div class="sp-row" id="prev-precio-original-row" style="display:none;"><span>Precio original</span><span id="prev-precio-original" style="color:var(--gray);text-decoration:line-through;">—</span></div>
             <div class="sp-row big" style="border-top:1px solid var(--border);margin-top:10px;padding-top:10px;">
-              <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--gray)">Monto</span>
+              <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--gray)">Monto final</span>
               <span id="prev-monto">$0</span>
             </div>
           </div>
@@ -307,7 +323,7 @@ tr:hover td { background:#111; }
       <button class="export-btn" id="btn-export">↓ Exportar mis ventas CSV</button>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Fecha</th><th>Estudio</th><th>Paquete / Membresía</th><th>Categoría</th><th>Monto</th><th></th></tr></thead>
+          <thead><tr><th>Fecha</th><th>Estudio</th><th>Paquete / Membresía</th><th>Categoría</th><th>Desc.</th><th>Monto</th><th></th></tr></thead>
           <tbody id="sales-tbody"><tr><td colspan="6"><div class="empty-state">Cargando...</div></td></tr></tbody>
         </table>
       </div>
@@ -945,19 +961,44 @@ function updatePreview() {
   const idx = document.getElementById('f-pkg').value;
   const fecha = document.getElementById('f-fecha').value;
   const estudio = document.getElementById('f-estudio').value;
+  const descPct = parseInt(document.getElementById('f-descuento')?.value || '0');
+  const motivo = document.getElementById('f-motivo')?.value || '';
+
   document.getElementById('prev-fecha').textContent = fecha || '—';
   const estEl = document.getElementById('prev-est');
   estEl.textContent = estudio || '— elige estudio —';
   estEl.style.color = estudio ? 'var(--white)' : 'var(--red)';
+
+  // Show/hide motivo field
+  const motivoWrap = document.getElementById('f-motivo-wrap');
+  if (motivoWrap) motivoWrap.style.display = descPct > 0 ? '' : 'none';
+
   if (cat && idx !== '' && CATALOG[cat]) {
     const item = CATALOG[cat][parseInt(idx)];
+    const precioFinal = descPct > 0 ? Math.round(item.price * (1 - descPct/100)) : item.price;
     document.getElementById('prev-pkg').textContent = item.name;
-    document.getElementById('prev-monto').textContent = '$' + item.price.toLocaleString('es-MX');
+    document.getElementById('prev-monto').textContent = '$' + precioFinal.toLocaleString('es-MX');
+    document.getElementById('prev-monto').style.color = descPct > 0 ? 'var(--accent)' : 'var(--white)';
+
+    // Descuento rows
+    const dRow = document.getElementById('prev-descuento-row');
+    const mRow = document.getElementById('prev-motivo-row');
+    const oRow = document.getElementById('prev-precio-original-row');
+    if (descPct > 0) {
+      dRow.style.display = ''; document.getElementById('prev-descuento').textContent = descPct + '%';
+      oRow.style.display = ''; document.getElementById('prev-precio-original').textContent = '$' + item.price.toLocaleString('es-MX');
+      if (motivo) { mRow.style.display = ''; document.getElementById('prev-motivo-txt').textContent = motivo; }
+      else mRow.style.display = 'none';
+    } else {
+      dRow.style.display = 'none'; mRow.style.display = 'none'; oRow.style.display = 'none';
+    }
     document.getElementById('btn-add').classList.toggle('ready', !!estudio);
   } else {
     document.getElementById('prev-pkg').textContent = '—';
     document.getElementById('prev-monto').textContent = '$0';
+    document.getElementById('prev-monto').style.color = 'var(--white)';
     document.getElementById('btn-add').classList.remove('ready');
+    ['prev-descuento-row','prev-motivo-row','prev-precio-original-row'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
   }
 }
 
@@ -1053,6 +1094,7 @@ function renderSales(sales) {
     <td>${s.estudio}</td>
     <td class="td-pkg">${s.paquete}</td>
     <td>${s.categoria}</td>
+    <td>${s.descuento ? `<span style="color:var(--accent);font-size:12px;">${s.descuento}%${s.motivo_descuento ? '<br><span style="color:var(--gray);font-size:10px;">'+s.motivo_descuento+'</span>' : ''}</span>` : '<span style="color:var(--gray3)">—</span>'}</td>
     <td class="td-amt">$${Number(s.monto).toLocaleString('es-MX')}</td>
     <td><button class="td-del" data-id="${s.id}" data-pkg="${s.paquete}" data-monto="${s.monto}" data-est="${s.estudio}">✕</button></td>
   </tr>`).join('');
@@ -1070,20 +1112,35 @@ async function addSale() {
     setTimeout(() => msg.textContent = '', 2500); return;
   }
   const item = CATALOG[cat][parseInt(idx)];
+  const descPct = parseInt(document.getElementById('f-descuento').value || '0');
+  const motivo = document.getElementById('f-motivo').value.trim();
+  const precioFinal = descPct > 0 ? Math.round(item.price * (1 - descPct/100)) : item.price;
   const btn = document.getElementById('btn-add');
   btn.textContent = 'GUARDANDO...'; btn.classList.remove('ready');
   try {
-    const result = await dbPost({ usuario:currentUserKey, nombre:currentUser.name, fecha, estudio, categoria:CAT_LABELS[cat]||cat, paquete:item.name, monto:item.price });
+    const result = await dbPost({
+      usuario: currentUserKey, nombre: currentUser.name,
+      fecha, estudio, categoria: CAT_LABELS[cat]||cat,
+      paquete: item.name, monto: precioFinal,
+      precio_original: item.price,
+      descuento: descPct > 0 ? descPct : null,
+      motivo_descuento: descPct > 0 && motivo ? motivo : null
+    });
     console.log('Venta guardada:', result);
     msg.style.color = 'var(--green)';
-    msg.textContent = '✓ Guardado en ' + estudio + ': ' + item.name + ' · $' + item.price.toLocaleString('es-MX');
+    const descTxt = descPct > 0 ? ` (${descPct}% desc.)` : '';
+    msg.textContent = '✓ Guardado en ' + estudio + ': ' + item.name + ' · $' + precioFinal.toLocaleString('es-MX') + descTxt;
     setTimeout(() => msg.textContent = '', 3500);
     document.getElementById('f-estudio').value = '';
     document.getElementById('f-cat').value = '';
     document.getElementById('f-pkg').innerHTML = '<option value="">— Primero selecciona categoría —</option>';
+    document.getElementById('f-descuento').value = '0';
+    document.getElementById('f-motivo').value = '';
+    document.getElementById('f-motivo-wrap').style.display = 'none';
     ['prev-est','prev-cat','prev-pkg'].forEach(id => document.getElementById(id).textContent = '—');
     document.getElementById('prev-est').style.color = 'var(--red)';
     document.getElementById('prev-monto').textContent = '$0';
+    ['prev-descuento-row','prev-motivo-row','prev-precio-original-row'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
     await loadSales();
   } catch(e) {
     console.error('Error al guardar venta:', e);
@@ -1507,9 +1564,14 @@ function showDetail(d) {
           <td style="color:var(--white)">${s.paquete}</td>
           <td>${s.categoria}</td>
           <td style="font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--white)">$${Number(s.monto).toLocaleString('es-MX')}</td>
-          <td><button class="td-del admin-del-btn" data-id="${s.id}" data-pkg="${s.paquete}" data-monto="${s.monto}" data-est="${s.estudio}" style="background:none;border:1px solid transparent;color:var(--gray);cursor:pointer;font-size:12px;padding:3px 8px;transition:all 0.2s;">✕</button></td>
+          <td>${s.descuento ? `<span style="color:var(--accent);font-size:12px;">${s.descuento}%</span>` : '<span style="color:var(--gray3)">—</span>'}</td>
+          <td style="font-size:11px;color:var(--gray);max-width:100px;overflow:hidden;text-overflow:ellipsis;">${s.motivo_descuento || '—'}</td>
+          <td style="display:flex;gap:4px;">
+            <button class="admin-edit-btn" data-id="${s.id}" data-monto-orig="${s.precio_original || s.monto}" data-descuento="${s.descuento || 0}" data-motivo="${(s.motivo_descuento||'').replace(/"/g,'&quot;')}" style="background:none;border:1px solid var(--border);color:var(--gray);cursor:pointer;font-size:11px;padding:3px 8px;transition:all 0.2s;">✎</button>
+            <button class="admin-del-btn" data-id="${s.id}" data-pkg="${s.paquete}" data-monto="${s.monto}" data-est="${s.estudio}" style="background:none;border:1px solid transparent;color:var(--gray);cursor:pointer;font-size:12px;padding:3px 8px;transition:all 0.2s;">✕</button>
+          </td>
         </tr>`).join('')
-      : '<tr><td colspan="6" style="text-align:center;color:var(--gray);padding:24px">Sin ventas</td></tr>';
+      : '<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:24px">Sin ventas</td></tr>';
   }
 
   function buildDetail(sales) {
@@ -1521,17 +1583,17 @@ function showDetail(d) {
         <div>
           <div class="detail-header-name">${d.user.name}</div>
           <div style="font-size:12px;color:var(--gray);margin-top:4px">
-            Venta: <strong style="color:${isHit ? 'var(--green)' : 'var(--red)'}">$${total.toLocaleString('es-MX')}</strong> &nbsp;·&nbsp;
-            Bono: <strong style="color:${isHit ? 'var(--green)' : 'var(--gray3)'}">$${b.toLocaleString('es-MX')}</strong> &nbsp;·&nbsp;
-            ${sales.length} ventas
-            <span style="margin-left:12px;font-size:10px;color:var(--gray);border:1px solid var(--border);padding:2px 8px;">Admin · Puedes eliminar ventas</span>
+            Venta: <strong style="color:${isHit ? 'var(--green)' : 'var(--red)'}">$${total.toLocaleString('es-MX')}</strong>
+            &nbsp;·&nbsp; Bono: <strong style="color:${isHit ? 'var(--green)' : 'var(--gray3)'}">$${b.toLocaleString('es-MX')}</strong>
+            &nbsp;·&nbsp; ${sales.length} ventas
+            <span style="margin-left:12px;font-size:10px;color:var(--gray);border:1px solid var(--border);padding:2px 8px;">Admin · Editar o eliminar ventas</span>
           </div>
         </div>
         <button class="detail-close" id="btn-close-detail">Cerrar ✕</button>
       </div>
       <div style="padding:20px;">
         <table class="detail-sales-table">
-          <thead><tr><th>Fecha</th><th>Estudio</th><th>Producto</th><th>Categoría</th><th>Monto</th><th></th></tr></thead>
+          <thead><tr><th>Fecha</th><th>Estudio</th><th>Producto</th><th>Categoría</th><th>Monto</th><th>Desc.</th><th>Motivo</th><th></th></tr></thead>
           <tbody id="detail-tbody">${renderDetailRows(sales)}</tbody>
         </table>
       </div>
@@ -1545,8 +1607,84 @@ function showDetail(d) {
 
   document.getElementById('btn-close-detail').addEventListener('click', () => wrap.innerHTML = '');
 
-  // Admin delete buttons inside detail panel
+  // Admin edit/delete buttons inside detail panel
   wrap.addEventListener('click', async function(e) {
+    // EDIT button
+    const editBtn = e.target.closest('button.admin-edit-btn');
+    if (editBtn) {
+      const id = parseInt(editBtn.dataset.id);
+      const montoOrig = Number(editBtn.dataset.montoOrig);
+      const currentDesc = parseInt(editBtn.dataset.descuento) || 0;
+      const currentMotivo = editBtn.dataset.motivo || '';
+      // Build inline edit row
+      const row = editBtn.closest('tr');
+      const existingEditor = document.getElementById('edit-row-' + id);
+      if (existingEditor) { existingEditor.remove(); return; }
+      const editorRow = document.createElement('tr');
+      editorRow.id = 'edit-row-' + id;
+      editorRow.style.background = '#0a0a14';
+      editorRow.innerHTML = `<td colspan="8" style="padding:12px 16px;">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:4px;">Descuento</div>
+            <select id="edit-desc-${id}" style="padding:7px 12px;background:var(--gray2);border:1px solid var(--border);color:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;">
+              <option value="0" ${currentDesc===0?'selected':''}>Sin descuento</option>
+              <option value="10" ${currentDesc===10?'selected':''}>10%</option>
+              <option value="15" ${currentDesc===15?'selected':''}>15%</option>
+              <option value="20" ${currentDesc===20?'selected':''}>20%</option>
+            </select>
+          </div>
+          <div style="flex:1;min-width:160px;">
+            <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:4px;">Motivo del descuento</div>
+            <input type="text" id="edit-motivo-${id}" value="${currentMotivo}" placeholder="Motivo..." style="width:100%;padding:7px 12px;background:var(--gray2);border:1px solid var(--border);color:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;">
+          </div>
+          <div style="padding-top:18px;display:flex;gap:6px;">
+            <button id="edit-save-${id}" style="padding:7px 16px;border:1px solid var(--white);background:none;color:var(--white);font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:0.08em;cursor:pointer;" data-id="${id}" data-monto-orig="${montoOrig}">GUARDAR</button>
+            <button id="edit-cancel-${id}" style="padding:7px 12px;border:1px solid var(--border);background:none;color:var(--gray);font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:0.08em;cursor:pointer;">CANCELAR</button>
+          </div>
+          <div id="edit-preview-${id}" style="padding-top:18px;font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--accent);">Monto: $${montoOrig.toLocaleString('es-MX')}</div>
+        </div>
+      </td>`;
+      row.after(editorRow);
+
+      // Live preview of discounted price
+      document.getElementById(`edit-desc-${id}`).addEventListener('change', function() {
+        const pct = parseInt(this.value);
+        const final = pct > 0 ? Math.round(montoOrig * (1 - pct/100)) : montoOrig;
+        document.getElementById(`edit-preview-${id}`).textContent = 'Monto: $' + final.toLocaleString('es-MX') + (pct > 0 ? ` (${pct}% desc.)` : '');
+      });
+
+      document.getElementById(`edit-cancel-${id}`).addEventListener('click', () => editorRow.remove());
+
+      document.getElementById(`edit-save-${id}`).addEventListener('click', async function() {
+        const pct = parseInt(document.getElementById(`edit-desc-${id}`).value);
+        const mot = document.getElementById(`edit-motivo-${id}`).value.trim();
+        const newMonto = pct > 0 ? Math.round(montoOrig * (1 - pct/100)) : montoOrig;
+        try {
+          await fetch(`${SB_URL}/rest/v1/ventas?id=eq.${id}`, {
+            method: 'PATCH',
+            headers: { ...HDR, 'Prefer': 'return=minimal' },
+            body: JSON.stringify({
+              monto: newMonto,
+              descuento: pct > 0 ? pct : null,
+              motivo_descuento: pct > 0 && mot ? mot : null
+            })
+          });
+          editorRow.remove();
+          // Refresh detail
+          const idx2 = detailSales.findIndex(s => s.id === id);
+          if (idx2 !== -1) {
+            detailSales[idx2].monto = newMonto;
+            detailSales[idx2].descuento = pct > 0 ? pct : null;
+            detailSales[idx2].motivo_descuento = pct > 0 && mot ? mot : null;
+          }
+          document.getElementById('detail-tbody').innerHTML = renderDetailRows(detailSales);
+          const allSales = await dbGet('order=created_at.desc');
+          renderAdminView(allSales);
+        } catch(err) { console.error('Edit error:', err); }
+      });
+      return;
+    }
     const btn = e.target.closest('button.admin-del-btn');
     if (!btn) return;
     const id = parseInt(btn.dataset.id);
@@ -2294,6 +2432,8 @@ document.getElementById('f-cat').addEventListener('change', updatePackages);
 document.getElementById('f-pkg').addEventListener('change', updatePreview);
 document.getElementById('f-estudio').addEventListener('change', updatePreview);
 document.getElementById('f-fecha').addEventListener('change', updatePreview);
+document.getElementById('f-descuento').addEventListener('change', updatePreview);
+document.getElementById('f-motivo').addEventListener('input', updatePreview);
 </script>
 </body>
 </html>
