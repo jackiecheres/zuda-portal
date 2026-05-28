@@ -1187,7 +1187,7 @@ async function loadEstudioTotals() {
   const note = document.getElementById('est-sync-note');
   if (!grid) return;
   try {
-    const allSales = await dbGet('order=created_at.desc');
+    const allSales = await dbGet('order=created_at.desc&limit=10000');
     const mySales = allSales.filter(s => s.usuario === currentUserKey);
     const today = getCDMXDate();
     const yesterday = getCDMXDate(-1);
@@ -1252,7 +1252,7 @@ async function loadAdminView() {
   const syncEl = document.getElementById('sync-status');
   syncEl.style.color = 'var(--gray)'; syncEl.textContent = 'Cargando datos desde Supabase...';
   try {
-    const allSales = await dbGet('order=created_at.desc');
+    const allSales = await dbGet('order=created_at.desc&limit=10000');
     renderAdminView(allSales);
     syncEl.style.color = 'var(--green)';
     syncEl.textContent = '✓ Actualizado — ' + new Date().toLocaleTimeString('es-MX');
@@ -1265,7 +1265,7 @@ async function loadAdminView() {
     btn.addEventListener('click', async function() {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       this.classList.add('active'); adminFilter = this.dataset.filter;
-      const allSales = await dbGet('order=created_at.desc');
+      const allSales = await dbGet('order=created_at.desc&limit=10000');
       renderAdminView(allSales);
     });
   });
@@ -1284,12 +1284,12 @@ async function loadAdminView() {
     this.style.background = 'var(--black)'; this.style.color = 'var(--white)';
     document.getElementById('tab-dashboard').style.background = 'var(--gray2)';
     document.getElementById('tab-dashboard').style.color = 'var(--gray)';
-    const allSales = await dbGet('order=created_at.desc');
+    const allSales = await dbGet('order=created_at.desc&limit=10000');
     renderTablero(allSales);
   });
 
   document.getElementById('btn-refresh-tablero').addEventListener('click', async () => {
-    const allSales = await dbGet('order=created_at.desc');
+    const allSales = await dbGet('order=created_at.desc&limit=10000');
     renderTablero(allSales);
   });
 
@@ -1303,7 +1303,7 @@ async function loadAdminView() {
   });
 
   document.getElementById('btn-export-admin').addEventListener('click', async () => {
-    const allSales = await dbGet('order=created_at.desc');
+    const allSales = await dbGet('order=created_at.desc&limit=10000');
     exportCSV(allSales, 'zuda_ventas_todas_' + getCDMXDate() + '.csv');
   });
 
@@ -1680,7 +1680,7 @@ function showDetail(d) {
             detailSales[idx2].motivo_descuento = pct > 0 && mot ? mot : null;
           }
           document.getElementById('detail-tbody').innerHTML = renderDetailRows(detailSales);
-          const allSales = await dbGet('order=created_at.desc');
+          const allSales = await dbGet('order=created_at.desc&limit=10000');
           renderAdminView(allSales);
         } catch(err) { console.error('Edit error:', err); }
       });
@@ -1718,7 +1718,7 @@ function showDetail(d) {
           ${detailSales.length} ventas
           <span style="margin-left:12px;font-size:10px;color:var(--gray);border:1px solid var(--border);padding:2px 8px;">Admin · Puedes eliminar ventas</span>`;
         // Refresh main admin table
-        const allSales = await dbGet('order=created_at.desc');
+        const allSales = await dbGet('order=created_at.desc&limit=10000');
         renderAdminView(allSales);
       } catch(e) { console.error('Admin delete error:', e); }
     });
@@ -1775,7 +1775,7 @@ async function refreshManagerData() {
   const meta = META_ESTUDIO[est] || 0;
 
   try {
-    const allSales = await dbGet('order=created_at.desc');
+    const allSales = await dbGet('order=created_at.desc&limit=10000');
     const today = getCDMXDate();
     const yesterday = getCDMXDate(-1);
     const estSales = allSales.filter(s => s.estudio === est);
@@ -2096,7 +2096,7 @@ async function loadDirectorView() {
       });
       this.style.background = 'var(--gray3)'; this.style.color = 'var(--white)'; this.style.borderColor = 'var(--gray)';
       dirFilter = this.dataset.filter;
-      const allSales = await dbGet('order=created_at.desc');
+      const allSales = await dbGet('order=created_at.desc&limit=10000');
       renderDirStaffTable(allSales);
     });
   });
@@ -2108,7 +2108,7 @@ async function loadDirectorView() {
 
 async function refreshDirectorData() {
   try {
-    const allSales = await dbGet('order=created_at.desc');
+    const allSales = await dbGet('order=created_at.desc&limit=10000');
     const today = getCDMXDate();
     const yesterday = getCDMXDate(-1);
 
