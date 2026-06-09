@@ -292,6 +292,13 @@ tr:hover td { background:#111; }
             <label>Motivo del descuento</label>
             <input type="text" id="f-motivo" placeholder="Escribe el motivo..." style="width:100%;padding:11px 14px;background:var(--gray2);border:1px solid var(--border);color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;">
           </div>
+          <div class="field">
+            <label>Número de orden <span style="font-size:10px;color:var(--gray);">(opcional)</span></label>
+            <div style="display:flex;align-items:center;background:var(--gray2);border:1px solid var(--border);">
+              <span style="padding:11px 12px;font-size:13px;color:var(--gray);border-right:1px solid var(--border);white-space:nowrap;">Order #</span>
+              <input type="text" id="f-orden" placeholder="VTC9-SSVF-5KV3" style="flex:1;padding:11px 14px;background:transparent;border:none;color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;letter-spacing:0.04em;">
+            </div>
+          </div>
         </div>
         <div class="form-panel">
           <div class="form-title">RESUMEN</div>
@@ -303,6 +310,7 @@ tr:hover td { background:#111; }
             <div class="sp-row" id="prev-descuento-row" style="display:none;"><span>Descuento</span><span id="prev-descuento" style="color:var(--accent)">—</span></div>
             <div class="sp-row" id="prev-motivo-row" style="display:none;"><span>Motivo</span><span id="prev-motivo-txt" style="color:var(--gray);font-size:12px;">—</span></div>
             <div class="sp-row" id="prev-precio-original-row" style="display:none;"><span>Precio original</span><span id="prev-precio-original" style="color:var(--gray);text-decoration:line-through;">—</span></div>
+            <div class="sp-row" id="prev-orden-row"><span>Order #</span><span id="prev-orden" style="color:var(--gray);font-size:12px;">—</span></div>
             <div class="sp-row big" style="border-top:1px solid var(--border);margin-top:10px;padding-top:10px;">
               <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--gray)">Monto final</span>
               <span id="prev-monto">$0</span>
@@ -591,6 +599,13 @@ tr:hover td { background:#111; }
               <option value="ARTZ PEDREGAL">Artz Pedregal</option>
             </select>
           </div>
+          <!-- Staff nombre -->
+          <div>
+            <label style="display:block;font-size:10px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Staff / Manager</label>
+            <select id="adm-staff-filter" style="padding:9px 14px;background:var(--gray2);border:1px solid var(--border);color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;appearance:none;padding-right:32px;">
+              <option value="">Todos</option>
+            </select>
+          </div>
           <!-- Botón -->
           <div>
             <button id="adm-fecha-btn" style="padding:9px 20px;border:1px solid var(--white);background:none;color:var(--white);font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.1em;cursor:pointer;">VER VENTAS</button>
@@ -609,11 +624,13 @@ tr:hover td { background:#111; }
 
         <div class="table-wrap" id="adm-fecha-wrap" style="display:none;">
           <table>
-            <thead><tr><th>Fecha</th><th>Hora</th><th>Nombre</th><th>Estudio</th><th>Producto</th><th>Categoría</th><th>Monto</th></tr></thead>
+            <thead><tr><th>Fecha</th><th>Hora</th><th>Nombre</th><th>Estudio</th><th>Producto</th><th>Categoría</th><th>Order #</th><th>Desc.</th><th>Monto</th></tr></thead>
             <tbody id="adm-fecha-tbody"></tbody>
           </table>
         </div>
-        <button id="adm-export-rango" style="display:none;margin-top:12px;padding:9px 18px;border:1px solid var(--border);background:none;color:var(--gray);font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;">↓ Exportar este período CSV</button>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button id="adm-export-rango" style="display:none;padding:9px 18px;border:1px solid var(--border);background:none;color:var(--gray);font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;">↓ Exportar resultados CSV</button>
+        </div>
       </div>
 
       </div><!-- /panel-dashboard -->
@@ -1007,6 +1024,10 @@ function updatePreview() {
     document.getElementById('btn-add').classList.remove('ready');
     ['prev-descuento-row','prev-motivo-row','prev-precio-original-row'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
   }
+  // Update orden preview
+  const orden = document.getElementById('f-orden')?.value?.trim();
+  const ordenEl = document.getElementById('prev-orden');
+  if (ordenEl) ordenEl.textContent = orden ? orden : '—';
 }
 
 // ─── LOAD & RENDER SALES ───
@@ -1121,6 +1142,7 @@ async function addSale() {
   const item = CATALOG[cat][parseInt(idx)];
   const descPct = parseInt(document.getElementById('f-descuento').value || '0');
   const motivo = document.getElementById('f-motivo').value.trim();
+  const orden = document.getElementById('f-orden').value.trim();
   const precioFinal = descPct > 0 ? Math.round(item.price * (1 - descPct/100)) : item.price;
   const btn = document.getElementById('btn-add');
   btn.textContent = 'GUARDANDO...'; btn.classList.remove('ready');
@@ -1131,22 +1153,26 @@ async function addSale() {
       paquete: item.name, monto: precioFinal,
       precio_original: item.price,
       descuento: descPct > 0 ? descPct : null,
-      motivo_descuento: descPct > 0 && motivo ? motivo : null
+      motivo_descuento: descPct > 0 && motivo ? motivo : null,
+      numero_orden: orden || null
     });
     console.log('Venta guardada:', result);
     msg.style.color = 'var(--green)';
     const descTxt = descPct > 0 ? ` (${descPct}% desc.)` : '';
-    msg.textContent = '✓ Guardado en ' + estudio + ': ' + item.name + ' · $' + precioFinal.toLocaleString('es-MX') + descTxt;
+    const ordenTxt = orden ? ` · Order #${orden}` : '';
+    msg.textContent = '✓ Guardado en ' + estudio + ': ' + item.name + ' · $' + precioFinal.toLocaleString('es-MX') + descTxt + ordenTxt;
     setTimeout(() => msg.textContent = '', 3500);
     document.getElementById('f-estudio').value = '';
     document.getElementById('f-cat').value = '';
     document.getElementById('f-pkg').innerHTML = '<option value="">— Primero selecciona categoría —</option>';
     document.getElementById('f-descuento').value = '0';
     document.getElementById('f-motivo').value = '';
+    document.getElementById('f-orden').value = '';
     document.getElementById('f-motivo-wrap').style.display = 'none';
     ['prev-est','prev-cat','prev-pkg'].forEach(id => document.getElementById(id).textContent = '—');
     document.getElementById('prev-est').style.color = 'var(--red)';
     document.getElementById('prev-monto').textContent = '$0';
+    document.getElementById('prev-orden').textContent = '—';
     ['prev-descuento-row','prev-motivo-row','prev-precio-original-row'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
     await loadSales();
   } catch(e) {
@@ -1313,6 +1339,17 @@ async function loadAdminView() {
     exportCSV(allSales, 'zuda_ventas_todas_' + getCDMXDate() + '.csv');
   });
 
+  // Populate staff filter dropdown
+  const staffSel = document.getElementById('adm-staff-filter');
+  if (staffSel) {
+    staffSel.innerHTML = '<option value="">Todos</option>';
+    Object.keys(USERS).filter(k => !USERS[k].isAdmin && !USERS[k].isDirector).forEach(k => {
+      const o = document.createElement('option');
+      o.value = k; o.textContent = USERS[k].name;
+      staffSel.appendChild(o);
+    });
+  }
+
   // Date range filter
   document.getElementById('adm-fecha-desde').value = getCDMXDate();
   document.getElementById('adm-fecha-hasta').value = getCDMXDate();
@@ -1350,10 +1387,12 @@ async function loadAdminView() {
     const desde = document.getElementById('adm-fecha-desde').value;
     const hasta = document.getElementById('adm-fecha-hasta').value;
     const est = document.getElementById('adm-est-filter').value;
+    const staffUsuario = document.getElementById('adm-staff-filter').value;
     if (!desde || !hasta) return;
 
-    let q = `fecha=gte.${desde}&fecha=lte.${hasta}&order=fecha.asc,created_at.asc`;
+    let q = `fecha=gte.${desde}&fecha=lte.${hasta}&order=fecha.asc,created_at.asc&limit=10000`;
     if (est) q += `&estudio=eq.${encodeURIComponent(est)}`;
+    if (staffUsuario) q += `&usuario=eq.${encodeURIComponent(staffUsuario)}`;
     const sales = await dbGet(q);
 
     const total = sales.reduce((s,v) => s + Number(v.monto), 0);
@@ -1362,12 +1401,10 @@ async function loadAdminView() {
     const resumen = document.getElementById('adm-rango-resumen');
     const exportBtn = document.getElementById('adm-export-rango');
 
-    // Calculate days in range
     const d1 = new Date(desde), d2 = new Date(hasta);
     const dias = Math.max(1, Math.round((d2 - d1) / 86400000) + 1);
     const promedio = sales.length ? Math.round(total / dias) : 0;
 
-    // Resumen KPIs
     document.getElementById('res-total').textContent = '$' + total.toLocaleString('es-MX');
     document.getElementById('res-ventas').textContent = sales.length;
     document.getElementById('res-promedio').textContent = '$' + promedio.toLocaleString('es-MX');
@@ -1375,10 +1412,11 @@ async function loadAdminView() {
     resumen.style.display = sales.length ? 'block' : 'none';
 
     if (!sales.length) {
-      tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state">Sin ventas para este período y filtro.</div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state">Sin ventas para este período y filtro.</div></td></tr>';
     } else {
       tbody.innerHTML = sales.map(s => {
         const hora = s.created_at ? new Date(s.created_at).toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit', timeZone:'America/Mexico_City'}) : '—';
+        const descCell = s.descuento ? `<span style="color:var(--accent);font-size:12px;">${s.descuento}%</span>` : '<span style="color:var(--gray3)">—</span>';
         return `<tr>
           <td>${fmtDate(s.fecha)}</td>
           <td style="color:var(--gray)">${hora}</td>
@@ -1386,14 +1424,14 @@ async function loadAdminView() {
           <td>${s.estudio}</td>
           <td class="td-pkg">${s.paquete}</td>
           <td>${s.categoria}</td>
+          <td style="font-size:11px;color:var(--gray);letter-spacing:0.04em;">${s.numero_orden || '—'}</td>
+          <td>${descCell}</td>
           <td class="td-amt">$${Number(s.monto).toLocaleString('es-MX')}</td>
         </tr>`;
       }).join('');
     }
     wrap.style.display = '';
     exportBtn.style.display = sales.length ? '' : 'none';
-
-    // Export button for this range
     exportBtn.onclick = () => exportCSV(sales, `zuda_ventas_${desde}_${hasta}.csv`);
   });
 }
@@ -2383,8 +2421,21 @@ async function downloadTablero() {
 // ─── EXPORT CSV ───
 function exportCSV(sales, filename) {
   if (!sales.length) { alert('No hay ventas para exportar.'); return; }
-  const header = 'Fecha,Estudio,Paquete,Categoría,Monto MXN,Nombre,Usuario,Registrado';
-  const rows = sales.map(s => [s.fecha,s.estudio,`"${s.paquete}"`,s.categoria,s.monto,`"${s.nombre}"`,s.usuario,s.created_at].join(','));
+  const header = 'Fecha,Estudio,Paquete,Categoría,Precio Original MXN,Descuento %,Monto Final MXN,Motivo Descuento,Order #,Nombre,Usuario,Registrado';
+  const rows = sales.map(s => [
+    s.fecha,
+    s.estudio,
+    `"${s.paquete}"`,
+    s.categoria,
+    s.precio_original || s.monto,
+    s.descuento || '',
+    s.monto,
+    `"${s.motivo_descuento || ''}"`,
+    `"${s.numero_orden || ''}"`,
+    `"${s.nombre}"`,
+    s.usuario,
+    s.created_at
+  ].join(','));
   const blob = new Blob([[header,...rows].join('\n')], {type:'text/csv'});
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click();
 }
@@ -2441,6 +2492,7 @@ document.getElementById('f-estudio').addEventListener('change', updatePreview);
 document.getElementById('f-fecha').addEventListener('change', updatePreview);
 document.getElementById('f-descuento').addEventListener('change', updatePreview);
 document.getElementById('f-motivo').addEventListener('input', updatePreview);
+document.getElementById('f-orden').addEventListener('input', updatePreview);
 </script>
 </body>
 </html>
