@@ -449,6 +449,26 @@ tr:hover td { background:#111; }
               <label>Paquete / Membresía</label>
               <select id="mgr-f-pkg"></select>
             </div>
+            <div class="field">
+              <label>Descuento <span style="font-size:10px;color:var(--gray);">(opcional)</span></label>
+              <select id="mgr-f-descuento">
+                <option value="0">Sin descuento</option>
+                <option value="10">10%</option>
+                <option value="15">15%</option>
+                <option value="20">20%</option>
+              </select>
+            </div>
+            <div class="field" id="mgr-f-motivo-wrap" style="display:none;">
+              <label>Motivo del descuento</label>
+              <input type="text" id="mgr-f-motivo" placeholder="Escribe el motivo..." style="width:100%;padding:11px 14px;background:var(--gray2);border:1px solid var(--border);color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;">
+            </div>
+            <div class="field">
+              <label>Número de orden <span style="font-size:10px;color:var(--gray);">(opcional)</span></label>
+              <div style="display:flex;align-items:center;background:var(--gray2);border:1px solid var(--border);">
+                <span style="padding:11px 12px;font-size:13px;color:var(--gray);border-right:1px solid var(--border);white-space:nowrap;">Order #</span>
+                <input type="text" id="mgr-f-orden" placeholder="VTC9-SSVF-5KV3" style="flex:1;padding:11px 14px;background:transparent;border:none;color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;letter-spacing:0.04em;">
+              </div>
+            </div>
           </div>
           <div class="form-panel">
             <div class="form-title">RESUMEN</div>
@@ -457,8 +477,11 @@ tr:hover td { background:#111; }
               <div class="sp-row"><span>Paquete</span><span id="mgr-prev-pkg">—</span></div>
               <div class="sp-row"><span>Estudio</span><span id="mgr-prev-est" style="color:var(--accent)">—</span></div>
               <div class="sp-row"><span>Fecha</span><span id="mgr-prev-fecha">—</span></div>
+              <div class="sp-row" id="mgr-prev-desc-row" style="display:none;"><span>Descuento</span><span id="mgr-prev-desc" style="color:var(--accent)">—</span></div>
+              <div class="sp-row" id="mgr-prev-orig-row" style="display:none;"><span>Precio original</span><span id="mgr-prev-orig" style="color:var(--gray);text-decoration:line-through;">—</span></div>
+              <div class="sp-row"><span>Order #</span><span id="mgr-prev-orden" style="color:var(--gray);font-size:12px;">—</span></div>
               <div class="sp-row big" style="border-top:1px solid var(--border);margin-top:10px;padding-top:10px;">
-                <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--gray)">Monto</span>
+                <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--gray)">Monto final</span>
                 <span id="mgr-prev-monto">$0</span>
               </div>
             </div>
@@ -2052,6 +2075,9 @@ function initManagerCatalog() {
   cat.addEventListener('change', updateManagerPkgs);
   document.getElementById('mgr-f-pkg').addEventListener('change', updateManagerPreview);
   document.getElementById('mgr-f-fecha').addEventListener('change', updateManagerPreview);
+  document.getElementById('mgr-f-descuento').addEventListener('change', updateManagerPreview);
+  document.getElementById('mgr-f-motivo').addEventListener('input', updateManagerPreview);
+  document.getElementById('mgr-f-orden').addEventListener('input', updateManagerPreview);
 }
 
 function updateManagerPkgs() {
@@ -2072,16 +2098,32 @@ function updateManagerPreview() {
   const cat = document.getElementById('mgr-f-cat').value;
   const idx = document.getElementById('mgr-f-pkg').value;
   const fecha = document.getElementById('mgr-f-fecha').value;
+  const descPct = parseInt(document.getElementById('mgr-f-descuento')?.value || '0');
+  const orden = document.getElementById('mgr-f-orden')?.value?.trim();
   document.getElementById('mgr-prev-fecha').textContent = fecha || '—';
+  document.getElementById('mgr-prev-orden').textContent = orden || '—';
+  const motivoWrap = document.getElementById('mgr-f-motivo-wrap');
+  if (motivoWrap) motivoWrap.style.display = descPct > 0 ? '' : 'none';
   if (cat && idx !== '' && CATALOG[cat]) {
     const item = CATALOG[cat][parseInt(idx)];
+    const precioFinal = descPct > 0 ? Math.round(item.price * (1 - descPct/100)) : item.price;
     document.getElementById('mgr-prev-pkg').textContent = item.name;
-    document.getElementById('mgr-prev-monto').textContent = '$' + item.price.toLocaleString('es-MX');
+    document.getElementById('mgr-prev-monto').textContent = '$' + precioFinal.toLocaleString('es-MX');
+    document.getElementById('mgr-prev-monto').style.color = descPct > 0 ? 'var(--accent)' : 'var(--white)';
+    const dRow = document.getElementById('mgr-prev-desc-row');
+    const oRow = document.getElementById('mgr-prev-orig-row');
+    if (descPct > 0) {
+      dRow.style.display = ''; document.getElementById('mgr-prev-desc').textContent = descPct + '%';
+      oRow.style.display = ''; document.getElementById('mgr-prev-orig').textContent = '$' + item.price.toLocaleString('es-MX');
+    } else {
+      dRow.style.display = 'none'; oRow.style.display = 'none';
+    }
     document.getElementById('mgr-btn-add').classList.add('ready');
   } else {
     document.getElementById('mgr-prev-pkg').textContent = '—';
     document.getElementById('mgr-prev-monto').textContent = '$0';
     document.getElementById('mgr-btn-add').classList.remove('ready');
+    ['mgr-prev-desc-row','mgr-prev-orig-row'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
   }
 }
 
@@ -2096,18 +2138,37 @@ async function addManagerSale() {
     setTimeout(() => msg.textContent = '', 2500); return;
   }
   const item = CATALOG[cat][parseInt(idx)];
+  const descPct = parseInt(document.getElementById('mgr-f-descuento')?.value || '0');
+  const motivo = document.getElementById('mgr-f-motivo')?.value?.trim() || '';
+  const orden = document.getElementById('mgr-f-orden')?.value?.trim() || '';
+  const precioFinal = descPct > 0 ? Math.round(item.price * (1 - descPct/100)) : item.price;
   const btn = document.getElementById('mgr-btn-add');
   btn.textContent = 'GUARDANDO...'; btn.classList.remove('ready');
   try {
-    await dbPost({ usuario:currentUserKey, nombre:currentUser.name, fecha, estudio, categoria:CAT_LABELS[cat]||cat, paquete:item.name, monto:item.price });
+    await dbPost({
+      usuario: currentUserKey, nombre: currentUser.name,
+      fecha, estudio, categoria: CAT_LABELS[cat]||cat,
+      paquete: item.name, monto: precioFinal,
+      precio_original: item.price,
+      descuento: descPct > 0 ? descPct : null,
+      motivo_descuento: descPct > 0 && motivo ? motivo : null,
+      numero_orden: orden || null
+    });
+    const descTxt = descPct > 0 ? ` (${descPct}% desc.)` : '';
     msg.style.color = 'var(--green)';
-    msg.textContent = '✓ Guardado: ' + item.name + ' · $' + item.price.toLocaleString('es-MX');
+    msg.textContent = '✓ Guardado: ' + item.name + ' · $' + precioFinal.toLocaleString('es-MX') + descTxt;
     setTimeout(() => msg.textContent = '', 3500);
     document.getElementById('mgr-f-cat').value = '';
     document.getElementById('mgr-f-pkg').innerHTML = '<option value="">— Primero selecciona categoría —</option>';
+    document.getElementById('mgr-f-descuento').value = '0';
+    if (document.getElementById('mgr-f-motivo')) document.getElementById('mgr-f-motivo').value = '';
+    if (document.getElementById('mgr-f-orden')) document.getElementById('mgr-f-orden').value = '';
+    if (document.getElementById('mgr-f-motivo-wrap')) document.getElementById('mgr-f-motivo-wrap').style.display = 'none';
     document.getElementById('mgr-prev-cat').textContent = '—';
     document.getElementById('mgr-prev-pkg').textContent = '—';
     document.getElementById('mgr-prev-monto').textContent = '$0';
+    document.getElementById('mgr-prev-orden').textContent = '—';
+    ['mgr-prev-desc-row','mgr-prev-orig-row'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
     await refreshManagerData();
   } catch(e) {
     msg.style.color = 'var(--red)'; msg.textContent = 'Error al guardar. Intenta de nuevo.';
