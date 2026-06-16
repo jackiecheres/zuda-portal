@@ -1057,7 +1057,7 @@ function updatePreview() {
 async function loadSales() {
   document.getElementById('sales-tbody').innerHTML = '<tr><td colspan="6"><div class="empty-state">Cargando...</div></td></tr>';
   try {
-    _currentSales = await dbGet(`usuario=eq.${encodeURIComponent(currentUserKey)}&order=created_at.desc`);
+    _currentSales = await dbGet(`usuario=eq.${encodeURIComponent(currentUserKey)}&order=created_at.desc&limit=10000`);
     renderSales(_currentSales);
     loadEstudioTotals();
   } catch(e) {
@@ -1826,7 +1826,7 @@ async function loadManagerView() {
 
   document.getElementById('mgr-btn-add').addEventListener('click', addManagerSale);
   document.getElementById('mgr-btn-export').addEventListener('click', async () => {
-    const sales = await dbGet(`usuario=eq.${encodeURIComponent(currentUserKey)}&order=created_at.desc`);
+    const sales = await dbGet(`usuario=eq.${encodeURIComponent(currentUserKey)}&order=created_at.desc&limit=10000`);
     exportCSV(sales, 'mis_ventas_manager_' + getCDMXDate() + '.csv');
   });
 
@@ -2535,7 +2535,7 @@ document.getElementById('btn-login').addEventListener('click', doLogin);
 document.getElementById('btn-logout').addEventListener('click', doLogout);
 document.getElementById('btn-add').addEventListener('click', addSale);
 document.getElementById('btn-export').addEventListener('click', async () => {
-  const sales = await dbGet(`usuario=eq.${encodeURIComponent(currentUserKey)}&order=created_at.desc`);
+  const sales = await dbGet(`usuario=eq.${encodeURIComponent(currentUserKey)}&order=created_at.desc&limit=10000`);
   exportCSV(sales, 'mis_ventas_' + getCDMXDate() + '.csv');
 });
 document.getElementById('btn-toggle-pass').addEventListener('click', function() {
