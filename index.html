@@ -2775,6 +2775,286 @@ async function exportBonosPDF(staffOnly, bonoEstudios, managerKeys, allSales, to
   const btn = document.getElementById('btn-export-bonos-pdf');
   btn.textContent = '↻ Generando PDF...';
 
+  try {
+    // Load html2canvas
+    if (typeof html2canvas === 'undefined') {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+    // Load jsPDF
+    if (typeof window.jspdf === 'undefined') {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+
+    const { jsPDF } = window.jspdf;
+    const today = getCDMXDate();
+    const MAYO_2025 = 466268;
+    const JUNIO_2025 = 379334;
+    const BIMESTRE_2025 = 845602;
+    const ventaMayo2026 = allSales.filter(s => s.fecha && s.fecha.startsWith('2026-05')).reduce((s,v) => s + Number(v.monto), 0);
+    const ventaJunio2026 = allSales.filter(s => s.fecha && s.fecha.startsWith('2026-06')).reduce((s,v) => s + Number(v.monto), 0);
+    const ventaBimestre2026 = ventaMayo2026 + ventaJunio2026;
+    const totalActual = bonoEstudios.reduce((s, est) => s + allSales.filter(x => x.estudio === est).reduce((a,b) => a + Number(b.monto), 0), 0);
+    const promDiaTotal = Math.round(totalActual / diasTranscurridos);
+    const pctProyVs2025 = Math.round((totalProyectado / BIMESTRE_2025 - 1) * 100);
+
+    // Staff que alcanzó meta
+    const staffConMeta = staffOnly.filter(d => d.total >= d.metaInd).sort((a,b) => b.total - a.total);
+
+    // Get logo
+    const logoEl = document.querySelector('nav img');
+    const logoSrc = logoEl ? logoEl.src : '';
+
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+
+    // ── Render each section as canvas ──
+    const sections = [
+      { id: 'panel-dashboard', label: 'kpis' },
+    ];
+
+    // Build full printable card
+    const card = document.createElement('div');
+    card.style.cssText = 'position:fixed;top:-99999px;left:-99999px;width:1200px;background:#0D0D0D;color:#fff;font-family:"DM Sans",sans-serif;';
+
+    card.innerHTML = `
+      <!-- HEADER -->
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:36px 48px 24px;border-bottom:2px solid #E8D5A3;">
+        ${logoSrc ? `<img src="${logoSrc}" style="height:52px;width:auto;">` : '<div style="font-size:36px;font-weight:900;letter-spacing:0.12em;font-family:sans-serif;">ZUDA</div>'}
+        <div style="text-align:right;">
+          <div style="font-size:10px;letter-spacing:0.2em;color:#8A8A8A;margin-bottom:4px;">REPORTE INTERNO · MAYO–JUNIO 2026</div>
+          <div style="font-size:22px;font-weight:900;letter-spacing:0.08em;">ESTIMADO DE BONOS Y PROYECCIÓN</div>
+          <div style="font-size:11px;color:#8A8A8A;margin-top:4px;">${today}</div>
+        </div>
+      </div>
+
+      <!-- KPIs VENTA -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#222;margin:0;">
+        <div style="background:#0D0D0D;padding:20px 28px;"><div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#8A8A8A;margin-bottom:6px;">Venta total equipo</div><div style="font-size:28px;font-weight:700;">$${totalActual.toLocaleString('es-MX')}</div></div>
+        <div style="background:#0D0D0D;padding:20px 28px;"><div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#8A8A8A;margin-bottom:6px;">Sobre meta individual</div><div style="font-size:28px;font-weight:700;color:#27AE60;">${staffConMeta.length}</div></div>
+        <div style="background:#0D0D0D;padding:20px 28px;"><div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#8A8A8A;margin-bottom:6px;">Bajo meta</div><div style="font-size:28px;font-weight:700;color:#C0392B;">${staffOnly.length - staffConMeta.length}</div></div>
+        <div style="background:#111;padding:20px 28px;"><div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#8A8A8A;margin-bottom:6px;">Total bonos estimados</div><div style="font-size:28px;font-weight:700;color:#E8D5A3;">$${bonoTotalAll.toLocaleString('es-MX')}</div></div>
+      </div>
+
+      <!-- PROGRESO POR ESTUDIO -->
+      <div style="padding:24px 48px 0;">
+        <div style="font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:#E8D5A3;margin-bottom:14px;">PROGRESO POR ESTUDIO</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#222;">
+          ${bonoEstudios.map(est => {
+            const v = allSales.filter(s => s.estudio === est).reduce((s,x) => s + Number(x.monto), 0);
+            const m = META_ESTUDIO[est] || 0;
+            const hit = v >= m;
+            const pct = Math.min(100, Math.round(v / m * 100));
+            const exc = v - m;
+            return `<div style="background:#0D0D0D;padding:20px 24px;">
+              <div style="font-size:16px;font-weight:700;letter-spacing:0.06em;margin-bottom:8px;">${est}</div>
+              <div style="height:6px;background:#2A2A2A;border-radius:3px;margin-bottom:8px;"><div style="height:100%;width:${pct}%;background:#27AE60;border-radius:3px;"></div></div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:10px;"><span style="font-size:13px;font-weight:700;color:#27AE60;">${pct}%</span><span style="font-size:11px;color:#8A8A8A;">Meta $${(m/1000).toFixed(0)}K</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;color:#8A8A8A;padding-top:8px;border-top:1px solid #1E1E1E;"><span>Venta acumulada</span><span style="color:#27AE60;font-weight:700;">$${v.toLocaleString('es-MX')}</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;color:#8A8A8A;padding-top:6px;"><span>Excedente</span><span style="color:#27AE60;font-weight:700;">+$${exc.toLocaleString('es-MX')}</span></div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+
+      <!-- BONOS KPIs -->
+      <div style="padding:20px 48px 0;">
+        <div style="font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:#E8D5A3;margin-bottom:14px;">ESTIMADO DE BONOS</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#222;">
+          <div style="background:#0D0D0D;padding:16px 20px;"><div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#8A8A8A;margin-bottom:6px;">Bonos individuales</div><div style="font-size:22px;font-weight:700;">$${totalInd.toLocaleString('es-MX')}</div></div>
+          <div style="background:#0D0D0D;padding:16px 20px;"><div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#8A8A8A;margin-bottom:6px;">Bonos colectivos</div><div style="font-size:22px;font-weight:700;">$${totalCol.toLocaleString('es-MX')}</div></div>
+          <div style="background:#0D0D0D;padding:16px 20px;"><div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#8A8A8A;margin-bottom:6px;">Bonos managers</div><div style="font-size:22px;font-weight:700;">$${totalMgr.toLocaleString('es-MX')}</div></div>
+          <div style="background:#111;padding:16px 20px;"><div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#8A8A8A;margin-bottom:6px;">Total estimado</div><div style="font-size:22px;font-weight:700;color:#E8D5A3;">$${bonoTotalAll.toLocaleString('es-MX')}</div></div>
+        </div>
+      </div>
+
+      <!-- STAFF CON META + MANAGERS -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:20px 48px 0;">
+        <!-- Staff con meta -->
+        <div>
+          <div style="font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:#E8D5A3;margin-bottom:10px;">BONO INDIVIDUAL 4% · STAFF CON META</div>
+          <table style="width:100%;border-collapse:collapse;font-size:12px;">
+            <thead><tr style="background:#1E1E1E;">
+              <th style="padding:7px 10px;text-align:left;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Nombre</th>
+              <th style="padding:7px 10px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Venta</th>
+              <th style="padding:7px 10px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">% Meta</th>
+              <th style="padding:7px 10px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Bono</th>
+            </tr></thead>
+            <tbody>
+              ${staffConMeta.map(d => {
+                const b = Math.round(d.total * BONO_IND_PCT);
+                const pct = Math.round(d.total / d.metaInd * 100);
+                return `<tr style="border-bottom:1px solid #111;">
+                  <td style="padding:6px 10px;color:#6fcf97;">${d.user.name.split(' ')[0]} ${d.user.name.split(' ')[1]}</td>
+                  <td style="padding:6px 10px;text-align:right;">$${d.total.toLocaleString('es-MX')}</td>
+                  <td style="padding:6px 10px;text-align:right;color:#27AE60;">${pct}%</td>
+                  <td style="padding:6px 10px;text-align:right;font-weight:700;color:#27AE60;">$${b.toLocaleString('es-MX')}</td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+        <!-- Colectivo + Managers -->
+        <div>
+          <div style="font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:#E8D5A3;margin-bottom:10px;">BONO COLECTIVO 3% POR ESTUDIO</div>
+          <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:16px;">
+            <thead><tr style="background:#1E1E1E;">
+              <th style="padding:7px 10px;text-align:left;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Estudio</th>
+              <th style="padding:7px 10px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Venta</th>
+              <th style="padding:7px 10px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Pool 3%</th>
+            </tr></thead>
+            <tbody>
+              ${bonoEstudios.map(est => {
+                const v = allSales.filter(s => s.estudio === est).reduce((s,x) => s + Number(x.monto), 0);
+                const m = META_ESTUDIO[est] || 0;
+                const pool = v >= m ? Math.round(v * 0.03) : 0;
+                return `<tr style="border-bottom:1px solid #111;">
+                  <td style="padding:6px 10px;color:#6fcf97;">${est}</td>
+                  <td style="padding:6px 10px;text-align:right;">$${v.toLocaleString('es-MX')}</td>
+                  <td style="padding:6px 10px;text-align:right;font-weight:700;color:#27AE60;">$${pool.toLocaleString('es-MX')}</td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+          <div style="font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:#E8D5A3;margin-bottom:10px;">BONO MANAGER 2% + 3%</div>
+          <table style="width:100%;border-collapse:collapse;font-size:12px;">
+            <thead><tr style="background:#1E1E1E;">
+              <th style="padding:7px 10px;text-align:left;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Manager</th>
+              <th style="padding:7px 10px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Base 2%</th>
+              <th style="padding:7px 10px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Exc. 3%</th>
+              <th style="padding:7px 10px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Total</th>
+            </tr></thead>
+            <tbody>
+              ${managerKeys.map(k => {
+                const mgr = USERS[k];
+                const v = allSales.filter(s => s.estudio === mgr.estudio).reduce((s,x) => s + Number(x.monto), 0);
+                const m = META_ESTUDIO[mgr.estudio] || 0;
+                const hit = v >= m;
+                const base = hit ? Math.round(v * 0.02) : 0;
+                const exc = hit ? Math.round(Math.max(0, v - m) * 0.03) : 0;
+                return `<tr style="border-bottom:1px solid #111;">
+                  <td style="padding:6px 10px;color:#6fcf97;">${mgr.name.split(' ')[0]} ${mgr.name.split(' ')[1]}</td>
+                  <td style="padding:6px 10px;text-align:right;">$${base.toLocaleString('es-MX')}</td>
+                  <td style="padding:6px 10px;text-align:right;">$${exc.toLocaleString('es-MX')}</td>
+                  <td style="padding:6px 10px;text-align:right;font-weight:700;color:#27AE60;">$${(base+exc).toLocaleString('es-MX')}</td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PROYECCIÓN + COMPARATIVO -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:20px 48px 0;">
+        <div style="background:#111;padding:20px;border:1px solid #222;">
+          <div style="font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:#E8D5A3;margin-bottom:12px;">PROYECCIÓN AL CIERRE</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+            ${bonoEstudios.map(est => {
+              const v = allSales.filter(s => s.estudio === est).reduce((s,x) => s + Number(x.monto), 0);
+              const prom = Math.round(v / diasTranscurridos);
+              const proy = v + (prom * diasRestantes);
+              const m = META_ESTUDIO[est] || 0;
+              const color = proy >= m ? '#27AE60' : '#C0392B';
+              return `<div style="text-align:center;padding:10px;background:#0D0D0D;">
+                <div style="font-size:10px;color:#8A8A8A;margin-bottom:4px;">${est.split(' ')[0]}</div>
+                <div style="font-size:18px;font-weight:700;color:${color};">$${(proy/1000).toFixed(0)}K</div>
+                <div style="font-size:10px;color:${color};">${proy >= m ? '✓ Meta' : '✗ Corto'}</div>
+              </div>`;
+            }).join('')}
+          </div>
+          <div style="margin-top:12px;padding-top:12px;border-top:1px solid #222;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div><div style="font-size:9px;color:#8A8A8A;">Proyección total</div><div style="font-size:20px;font-weight:700;color:${totalProyectado >= metaTotal ? '#27AE60' : '#C0392B'};">$${totalProyectado.toLocaleString('es-MX')}</div></div>
+            <div><div style="font-size:9px;color:#8A8A8A;">Vs 2025 ($845,602)</div><div style="font-size:20px;font-weight:700;color:${pctProyVs2025 >= 0 ? '#27AE60' : '#C0392B'};">${pctProyVs2025 >= 0 ? '+' : ''}${pctProyVs2025}%</div></div>
+          </div>
+        </div>
+        <div style="background:#111;padding:20px;border:1px solid #222;">
+          <div style="font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:#E8D5A3;margin-bottom:12px;">COMPARATIVO VS 2025</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">
+            ${[['MAYO', MAYO_2025, ventaMayo2026], ['JUNIO', JUNIO_2025, ventaJunio2026], ['BIMESTRE', BIMESTRE_2025, ventaBimestre2026]].map(([label, v25, v26]) => {
+              const pct2 = Math.round((v26 / v25 - 1) * 100);
+              const c = pct2 >= 0 ? '#27AE60' : '#C0392B';
+              return `<div style="text-align:center;padding:10px;background:#0D0D0D;">
+                <div style="font-size:10px;color:#8A8A8A;margin-bottom:4px;">${label}</div>
+                <div style="font-size:11px;color:#8A8A8A;">2025: $${(v25/1000).toFixed(0)}K</div>
+                <div style="font-size:16px;font-weight:700;color:${c};">$${(v26/1000).toFixed(0)}K</div>
+                <div style="font-size:14px;font-weight:700;color:${c};">${pct2 >= 0 ? '+' : ''}${pct2}%</div>
+              </div>`;
+            }).join('')}
+          </div>
+          <div style="padding-top:12px;border-top:1px solid #222;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div><div style="font-size:9px;color:#8A8A8A;">Meta bimestral 2026</div><div style="font-size:18px;font-weight:700;">$${metaTotal.toLocaleString('es-MX')}</div></div>
+            <div><div style="font-size:9px;color:#8A8A8A;">Incremento vs 2025</div><div style="font-size:18px;font-weight:700;color:${ventaBimestre2026 >= BIMESTRE_2025 ? '#27AE60' : '#C0392B'};">${Math.round((ventaBimestre2026/BIMESTRE_2025-1)*100) >= 0 ? '+' : ''}${Math.round((ventaBimestre2026/BIMESTRE_2025-1)*100)}%</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 48px;margin-top:20px;border-top:1px solid #E8D5A3;">
+        <div style="font-size:9px;color:#8A8A8A;letter-spacing:0.1em;">PILOTO MAYO–JUNIO 2026 · INTERNO · SOLO ADMIN</div>
+        <div style="font-size:9px;color:#E8D5A3;letter-spacing:0.1em;font-weight:700;">ZUDA FITNESS · ${today}</div>
+      </div>
+    `;
+
+    document.body.appendChild(card);
+
+    const canvas = await html2canvas(card, {
+      backgroundColor: '#0D0D0D',
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      windowWidth: 1248
+    });
+
+    document.body.removeChild(card);
+
+    const imgData = canvas.toDataURL('image/png');
+    const imgAspect = canvas.height / canvas.width;
+    const imgH = pageW * imgAspect;
+
+    if (imgH <= pageH) {
+      pdf.addImage(imgData, 'PNG', 0, 0, pageW, imgH);
+    } else {
+      // Multi-page split
+      const rowsPerPage = Math.floor(pageH / (pageW / canvas.width));
+      let yOffset = 0;
+      while (yOffset < canvas.height) {
+        const sliceH = Math.min(canvas.height - yOffset, Math.round(canvas.width * (pageH / pageW)));
+        const sliceCanvas = document.createElement('canvas');
+        sliceCanvas.width = canvas.width;
+        sliceCanvas.height = sliceH;
+        const ctx = sliceCanvas.getContext('2d');
+        ctx.fillStyle = '#0D0D0D';
+        ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+        ctx.drawImage(canvas, 0, -yOffset);
+        if (yOffset > 0) pdf.addPage();
+        const sliceData = sliceCanvas.toDataURL('image/png');
+        const sliceImgH = pageW * (sliceH / canvas.width);
+        pdf.addImage(sliceData, 'PNG', 0, 0, pageW, sliceImgH);
+        yOffset += sliceH;
+      }
+    }
+
+    pdf.save(`zuda_bonos_reporte_${today}.pdf`);
+  } catch(err) {
+    console.error('PDF error:', err);
+    alert('Error al generar PDF: ' + err.message);
+  } finally {
+    btn.textContent = '↓ Exportar PDF';
+  }
+}
+  const btn = document.getElementById('btn-export-bonos-pdf');
+  btn.textContent = '↻ Generando PDF...';
+
   // Load html2canvas if needed
   if (typeof html2canvas === 'undefined') {
     await new Promise((resolve, reject) => {
@@ -2805,174 +3085,7 @@ async function exportBonosPDF(staffOnly, bonoEstudios, managerKeys, allSales, to
   const ventaBimestre2026 = ventaMayo2026 + ventaJunio2026;
   const totalActual = bonoEstudios.reduce((s, est) => s + allSales.filter(x => x.estudio === est).reduce((a,b) => a + Number(b.monto), 0), 0);
 
-  // Build a hidden printable div
-  const printDiv = document.createElement('div');
-  printDiv.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1100px;background:#0D0D0D;padding:48px;font-family:sans-serif;color:#fff;';
 
-  // Get logo src from nav
-  const logoEl = document.querySelector('nav img');
-  const logoSrc = logoEl ? logoEl.src : '';
-
-  printDiv.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;padding-bottom:24px;border-bottom:1px solid #E8D5A3;">
-      ${logoSrc ? `<img src="${logoSrc}" style="height:60px;width:auto;">` : '<div style="font-size:40px;font-weight:bold;letter-spacing:0.1em;">ZUDA</div>'}
-      <div style="text-align:right;">
-        <div style="font-size:11px;letter-spacing:0.15em;color:#8A8A8A;margin-bottom:6px;">REPORTE INTERNO · MAYO–JUNIO 2026</div>
-        <div style="font-size:28px;font-weight:bold;letter-spacing:0.06em;">ESTIMADO DE BONOS</div>
-        <div style="font-size:12px;color:#8A8A8A;margin-top:4px;">${today}</div>
-      </div>
-    </div>
-
-    <!-- KPIs bonos -->
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#222;margin-bottom:32px;">
-      <div style="background:#111;padding:18px 20px;"><div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#8A8A8A;margin-bottom:6px;">Bonos individuales</div><div style="font-size:26px;font-weight:bold;">$${totalInd.toLocaleString('es-MX')}</div></div>
-      <div style="background:#111;padding:18px 20px;"><div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#8A8A8A;margin-bottom:6px;">Bonos colectivos</div><div style="font-size:26px;font-weight:bold;">$${totalCol.toLocaleString('es-MX')}</div></div>
-      <div style="background:#111;padding:18px 20px;"><div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#8A8A8A;margin-bottom:6px;">Bonos managers</div><div style="font-size:26px;font-weight:bold;">$${totalMgr.toLocaleString('es-MX')}</div></div>
-      <div style="background:#1a1a0a;padding:18px 20px;"><div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#8A8A8A;margin-bottom:6px;">Total estimado bonos</div><div style="font-size:26px;font-weight:bold;color:#E8D5A3;">$${bonoTotalAll.toLocaleString('es-MX')}</div></div>
-    </div>
-
-    <!-- Bonos individuales tabla -->
-    <div style="margin-bottom:28px;">
-      <div style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#E8D5A3;margin-bottom:12px;">BONO INDIVIDUAL · 4%</div>
-      <table style="width:100%;border-collapse:collapse;font-size:12px;">
-        <thead><tr style="background:#1E1E1E;"><th style="padding:8px 12px;text-align:left;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Nombre</th><th style="padding:8px 12px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Venta</th><th style="padding:8px 12px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Meta</th><th style="padding:8px 12px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">% Avance</th><th style="padding:8px 12px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Bono Est.</th><th style="padding:8px 12px;text-align:center;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Estado</th></tr></thead>
-        <tbody>
-          ${staffOnly.sort((a,b) => b.total - a.total).map(d => {
-            const hit = d.total >= d.metaInd;
-            const bono = hit ? Math.round(d.total * BONO_IND_PCT) : 0;
-            const pct = Math.min(100, Math.round(d.total / d.metaInd * 100));
-            return `<tr style="border-bottom:1px solid #111;">
-              <td style="padding:7px 12px;color:${hit ? '#6fcf97' : '#e57373'}">${d.user.name}</td>
-              <td style="padding:7px 12px;text-align:right;">$${d.total.toLocaleString('es-MX')}</td>
-              <td style="padding:7px 12px;text-align:right;color:#8A8A8A;">$${d.metaInd.toLocaleString('es-MX')}</td>
-              <td style="padding:7px 12px;text-align:right;color:${hit ? '#27AE60' : '#C0392B'}">${pct}%</td>
-              <td style="padding:7px 12px;text-align:right;color:${hit ? '#27AE60' : '#2A2A2A'};font-weight:bold;">$${bono.toLocaleString('es-MX')}</td>
-              <td style="padding:7px 12px;text-align:center;font-size:11px;color:${hit ? '#27AE60' : '#C0392B'}">${hit ? '✓ Activo' : '✗ Pendiente'}</td>
-            </tr>`;
-          }).join('')}
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Colectivo + Manager en dos columnas -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px;">
-      <div>
-        <div style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#E8D5A3;margin-bottom:12px;">BONO COLECTIVO · 3%</div>
-        <table style="width:100%;border-collapse:collapse;font-size:12px;">
-          <thead><tr style="background:#1E1E1E;"><th style="padding:8px 10px;text-align:left;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Estudio</th><th style="padding:8px 10px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Venta</th><th style="padding:8px 10px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Pool 3%</th></tr></thead>
-          <tbody>
-            ${bonoEstudios.map(est => {
-              const v = allSales.filter(s => s.estudio === est).reduce((s,x) => s + Number(x.monto), 0);
-              const m = META_ESTUDIO[est] || 0;
-              const hit = v >= m;
-              const pool = hit ? Math.round(v * 0.03) : 0;
-              return `<tr style="border-bottom:1px solid #111;">
-                <td style="padding:7px 10px;color:${hit ? '#6fcf97' : '#e57373'}">${est}</td>
-                <td style="padding:7px 10px;text-align:right;">$${v.toLocaleString('es-MX')}</td>
-                <td style="padding:7px 10px;text-align:right;color:${hit ? '#27AE60' : '#2A2A2A'};font-weight:bold;">$${pool.toLocaleString('es-MX')}</td>
-              </tr>`;
-            }).join('')}
-          </tbody>
-        </table>
-      </div>
-      <div>
-        <div style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#E8D5A3;margin-bottom:12px;">BONO MANAGER · 2% + 3%</div>
-        <table style="width:100%;border-collapse:collapse;font-size:12px;">
-          <thead><tr style="background:#1E1E1E;"><th style="padding:8px 10px;text-align:left;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Manager</th><th style="padding:8px 10px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Base 2%</th><th style="padding:8px 10px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Excedente 3%</th><th style="padding:8px 10px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Total</th></tr></thead>
-          <tbody>
-            ${managerKeys.map(k => {
-              const mgr = USERS[k];
-              const v = allSales.filter(s => s.estudio === mgr.estudio).reduce((s,x) => s + Number(x.monto), 0);
-              const m = META_ESTUDIO[mgr.estudio] || 0;
-              const hit = v >= m;
-              const base = hit ? Math.round(v * 0.02) : 0;
-              const exc = hit ? Math.round(Math.max(0, v - m) * 0.03) : 0;
-              return `<tr style="border-bottom:1px solid #111;">
-                <td style="padding:7px 10px;color:${hit ? '#6fcf97' : '#e57373'}">${mgr.name.split(' ')[0]}</td>
-                <td style="padding:7px 10px;text-align:right;">$${base.toLocaleString('es-MX')}</td>
-                <td style="padding:7px 10px;text-align:right;">$${exc.toLocaleString('es-MX')}</td>
-                <td style="padding:7px 10px;text-align:right;font-weight:bold;color:${hit ? '#27AE60' : '#2A2A2A'};">$${(base+exc).toLocaleString('es-MX')}</td>
-              </tr>`;
-            }).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Proyección y comparativo -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
-      <div style="background:#111;padding:20px;border:1px solid #222;">
-        <div style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#E8D5A3;margin-bottom:12px;">PROYECCIÓN AL CIERRE</div>
-        <div style="font-size:13px;color:#8A8A8A;margin-bottom:4px;">Proyección total bimestre</div>
-        <div style="font-size:32px;font-weight:bold;color:${totalProyectado >= metaTotal ? '#27AE60' : '#C0392B'};">$${totalProyectado.toLocaleString('es-MX')}</div>
-        <div style="font-size:12px;color:#8A8A8A;margin-top:8px;">Meta: $${metaTotal.toLocaleString('es-MX')} · Días restantes: ${diasRestantes}</div>
-        <div style="font-size:12px;color:#8A8A8A;">Promedio actual: $${Math.round(totalActual / diasTranscurridos).toLocaleString('es-MX')}/día</div>
-      </div>
-      <div style="background:#111;padding:20px;border:1px solid #222;">
-        <div style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#E8D5A3;margin-bottom:12px;">COMPARATIVO VS 2025</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-          ${[['Mayo', MAYO_2025, ventaMayo2026], ['Junio', JUNIO_2025, ventaJunio2026], ['Bimestre', BIMESTRE_2025, ventaBimestre2026]].map(([label, v25, v26]) => {
-            const pct = Math.round((v26 / v25 - 1) * 100);
-            const color = pct >= 0 ? '#27AE60' : '#C0392B';
-            return `<div style="text-align:center;padding:8px;background:#0D0D0D;">
-              <div style="font-size:10px;color:#8A8A8A;margin-bottom:4px;">${label}</div>
-              <div style="font-size:18px;font-weight:bold;color:${color};">${pct >= 0 ? '+' : ''}${pct}%</div>
-              <div style="font-size:10px;color:#8A8A8A;">$${v26.toLocaleString('es-MX')}</div>
-            </div>`;
-          }).join('')}
-        </div>
-      </div>
-    </div>
-
-    <!-- Footer -->
-    <div style="padding-top:16px;border-top:1px solid #E8D5A3;display:flex;justify-content:space-between;align-items:center;">
-      <div style="font-size:10px;color:#8A8A8A;letter-spacing:0.1em;">PILOTO MAYO–JUNIO 2026 · INTERNO · SOLO ADMIN</div>
-      <div style="font-size:10px;color:#E8D5A3;letter-spacing:0.1em;font-weight:bold;">ZUDA FITNESS</div>
-    </div>
-  `;
-
-  document.body.appendChild(printDiv);
-
-  try {
-    const canvas = await html2canvas(printDiv, {
-      backgroundColor: '#0D0D0D',
-      scale: 2,
-      useCORS: true,
-      logging: false,
-      windowWidth: 1196
-    });
-
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-    const pageW = pdf.internal.pageSize.getWidth();
-    const pageH = pdf.internal.pageSize.getHeight();
-    const imgAspect = canvas.height / canvas.width;
-    const imgH = pageW * imgAspect;
-
-    if (imgH <= pageH) {
-      pdf.addImage(imgData, 'PNG', 0, 0, pageW, imgH);
-    } else {
-      // Multi-page
-      let yOffset = 0;
-      while (yOffset < canvas.height) {
-        const sliceH = Math.min(canvas.height - yOffset, canvas.width * (pageH / pageW));
-        const sliceCanvas = document.createElement('canvas');
-        sliceCanvas.width = canvas.width;
-        sliceCanvas.height = sliceH;
-        const ctx = sliceCanvas.getContext('2d');
-        ctx.drawImage(canvas, 0, -yOffset);
-        if (yOffset > 0) pdf.addPage();
-        pdf.addImage(sliceCanvas.toDataURL('image/png'), 'PNG', 0, 0, pageW, pageH);
-        yOffset += sliceH;
-      }
-    }
-
-    pdf.save(`zuda_bonos_reporte_${today}.pdf`);
-  } finally {
-    document.body.removeChild(printDiv);
-    btn.textContent = '↓ Exportar PDF';
-  }
-}
 
 // ─── EXPORT BONOS CSV ───
 function exportBonosCSV(staffOnly, bonoEstudios, managerKeys, allSales) {
