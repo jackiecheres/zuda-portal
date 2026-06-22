@@ -514,7 +514,7 @@ tr:hover td { background:#111; }
           <div class="kpi"><div class="kpi-val" id="adm-kpi-total">—</div><div class="kpi-lbl">Venta total equipo</div></div>
           <div class="kpi"><div class="kpi-val" id="adm-kpi-sobre">0</div><div class="kpi-lbl">Sobre meta</div></div>
           <div class="kpi"><div class="kpi-val" id="adm-kpi-bajo" style="color:var(--red)">0</div><div class="kpi-lbl">Bajo meta</div></div>
-          <div class="kpi"><div class="kpi-val" id="adm-kpi-bonos">$0</div><div class="kpi-lbl">Bonos estimados</div></div>
+          <div class="kpi"><div class="kpi-val" id="adm-kpi-bonos">$0</div><div class="kpi-lbl">Total bonos est. (ind+col+mgr)</div></div>
         </div>
       </div>
 
@@ -625,9 +625,31 @@ tr:hover td { background:#111; }
         </div>
       </div>
 
+        <div style="margin-top:16px;">
+          <button id="btn-export-bonos" style="padding:9px 18px;border:1px solid var(--border);background:none;color:var(--gray);font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;">↓ Exportar reporte de bonos CSV</button>
+        </div>
+      </div>
+
+      <!-- PROYECCIÓN AL CIERRE -->
+      <div class="section">
+        <div class="sec-hd"><span class="sec-num">07</span><span class="sec-title">PROYECCIÓN AL CIERRE</span></div>
+        <div style="font-size:12px;color:var(--gray);margin-bottom:20px;">Basada en el ritmo diario promedio actual de cada estudio extrapolado a los días restantes del bimestre.</div>
+        <div id="proj-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:16px;"></div>
+        <!-- Resumen proyección total -->
+        <div id="proj-total-wrap" style="border:1px solid var(--border);background:#080808;padding:20px 28px;display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background2:var(--border);"></div>
+      </div>
+
+      <!-- COMPARATIVO VS 2025 -->
+      <div class="section">
+        <div class="sec-hd"><span class="sec-num">08</span><span class="sec-title">COMPARATIVO VS 2025</span></div>
+        <div style="font-size:12px;color:var(--gray);margin-bottom:20px;">Mayo 2025: $466,268 · Junio 2025: $379,334 · Bimestre 2025: $845,602</div>
+        <div id="comp-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:16px;"></div>
+        <div id="comp-bimestre" style="border:1px solid var(--border);background:#080808;padding:20px 28px;"></div>
+      </div>
+
       <!-- VENTAS POR RANGO DE FECHAS -->
       <div class="section" style="border-bottom:none;padding-bottom:60px;">
-        <div class="sec-hd"><span class="sec-num">06</span><span class="sec-title">VENTAS POR FECHA</span></div>
+        <div class="sec-hd"><span class="sec-num">09</span><span class="sec-title">VENTAS POR FECHA</span></div>
 
         <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:20px;">
           <!-- Fecha inicio -->
@@ -1658,6 +1680,8 @@ function renderAdminView(allSales) {
     });
   });
 
+  document.getElementById('adm-kpi-bonos').textContent = '$' + (bonos).toLocaleString('es-MX'); // updated below after full calc
+
   // ─── ESTIMADO DE BONOS ───
   const bonoEstudios = ['LILAS','PRADO NORTE','ARTZ PEDREGAL'];
   const managerKeys = Object.keys(USERS).filter(k => USERS[k].isManager);
@@ -1741,6 +1765,117 @@ function renderAdminView(allSales) {
   document.getElementById('est-ind-detail').innerHTML = indDetail;
   document.getElementById('est-col-detail').innerHTML = colDetail;
   document.getElementById('est-mgr-detail').innerHTML = mgrDetail;
+
+  // Update KPI with full total
+  document.getElementById('adm-kpi-bonos').textContent = '$' + bonoTotalAll.toLocaleString('es-MX');
+
+  // Export bonos report
+  document.getElementById('btn-export-bonos').onclick = () => exportBonosCSV(staffOnly, bonoEstudios, managerKeys, allSales);
+
+  // ─── PROYECCIÓN AL CIERRE ───
+  const END_DATE = new Date('2026-07-01T00:00:00');
+  const START_DATE = new Date('2026-05-01T00:00:00');
+  const now2 = new Date();
+  const diasTranscurridos = Math.max(1, Math.round((now2 - START_DATE) / 86400000));
+  const diasRestantes = Math.max(0, Math.round((END_DATE - now2) / 86400000));
+  const diasTotales = Math.round((END_DATE - START_DATE) / 86400000);
+
+  let projHTML = '';
+  let totalProyectado = 0;
+  let totalActual2 = 0;
+  const metaTotal = Object.values(META_ESTUDIO).reduce((a,b) => a+b, 0);
+
+  bonoEstudios.forEach(est => {
+    const estSales = allSales.filter(s => s.estudio === est);
+    const ventaActual = estSales.reduce((s,v) => s + Number(v.monto), 0);
+    const promDia = Math.round(ventaActual / diasTranscurridos);
+    const proyeccion = ventaActual + (promDia * diasRestantes);
+    const meta = META_ESTUDIO[est] || 0;
+    const alcanzaMeta = proyeccion >= meta;
+    const color = alcanzaMeta ? 'var(--green)' : 'var(--red)';
+    totalProyectado += proyeccion;
+    totalActual2 += ventaActual;
+
+    projHTML += `<div style="background:var(--black);padding:24px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.07em;color:var(--gray);margin-bottom:12px;">${est}</div>
+      <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:4px;">Proyección al cierre</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:0.03em;color:${color};">$${proyeccion.toLocaleString('es-MX')}</div>
+      <div style="font-size:11px;color:${color};margin-top:4px;">${alcanzaMeta ? '✓ Proyecta alcanzar meta' : '✗ Proyecta quedarse corto'}</div>
+      <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--gray);line-height:1.6;">
+        Actual: $${ventaActual.toLocaleString('es-MX')}<br>
+        Promedio/día: $${promDia.toLocaleString('es-MX')}<br>
+        Días restantes: ${diasRestantes}<br>
+        Meta: $${meta.toLocaleString('es-MX')} · ${alcanzaMeta ? '+$'+(proyeccion-meta).toLocaleString('es-MX')+' excedente' : '-$'+(meta-proyeccion).toLocaleString('es-MX')+' faltante'}
+      </div>
+    </div>`;
+  });
+  document.getElementById('proj-grid').innerHTML = projHTML;
+
+  const promDiaTotal = Math.round(totalActual2 / diasTranscurridos);
+  document.getElementById('proj-total-wrap').innerHTML = `
+    <div style="background:#080808;padding:16px 20px;"><div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Venta actual total</div><div style="font-family:'Bebas Neue',sans-serif;font-size:24px;">$${totalActual2.toLocaleString('es-MX')}</div></div>
+    <div style="background:#080808;padding:16px 20px;border-left:1px solid var(--border);"><div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Proyección cierre total</div><div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:${totalProyectado >= metaTotal ? 'var(--green)' : 'var(--red)'};">$${totalProyectado.toLocaleString('es-MX')}</div></div>
+    <div style="background:#080808;padding:16px 20px;border-left:1px solid var(--border);"><div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Promedio diario actual</div><div style="font-family:'Bebas Neue',sans-serif;font-size:24px;">$${promDiaTotal.toLocaleString('es-MX')}</div></div>
+    <div style="background:#080808;padding:16px 20px;border-left:1px solid var(--border);"><div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Días transcurridos / restantes</div><div style="font-family:'Bebas Neue',sans-serif;font-size:24px;">${diasTranscurridos}d / ${diasRestantes}d</div></div>`;
+
+  // ─── COMPARATIVO VS 2025 ───
+  const MAYO_2025 = 466268;
+  const JUNIO_2025 = 379334;
+  const BIMESTRE_2025 = MAYO_2025 + JUNIO_2025;
+
+  // Split current sales by month
+  const ventaMayo2026 = allSales.filter(s => s.fecha && s.fecha.startsWith('2026-05')).reduce((s,v) => s + Number(v.monto), 0);
+  const ventaJunio2026 = allSales.filter(s => s.fecha && s.fecha.startsWith('2026-06')).reduce((s,v) => s + Number(v.monto), 0);
+  const ventaBimestre2026 = ventaMayo2026 + ventaJunio2026;
+
+  const diffMayo = ventaMayo2026 - MAYO_2025;
+  const diffJunio = ventaJunio2026 - JUNIO_2025;
+  const diffBimestre = ventaBimestre2026 - BIMESTRE_2025;
+  const pctMayo = Math.round((ventaMayo2026 / MAYO_2025 - 1) * 100);
+  const pctJunio = ventaJunio2026 > 0 ? Math.round((ventaJunio2026 / JUNIO_2025 - 1) * 100) : null;
+  const pctBimestre = Math.round((ventaBimestre2026 / BIMESTRE_2025 - 1) * 100);
+
+  const compRow = (label, v2025, v2026, diff, pct) => {
+    const up = diff >= 0;
+    const color = up ? 'var(--green)' : 'var(--red)';
+    const pctTxt = pct !== null ? `${up ? '+' : ''}${pct}%` : 'En curso';
+    return `<div style="background:var(--black);padding:24px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.07em;color:var(--gray);margin-bottom:16px;">${label}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div><div style="font-size:10px;color:var(--gray);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;">2025</div><div style="font-family:'Bebas Neue',sans-serif;font-size:24px;">$${v2025.toLocaleString('es-MX')}</div></div>
+        <div><div style="font-size:10px;color:var(--gray);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;">2026</div><div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:${color};">$${v2026.toLocaleString('es-MX')}</div></div>
+      </div>
+      <div style="padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:12px;color:${color};">${up ? '▲' : '▼'} ${up ? '+$' : '-$'}${Math.abs(diff).toLocaleString('es-MX')}</span>
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${color};">${pctTxt}</span>
+      </div>
+    </div>`;
+  };
+
+  document.getElementById('comp-grid').innerHTML =
+    compRow('MAYO', MAYO_2025, ventaMayo2026, diffMayo, pctMayo) +
+    compRow('JUNIO', JUNIO_2025, ventaJunio2026, diffJunio, pctJunio) +
+    compRow('BIMESTRE TOTAL', BIMESTRE_2025, ventaBimestre2026, diffBimestre, pctBimestre);
+
+  document.getElementById('comp-bimestre').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+      <div>
+        <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Meta bimestral 2026</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;">$${metaTotal.toLocaleString('es-MX')}</div>
+      </div>
+      <div>
+        <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Venta acumulada 2026</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${ventaBimestre2026 >= metaTotal ? 'var(--green)' : 'var(--white)'};">$${ventaBimestre2026.toLocaleString('es-MX')}</div>
+      </div>
+      <div>
+        <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Cierre bimestre 2025</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;">$${BIMESTRE_2025.toLocaleString('es-MX')}</div>
+      </div>
+      <div>
+        <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Incremento vs 2025</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${diffBimestre >= 0 ? 'var(--green)' : 'var(--red)'};">${diffBimestre >= 0 ? '+' : ''}${pctBimestre}%</div>
+      </div>
+    </div>`;
 }
 
 function showDetail(d) {
@@ -2607,6 +2742,78 @@ async function downloadTablero() {
   const a = document.createElement('a');
   a.download = 'zuda_tablero_' + getCDMXDate() + '.png';
   a.href = canvas.toDataURL('image/png');
+  a.click();
+}
+
+// ─── EXPORT BONOS REPORT ───
+function exportBonosCSV(staffOnly, bonoEstudios, managerKeys, allSales) {
+  const today = getCDMXDate();
+  const rows = ['REPORTE DE BONOS ESTIMADOS · ' + today];
+  rows.push('');
+
+  // Individual
+  rows.push('BONOS INDIVIDUALES (4%)');
+  rows.push('Nombre,Estudio,Venta Acumulada,Meta Individual,% Avance,Bono Estimado,Estado');
+  staffOnly.forEach(d => {
+    const hit = d.total >= d.metaInd;
+    const bono = hit ? Math.round(d.total * BONO_IND_PCT) : 0;
+    const pct = Math.min(100, Math.round(d.total / d.metaInd * 100));
+    rows.push(`"${d.user.name}","${d.estudiosVendidos.join('/')}",${d.total},${d.metaInd},${pct}%,${bono},"${hit ? 'Activo' : 'Pendiente'}"`);
+  });
+  rows.push('');
+
+  // Colectivo
+  rows.push('BONOS COLECTIVOS POR ESTUDIO (3%)');
+  rows.push('Estudio,Venta Acumulada,Meta Estudio,% Avance,Pool Colectivo 3%,Estado');
+  bonoEstudios.forEach(est => {
+    const ventaEst = allSales.filter(s => s.estudio === est).reduce((s,v) => s + Number(v.monto), 0);
+    const meta = META_ESTUDIO[est] || 0;
+    const hit = ventaEst >= meta;
+    const pool = hit ? Math.round(ventaEst * 0.03) : 0;
+    const pct = Math.min(100, Math.round(ventaEst / meta * 100));
+    rows.push(`"${est}",${ventaEst},${meta},${pct}%,${pool},"${hit ? 'Activo' : 'Pendiente'}"`);
+  });
+  rows.push('');
+
+  // Managers
+  rows.push('BONOS MANAGERS (2% base + 3% excedente)');
+  rows.push('Manager,Estudio,Venta Estudio,Meta Estudio,Bono Base 2%,Bono Excedente 3%,Total Bono,Estado');
+  managerKeys.forEach(k => {
+    const mgr = USERS[k];
+    const est = mgr.estudio;
+    const ventaEst = allSales.filter(s => s.estudio === est).reduce((s,v) => s + Number(v.monto), 0);
+    const meta = META_ESTUDIO[est] || 0;
+    const hit = ventaEst >= meta;
+    const bonoBase = hit ? Math.round(ventaEst * 0.02) : 0;
+    const excedente = hit ? Math.max(0, ventaEst - meta) : 0;
+    const bonoExtra = Math.round(excedente * 0.03);
+    rows.push(`"${mgr.name}","${est}",${ventaEst},${meta},${bonoBase},${bonoExtra},${bonoBase+bonoExtra},"${hit ? 'Activo' : 'Pendiente'}"`);
+  });
+  rows.push('');
+
+  // Totales
+  const totalInd = staffOnly.filter(d => d.total >= d.metaInd).reduce((s,d) => s + Math.round(d.total * BONO_IND_PCT), 0);
+  const totalCol = bonoEstudios.reduce((s, est) => {
+    const v = allSales.filter(x => x.estudio === est).reduce((a,b) => a + Number(b.monto), 0);
+    return s + (v >= (META_ESTUDIO[est]||0) ? Math.round(v * 0.03) : 0);
+  }, 0);
+  const totalMgr = managerKeys.reduce((s,k) => {
+    const v = allSales.filter(x => x.estudio === USERS[k].estudio).reduce((a,b) => a + Number(b.monto), 0);
+    const meta = META_ESTUDIO[USERS[k].estudio]||0;
+    const hit = v >= meta;
+    return s + (hit ? Math.round(v*0.02) + Math.round(Math.max(0,v-meta)*0.03) : 0);
+  }, 0);
+
+  rows.push('RESUMEN TOTAL');
+  rows.push(`Bonos Individuales,${totalInd}`);
+  rows.push(`Bonos Colectivos,${totalCol}`);
+  rows.push(`Bonos Managers,${totalMgr}`);
+  rows.push(`TOTAL ESTIMADO,${totalInd + totalCol + totalMgr}`);
+
+  const blob = new Blob([rows.join('\n')], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `zuda_bonos_estimados_${today}.csv`;
   a.click();
 }
 
