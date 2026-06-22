@@ -625,8 +625,9 @@ tr:hover td { background:#111; }
         </div>
       </div>
 
-        <div style="margin-top:16px;">
-          <button id="btn-export-bonos" style="padding:9px 18px;border:1px solid var(--border);background:none;color:var(--gray);font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;">↓ Exportar reporte de bonos CSV</button>
+        <div style="margin-top:16px;display:flex;gap:8px;">
+          <button id="btn-export-bonos" style="padding:9px 18px;border:1px solid var(--border);background:none;color:var(--gray);font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;">↓ Exportar CSV</button>
+          <button id="btn-export-bonos-pdf" style="padding:9px 18px;border:1px solid var(--accent);background:none;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;">↓ Exportar PDF</button>
         </div>
       </div>
 
@@ -1796,12 +1797,26 @@ function renderAdminView(allSales) {
     totalProyectado += proyeccion;
     totalActual2 += ventaActual;
 
+    // vs 2025 — use BIMESTRE_2025 proportional split by meta weight
+    const MAYO_2025 = 466268;
+    const JUNIO_2025 = 379334;
+    const BIMESTRE_2025_EST = MAYO_2025 + JUNIO_2025;
+    const peso = (meta / metaTotal);
+    const cierre2025Est = Math.round(BIMESTRE_2025_EST * peso);
+    const diffVs2025 = proyeccion - cierre2025Est;
+    const pctVs2025 = Math.round((proyeccion / cierre2025Est - 1) * 100);
+    const vs2025Color = diffVs2025 >= 0 ? 'var(--green)' : 'var(--red)';
+
     projHTML += `<div style="background:var(--black);padding:24px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.07em;color:var(--gray);margin-bottom:12px;">${est}</div>
       <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:4px;">Proyección al cierre</div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:0.03em;color:${color};">$${proyeccion.toLocaleString('es-MX')}</div>
       <div style="font-size:11px;color:${color};margin-top:4px;">${alcanzaMeta ? '✓ Proyecta alcanzar meta' : '✗ Proyecta quedarse corto'}</div>
-      <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--gray);line-height:1.6;">
+      <div style="margin-top:10px;padding:8px 10px;background:var(--gray2);border-left:2px solid ${vs2025Color};">
+        <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--gray);margin-bottom:2px;">vs 2025 (${cierre2025Est.toLocaleString('es-MX')})</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${vs2025Color};">${diffVs2025 >= 0 ? '+' : ''}${pctVs2025}% · ${diffVs2025 >= 0 ? '+$' : '-$'}${Math.abs(diffVs2025).toLocaleString('es-MX')}</div>
+      </div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--gray);line-height:1.6;">
         Actual: $${ventaActual.toLocaleString('es-MX')}<br>
         Promedio/día: $${promDia.toLocaleString('es-MX')}<br>
         Días restantes: ${diasRestantes}<br>
@@ -1812,11 +1827,21 @@ function renderAdminView(allSales) {
   document.getElementById('proj-grid').innerHTML = projHTML;
 
   const promDiaTotal = Math.round(totalActual2 / diasTranscurridos);
+  const BIMESTRE_2025_TOTAL = 845602;
+  const diffProyVs2025 = totalProyectado - BIMESTRE_2025_TOTAL;
+  const pctProyVs2025 = Math.round((totalProyectado / BIMESTRE_2025_TOTAL - 1) * 100);
+  const proyVs2025Color = diffProyVs2025 >= 0 ? 'var(--green)' : 'var(--red)';
+
   document.getElementById('proj-total-wrap').innerHTML = `
-    <div style="background:#080808;padding:16px 20px;"><div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Venta actual total</div><div style="font-family:'Bebas Neue',sans-serif;font-size:24px;">$${totalActual2.toLocaleString('es-MX')}</div></div>
-    <div style="background:#080808;padding:16px 20px;border-left:1px solid var(--border);"><div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Proyección cierre total</div><div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:${totalProyectado >= metaTotal ? 'var(--green)' : 'var(--red)'};">$${totalProyectado.toLocaleString('es-MX')}</div></div>
-    <div style="background:#080808;padding:16px 20px;border-left:1px solid var(--border);"><div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Promedio diario actual</div><div style="font-family:'Bebas Neue',sans-serif;font-size:24px;">$${promDiaTotal.toLocaleString('es-MX')}</div></div>
-    <div style="background:#080808;padding:16px 20px;border-left:1px solid var(--border);"><div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Días transcurridos / restantes</div><div style="font-family:'Bebas Neue',sans-serif;font-size:24px;">${diasTranscurridos}d / ${diasRestantes}d</div></div>`;
+    <div style="background:#080808;padding:16px 20px;border:1px solid var(--border);"><div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Venta actual total</div><div style="font-family:'Bebas Neue',sans-serif;font-size:24px;">$${totalActual2.toLocaleString('es-MX')}</div></div>
+    <div style="background:#080808;padding:16px 20px;border:1px solid var(--border);border-left:none;"><div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Proyección cierre total</div><div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:${totalProyectado >= metaTotal ? 'var(--green)' : 'var(--red)'};">$${totalProyectado.toLocaleString('es-MX')}</div></div>
+    <div style="background:#080808;padding:16px 20px;border:1px solid var(--border);border-left:none;"><div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Proyección vs Bimestre 2025</div><div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:${proyVs2025Color};">${diffProyVs2025 >= 0 ? '+' : ''}${pctProyVs2025}%</div><div style="font-size:11px;color:${proyVs2025Color};margin-top:2px;">${diffProyVs2025 >= 0 ? '+$' : '-$'}${Math.abs(diffProyVs2025).toLocaleString('es-MX')} vs $${BIMESTRE_2025_TOTAL.toLocaleString('es-MX')}</div></div>
+    <div style="background:#080808;padding:16px 20px;border:1px solid var(--border);border-left:none;"><div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Promedio diario · Días restantes</div><div style="font-family:'Bebas Neue',sans-serif;font-size:24px;">$${promDiaTotal.toLocaleString('es-MX')} · ${diasRestantes}d</div></div>`;
+
+  // PDF export buttons
+  document.getElementById('btn-export-bonos').onclick = () => exportBonosCSV(staffOnly, bonoEstudios, managerKeys, allSales);
+  const pdfBtn = document.getElementById('btn-export-bonos-pdf');
+  if (pdfBtn) pdfBtn.onclick = () => exportBonosPDF(staffOnly, bonoEstudios, managerKeys, allSales, totalInd, totalCol, totalMgr, bonoTotalAll, totalProyectado, diasTranscurridos, diasRestantes, metaTotal);
 
   // ─── COMPARATIVO VS 2025 ───
   const MAYO_2025 = 466268;
@@ -2745,7 +2770,211 @@ async function downloadTablero() {
   a.click();
 }
 
-// ─── EXPORT BONOS REPORT ───
+// ─── EXPORT BONOS PDF ───
+async function exportBonosPDF(staffOnly, bonoEstudios, managerKeys, allSales, totalInd, totalCol, totalMgr, bonoTotalAll, totalProyectado, diasTranscurridos, diasRestantes, metaTotal) {
+  const btn = document.getElementById('btn-export-bonos-pdf');
+  btn.textContent = '↻ Generando PDF...';
+
+  // Load html2canvas if needed
+  if (typeof html2canvas === 'undefined') {
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+      s.onload = resolve; s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+
+  // Load jsPDF
+  if (typeof window.jspdf === 'undefined') {
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      s.onload = resolve; s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+
+  const { jsPDF } = window.jspdf;
+  const today = getCDMXDate();
+  const MAYO_2025 = 466268;
+  const JUNIO_2025 = 379334;
+  const BIMESTRE_2025 = 845602;
+  const ventaMayo2026 = allSales.filter(s => s.fecha && s.fecha.startsWith('2026-05')).reduce((s,v) => s + Number(v.monto), 0);
+  const ventaJunio2026 = allSales.filter(s => s.fecha && s.fecha.startsWith('2026-06')).reduce((s,v) => s + Number(v.monto), 0);
+  const ventaBimestre2026 = ventaMayo2026 + ventaJunio2026;
+  const totalActual = bonoEstudios.reduce((s, est) => s + allSales.filter(x => x.estudio === est).reduce((a,b) => a + Number(b.monto), 0), 0);
+
+  // Build a hidden printable div
+  const printDiv = document.createElement('div');
+  printDiv.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1100px;background:#0D0D0D;padding:48px;font-family:sans-serif;color:#fff;';
+
+  // Get logo src from nav
+  const logoEl = document.querySelector('nav img');
+  const logoSrc = logoEl ? logoEl.src : '';
+
+  printDiv.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;padding-bottom:24px;border-bottom:1px solid #E8D5A3;">
+      ${logoSrc ? `<img src="${logoSrc}" style="height:60px;width:auto;">` : '<div style="font-size:40px;font-weight:bold;letter-spacing:0.1em;">ZUDA</div>'}
+      <div style="text-align:right;">
+        <div style="font-size:11px;letter-spacing:0.15em;color:#8A8A8A;margin-bottom:6px;">REPORTE INTERNO · MAYO–JUNIO 2026</div>
+        <div style="font-size:28px;font-weight:bold;letter-spacing:0.06em;">ESTIMADO DE BONOS</div>
+        <div style="font-size:12px;color:#8A8A8A;margin-top:4px;">${today}</div>
+      </div>
+    </div>
+
+    <!-- KPIs bonos -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#222;margin-bottom:32px;">
+      <div style="background:#111;padding:18px 20px;"><div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#8A8A8A;margin-bottom:6px;">Bonos individuales</div><div style="font-size:26px;font-weight:bold;">$${totalInd.toLocaleString('es-MX')}</div></div>
+      <div style="background:#111;padding:18px 20px;"><div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#8A8A8A;margin-bottom:6px;">Bonos colectivos</div><div style="font-size:26px;font-weight:bold;">$${totalCol.toLocaleString('es-MX')}</div></div>
+      <div style="background:#111;padding:18px 20px;"><div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#8A8A8A;margin-bottom:6px;">Bonos managers</div><div style="font-size:26px;font-weight:bold;">$${totalMgr.toLocaleString('es-MX')}</div></div>
+      <div style="background:#1a1a0a;padding:18px 20px;"><div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#8A8A8A;margin-bottom:6px;">Total estimado bonos</div><div style="font-size:26px;font-weight:bold;color:#E8D5A3;">$${bonoTotalAll.toLocaleString('es-MX')}</div></div>
+    </div>
+
+    <!-- Bonos individuales tabla -->
+    <div style="margin-bottom:28px;">
+      <div style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#E8D5A3;margin-bottom:12px;">BONO INDIVIDUAL · 4%</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead><tr style="background:#1E1E1E;"><th style="padding:8px 12px;text-align:left;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Nombre</th><th style="padding:8px 12px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Venta</th><th style="padding:8px 12px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Meta</th><th style="padding:8px 12px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">% Avance</th><th style="padding:8px 12px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Bono Est.</th><th style="padding:8px 12px;text-align:center;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Estado</th></tr></thead>
+        <tbody>
+          ${staffOnly.sort((a,b) => b.total - a.total).map(d => {
+            const hit = d.total >= d.metaInd;
+            const bono = hit ? Math.round(d.total * BONO_IND_PCT) : 0;
+            const pct = Math.min(100, Math.round(d.total / d.metaInd * 100));
+            return `<tr style="border-bottom:1px solid #111;">
+              <td style="padding:7px 12px;color:${hit ? '#6fcf97' : '#e57373'}">${d.user.name}</td>
+              <td style="padding:7px 12px;text-align:right;">$${d.total.toLocaleString('es-MX')}</td>
+              <td style="padding:7px 12px;text-align:right;color:#8A8A8A;">$${d.metaInd.toLocaleString('es-MX')}</td>
+              <td style="padding:7px 12px;text-align:right;color:${hit ? '#27AE60' : '#C0392B'}">${pct}%</td>
+              <td style="padding:7px 12px;text-align:right;color:${hit ? '#27AE60' : '#2A2A2A'};font-weight:bold;">$${bono.toLocaleString('es-MX')}</td>
+              <td style="padding:7px 12px;text-align:center;font-size:11px;color:${hit ? '#27AE60' : '#C0392B'}">${hit ? '✓ Activo' : '✗ Pendiente'}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Colectivo + Manager en dos columnas -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px;">
+      <div>
+        <div style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#E8D5A3;margin-bottom:12px;">BONO COLECTIVO · 3%</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead><tr style="background:#1E1E1E;"><th style="padding:8px 10px;text-align:left;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Estudio</th><th style="padding:8px 10px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Venta</th><th style="padding:8px 10px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Pool 3%</th></tr></thead>
+          <tbody>
+            ${bonoEstudios.map(est => {
+              const v = allSales.filter(s => s.estudio === est).reduce((s,x) => s + Number(x.monto), 0);
+              const m = META_ESTUDIO[est] || 0;
+              const hit = v >= m;
+              const pool = hit ? Math.round(v * 0.03) : 0;
+              return `<tr style="border-bottom:1px solid #111;">
+                <td style="padding:7px 10px;color:${hit ? '#6fcf97' : '#e57373'}">${est}</td>
+                <td style="padding:7px 10px;text-align:right;">$${v.toLocaleString('es-MX')}</td>
+                <td style="padding:7px 10px;text-align:right;color:${hit ? '#27AE60' : '#2A2A2A'};font-weight:bold;">$${pool.toLocaleString('es-MX')}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#E8D5A3;margin-bottom:12px;">BONO MANAGER · 2% + 3%</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead><tr style="background:#1E1E1E;"><th style="padding:8px 10px;text-align:left;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Manager</th><th style="padding:8px 10px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Base 2%</th><th style="padding:8px 10px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Excedente 3%</th><th style="padding:8px 10px;text-align:right;color:#8A8A8A;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Total</th></tr></thead>
+          <tbody>
+            ${managerKeys.map(k => {
+              const mgr = USERS[k];
+              const v = allSales.filter(s => s.estudio === mgr.estudio).reduce((s,x) => s + Number(x.monto), 0);
+              const m = META_ESTUDIO[mgr.estudio] || 0;
+              const hit = v >= m;
+              const base = hit ? Math.round(v * 0.02) : 0;
+              const exc = hit ? Math.round(Math.max(0, v - m) * 0.03) : 0;
+              return `<tr style="border-bottom:1px solid #111;">
+                <td style="padding:7px 10px;color:${hit ? '#6fcf97' : '#e57373'}">${mgr.name.split(' ')[0]}</td>
+                <td style="padding:7px 10px;text-align:right;">$${base.toLocaleString('es-MX')}</td>
+                <td style="padding:7px 10px;text-align:right;">$${exc.toLocaleString('es-MX')}</td>
+                <td style="padding:7px 10px;text-align:right;font-weight:bold;color:${hit ? '#27AE60' : '#2A2A2A'};">$${(base+exc).toLocaleString('es-MX')}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Proyección y comparativo -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
+      <div style="background:#111;padding:20px;border:1px solid #222;">
+        <div style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#E8D5A3;margin-bottom:12px;">PROYECCIÓN AL CIERRE</div>
+        <div style="font-size:13px;color:#8A8A8A;margin-bottom:4px;">Proyección total bimestre</div>
+        <div style="font-size:32px;font-weight:bold;color:${totalProyectado >= metaTotal ? '#27AE60' : '#C0392B'};">$${totalProyectado.toLocaleString('es-MX')}</div>
+        <div style="font-size:12px;color:#8A8A8A;margin-top:8px;">Meta: $${metaTotal.toLocaleString('es-MX')} · Días restantes: ${diasRestantes}</div>
+        <div style="font-size:12px;color:#8A8A8A;">Promedio actual: $${Math.round(totalActual / diasTranscurridos).toLocaleString('es-MX')}/día</div>
+      </div>
+      <div style="background:#111;padding:20px;border:1px solid #222;">
+        <div style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#E8D5A3;margin-bottom:12px;">COMPARATIVO VS 2025</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+          ${[['Mayo', MAYO_2025, ventaMayo2026], ['Junio', JUNIO_2025, ventaJunio2026], ['Bimestre', BIMESTRE_2025, ventaBimestre2026]].map(([label, v25, v26]) => {
+            const pct = Math.round((v26 / v25 - 1) * 100);
+            const color = pct >= 0 ? '#27AE60' : '#C0392B';
+            return `<div style="text-align:center;padding:8px;background:#0D0D0D;">
+              <div style="font-size:10px;color:#8A8A8A;margin-bottom:4px;">${label}</div>
+              <div style="font-size:18px;font-weight:bold;color:${color};">${pct >= 0 ? '+' : ''}${pct}%</div>
+              <div style="font-size:10px;color:#8A8A8A;">$${v26.toLocaleString('es-MX')}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="padding-top:16px;border-top:1px solid #E8D5A3;display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-size:10px;color:#8A8A8A;letter-spacing:0.1em;">PILOTO MAYO–JUNIO 2026 · INTERNO · SOLO ADMIN</div>
+      <div style="font-size:10px;color:#E8D5A3;letter-spacing:0.1em;font-weight:bold;">ZUDA FITNESS</div>
+    </div>
+  `;
+
+  document.body.appendChild(printDiv);
+
+  try {
+    const canvas = await html2canvas(printDiv, {
+      backgroundColor: '#0D0D0D',
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      windowWidth: 1196
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const imgAspect = canvas.height / canvas.width;
+    const imgH = pageW * imgAspect;
+
+    if (imgH <= pageH) {
+      pdf.addImage(imgData, 'PNG', 0, 0, pageW, imgH);
+    } else {
+      // Multi-page
+      let yOffset = 0;
+      while (yOffset < canvas.height) {
+        const sliceH = Math.min(canvas.height - yOffset, canvas.width * (pageH / pageW));
+        const sliceCanvas = document.createElement('canvas');
+        sliceCanvas.width = canvas.width;
+        sliceCanvas.height = sliceH;
+        const ctx = sliceCanvas.getContext('2d');
+        ctx.drawImage(canvas, 0, -yOffset);
+        if (yOffset > 0) pdf.addPage();
+        pdf.addImage(sliceCanvas.toDataURL('image/png'), 'PNG', 0, 0, pageW, pageH);
+        yOffset += sliceH;
+      }
+    }
+
+    pdf.save(`zuda_bonos_reporte_${today}.pdf`);
+  } finally {
+    document.body.removeChild(printDiv);
+    btn.textContent = '↓ Exportar PDF';
+  }
+}
+
+// ─── EXPORT BONOS CSV ───
 function exportBonosCSV(staffOnly, bonoEstudios, managerKeys, allSales) {
   const today = getCDMXDate();
   const rows = ['REPORTE DE BONOS ESTIMADOS · ' + today];
