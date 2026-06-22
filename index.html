@@ -585,6 +585,46 @@ tr:hover td { background:#111; }
         <button class="export-btn" id="btn-export-admin">↓ Exportar todas las ventas CSV</button>
       </div>
 
+      <!-- ESTIMADO DE BONOS -->
+      <div class="section">
+        <div class="sec-hd"><span class="sec-num">06</span><span class="sec-title">ESTIMADO DE BONOS</span></div>
+        <div style="font-size:12px;color:var(--gray);margin-bottom:20px;">Cálculo al día de hoy. Solo visible para Admin.</div>
+
+        <!-- KPIs totales -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:24px;">
+          <div class="kpi"><div class="kpi-val" id="est-total-ind">$0</div><div class="kpi-lbl">Bonos individuales</div></div>
+          <div class="kpi"><div class="kpi-val" id="est-total-col">$0</div><div class="kpi-lbl">Bonos colectivos</div></div>
+          <div class="kpi"><div class="kpi-val" id="est-total-mgr">$0</div><div class="kpi-lbl">Bonos managers</div></div>
+          <div class="kpi" style="background:var(--gray2);"><div class="kpi-val" id="est-total-all" style="color:var(--accent)">$0</div><div class="kpi-lbl">Total estimado bonos</div></div>
+        </div>
+
+        <!-- Detalle por tipo -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:24px;">
+
+          <!-- Individuales -->
+          <div style="background:var(--black);padding:24px;">
+            <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold, var(--accent));margin-bottom:16px;font-weight:500;">BONO INDIVIDUAL · 4%</div>
+            <div id="est-ind-detail" style="font-size:12px;color:var(--gray);line-height:1.8;"></div>
+            <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--gray);">Condición: meta individual alcanzada ($65K / $60K Artz)</div>
+          </div>
+
+          <!-- Colectivos -->
+          <div style="background:var(--black);padding:24px;border-left:1px solid var(--border);">
+            <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;font-weight:500;">BONO COLECTIVO · 3%</div>
+            <div id="est-col-detail" style="font-size:12px;color:var(--gray);line-height:1.8;"></div>
+            <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--gray);">Condición: estudio supera meta · Se reparte proporcional a horas (mín. 20h/sem)</div>
+          </div>
+
+          <!-- Managers -->
+          <div style="background:var(--black);padding:24px;border-left:1px solid var(--border);">
+            <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;font-weight:500;">BONO MANAGER · 2% + 3%</div>
+            <div id="est-mgr-detail" style="font-size:12px;color:var(--gray);line-height:1.8;"></div>
+            <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--gray);">2% base si llega a meta · 3% sobre excedente</div>
+          </div>
+
+        </div>
+      </div>
+
       <!-- VENTAS POR RANGO DE FECHAS -->
       <div class="section" style="border-bottom:none;padding-bottom:60px;">
         <div class="sec-hd"><span class="sec-num">06</span><span class="sec-title">VENTAS POR FECHA</span></div>
@@ -1617,6 +1657,90 @@ function renderAdminView(allSales) {
       if (d) showDetail(d);
     });
   });
+
+  // ─── ESTIMADO DE BONOS ───
+  const bonoEstudios = ['LILAS','PRADO NORTE','ARTZ PEDREGAL'];
+  const managerKeys = Object.keys(USERS).filter(k => USERS[k].isManager);
+
+  // 1. Bonos individuales (staff only, not managers)
+  let totalInd = 0;
+  let indDetail = '';
+  staffOnly.filter(d => d.total >= d.metaInd).forEach(d => {
+    const b = Math.round(d.total * BONO_IND_PCT);
+    totalInd += b;
+    indDetail += `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #111;">
+      <span style="color:var(--white)">${d.user.name.split(' ')[0]} ${d.user.name.split(' ')[1]}</span>
+      <span style="color:var(--green);font-family:'Bebas Neue',sans-serif;font-size:15px;">$${b.toLocaleString('es-MX')}</span>
+    </div>`;
+  });
+  staffOnly.filter(d => d.total < d.metaInd).forEach(d => {
+    indDetail += `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #111;">
+      <span style="color:var(--gray)">${d.user.name.split(' ')[0]} ${d.user.name.split(' ')[1]}</span>
+      <span style="color:var(--gray3);font-family:'Bebas Neue',sans-serif;font-size:15px;">$0</span>
+    </div>`;
+  });
+  if (!indDetail) indDetail = '<div style="color:var(--gray3)">Ningún staff ha alcanzado su meta aún.</div>';
+
+  // 2. Bonos colectivos (3% venta estudio si supera meta)
+  let totalCol = 0;
+  let colDetail = '';
+  bonoEstudios.forEach(est => {
+    const estSales = allSales.filter(s => s.estudio === est);
+    const ventaEst = estSales.reduce((s,v) => s + Number(v.monto), 0);
+    const meta = META_ESTUDIO[est] || 0;
+    const hit = ventaEst >= meta;
+    const pool = hit ? Math.round(ventaEst * 0.03) : 0;
+    totalCol += pool;
+    const exc = ventaEst - meta;
+    colDetail += `<div style="padding:6px 0;border-bottom:1px solid #111;">
+      <div style="display:flex;justify-content:space-between;">
+        <span style="color:${hit ? 'var(--white)' : 'var(--gray)'}">${est}</span>
+        <span style="color:${hit ? 'var(--green)' : 'var(--gray3)'};font-family:'Bebas Neue',sans-serif;font-size:15px;">$${pool.toLocaleString('es-MX')}</span>
+      </div>
+      <div style="font-size:10px;color:var(--gray);margin-top:2px;">
+        ${hit ? `Venta $${ventaEst.toLocaleString('es-MX')} · Excedente +$${exc.toLocaleString('es-MX')}` : `Falta $${(meta-ventaEst).toLocaleString('es-MX')} para activar`}
+      </div>
+    </div>`;
+  });
+
+  // 3. Bonos managers (2% base + 3% excedente)
+  let totalMgr = 0;
+  let mgrDetail = '';
+  managerKeys.forEach(k => {
+    const mgr = USERS[k];
+    const est = mgr.estudio;
+    const estSales = allSales.filter(s => s.estudio === est);
+    const ventaEst = estSales.reduce((s,v) => s + Number(v.monto), 0);
+    const meta = META_ESTUDIO[est] || 0;
+    const hit = ventaEst >= meta;
+    const bonoBase = hit ? Math.round(ventaEst * 0.02) : 0;
+    const excedente = hit ? Math.max(0, ventaEst - meta) : 0;
+    const bonoExtra = Math.round(excedente * 0.03);
+    const bonoTotal = bonoBase + bonoExtra;
+    totalMgr += bonoTotal;
+    mgrDetail += `<div style="padding:6px 0;border-bottom:1px solid #111;">
+      <div style="display:flex;justify-content:space-between;">
+        <span style="color:${hit ? 'var(--white)' : 'var(--gray)'}">${mgr.name.split(' ')[0]} ${mgr.name.split(' ')[1]}</span>
+        <span style="color:${hit ? 'var(--green)' : 'var(--gray3)'};font-family:'Bebas Neue',sans-serif;font-size:15px;">$${bonoTotal.toLocaleString('es-MX')}</span>
+      </div>
+      <div style="font-size:10px;color:var(--gray);margin-top:2px;">
+        ${hit
+          ? `Base $${bonoBase.toLocaleString('es-MX')} + Excedente $${bonoExtra.toLocaleString('es-MX')} · ${est}`
+          : `${est} · Falta $${(meta-ventaEst).toLocaleString('es-MX')} para activar`}
+      </div>
+    </div>`;
+  });
+
+  const bonoTotalAll = totalInd + totalCol + totalMgr;
+
+  // Update DOM
+  document.getElementById('est-total-ind').textContent = '$' + totalInd.toLocaleString('es-MX');
+  document.getElementById('est-total-col').textContent = '$' + totalCol.toLocaleString('es-MX');
+  document.getElementById('est-total-mgr').textContent = '$' + totalMgr.toLocaleString('es-MX');
+  document.getElementById('est-total-all').textContent = '$' + bonoTotalAll.toLocaleString('es-MX');
+  document.getElementById('est-ind-detail').innerHTML = indDetail;
+  document.getElementById('est-col-detail').innerHTML = colDetail;
+  document.getElementById('est-mgr-detail').innerHTML = mgrDetail;
 }
 
 function showDetail(d) {
@@ -1635,7 +1759,7 @@ function showDetail(d) {
           <td>${s.descuento ? `<span style="color:var(--accent);font-size:12px;">${s.descuento}%</span>` : '<span style="color:var(--gray3)">—</span>'}</td>
           <td style="font-size:11px;color:var(--gray);max-width:100px;overflow:hidden;text-overflow:ellipsis;">${s.motivo_descuento || '—'}</td>
           <td style="display:flex;gap:4px;">
-            <button class="admin-edit-btn" data-id="${s.id}" data-monto-orig="${s.precio_original || s.monto}" data-descuento="${s.descuento || 0}" data-motivo="${(s.motivo_descuento||'').replace(/"/g,'&quot;')}" style="background:none;border:1px solid var(--border);color:var(--gray);cursor:pointer;font-size:11px;padding:3px 8px;transition:all 0.2s;">✎</button>
+            <button class="admin-edit-btn" data-id="${s.id}" data-monto-orig="${s.precio_original || s.monto}" data-descuento="${s.descuento || 0}" data-motivo="${(s.motivo_descuento||'').replace(/"/g,'&quot;')}" data-fecha="${s.fecha || ''}" style="background:none;border:1px solid var(--border);color:var(--gray);cursor:pointer;font-size:11px;padding:3px 8px;transition:all 0.2s;">✎</button>
             <button class="admin-del-btn" data-id="${s.id}" data-pkg="${s.paquete}" data-monto="${s.monto}" data-est="${s.estudio}" style="background:none;border:1px solid transparent;color:var(--gray);cursor:pointer;font-size:12px;padding:3px 8px;transition:all 0.2s;">✕</button>
           </td>
         </tr>`).join('')
@@ -1684,6 +1808,7 @@ function showDetail(d) {
       const montoOrig = Number(editBtn.dataset.montoOrig);
       const currentDesc = parseInt(editBtn.dataset.descuento) || 0;
       const currentMotivo = editBtn.dataset.motivo || '';
+      const currentFecha = editBtn.dataset.fecha || '';
       // Build inline edit row
       const row = editBtn.closest('tr');
       const existingEditor = document.getElementById('edit-row-' + id);
@@ -1693,6 +1818,10 @@ function showDetail(d) {
       editorRow.style.background = '#0a0a14';
       editorRow.innerHTML = `<td colspan="8" style="padding:12px 16px;">
         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:4px;">Fecha</div>
+            <input type="date" id="edit-fecha-${id}" value="${currentFecha}" style="padding:7px 12px;background:var(--gray2);border:1px solid var(--border);color:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;">
+          </div>
           <div>
             <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:4px;">Descuento</div>
             <select id="edit-desc-${id}" style="padding:7px 12px;background:var(--gray2);border:1px solid var(--border);color:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;">
@@ -1727,21 +1856,23 @@ function showDetail(d) {
       document.getElementById(`edit-save-${id}`).addEventListener('click', async function() {
         const pct = parseInt(document.getElementById(`edit-desc-${id}`).value);
         const mot = document.getElementById(`edit-motivo-${id}`).value.trim();
+        const newFecha = document.getElementById(`edit-fecha-${id}`).value;
         const newMonto = pct > 0 ? Math.round(montoOrig * (1 - pct/100)) : montoOrig;
         try {
           await fetch(`${SB_URL}/rest/v1/ventas?id=eq.${id}`, {
             method: 'PATCH',
             headers: { ...HDR, 'Prefer': 'return=minimal' },
             body: JSON.stringify({
+              fecha: newFecha || undefined,
               monto: newMonto,
               descuento: pct > 0 ? pct : null,
               motivo_descuento: pct > 0 && mot ? mot : null
             })
           });
           editorRow.remove();
-          // Refresh detail
           const idx2 = detailSales.findIndex(s => s.id === id);
           if (idx2 !== -1) {
+            detailSales[idx2].fecha = newFecha;
             detailSales[idx2].monto = newMonto;
             detailSales[idx2].descuento = pct > 0 ? pct : null;
             detailSales[idx2].motivo_descuento = pct > 0 && mot ? mot : null;
