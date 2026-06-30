@@ -2017,6 +2017,20 @@ function renderAdminView(allSales) {
     compRow('JUNIO', JUNIO_2025, ventaJunio2026, diffJunio, pctJunio) +
     compRow('BIMESTRE TOTAL', BIMESTRE_2025, ventaBimestre2026, diffBimestre, pctBimestre);
 
+  // Métrica: % del incremento vs 2025 destinado a bonos
+  const pctBonosVsIncremento = diffBimestre > 0
+    ? Math.round((bonoTotalAll / diffBimestre) * 100)
+    : null;
+  const pctBonosLabel = pctBonosVsIncremento !== null
+    ? pctBonosVsIncremento + '%'
+    : diffBimestre <= 0 ? 'N/A · sin incremento' : '—';
+  const pctBonosColor = pctBonosVsIncremento !== null
+    ? (pctBonosVsIncremento <= 50 ? 'var(--green)' : pctBonosVsIncremento <= 80 ? 'var(--accent)' : 'var(--red)')
+    : 'var(--gray)';
+  const pctBonosNote = pctBonosVsIncremento !== null
+    ? `$${bonoTotalAll.toLocaleString('es-MX')} bonos · $${Math.max(0,diffBimestre-bonoTotalAll).toLocaleString('es-MX')} queda al negocio`
+    : 'El negocio no generó incremento vs 2025';
+
   document.getElementById('comp-bimestre').innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
       <div>
@@ -2035,6 +2049,20 @@ function renderAdminView(allSales) {
         <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Incremento vs 2025</div>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${diffBimestre >= 0 ? 'var(--green)' : 'var(--red)'};">${diffBimestre >= 0 ? '+' : ''}${pctBimestre}%</div>
       </div>
+    </div>
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+      <div>
+        <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray);margin-bottom:4px;">Bonos vs incremento generado</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:${pctBonosColor};">${pctBonosLabel}</div>
+        <div style="font-size:11px;color:var(--gray);margin-top:2px;">${pctBonosNote}</div>
+      </div>
+      <div style="flex:1;min-width:200px;padding:12px 16px;background:#111;border-left:2px solid ${pctBonosColor};">
+        <div style="font-size:11px;color:var(--gray);line-height:1.7;">
+          Incremento real vs 2025: <span style="color:var(--white);font-weight:500;">$${diffBimestre.toLocaleString('es-MX')}</span><br>
+          Total bonos: <span style="color:var(--white);font-weight:500;">$${bonoTotalAll.toLocaleString('es-MX')}</span><br>
+          Retención del negocio: <span style="color:${pctBonosColor};font-weight:500;">${pctBonosVsIncremento !== null ? (100 - pctBonosVsIncremento) + '% del incremento' : '—'}</span>
+        </div>
+      </div>
     </div>`;
 
   // ─── GENERAR CIERRE COMPLETO (HTML + Excel) ───
@@ -2048,6 +2076,7 @@ function renderAdminView(allSales) {
       MAYO_2025, JUNIO_2025, BIMESTRE_2025,
       diffMayo, diffJunio, diffBimestre,
       pctMayo, pctJunio, pctBimestre,
+      pctBonosVsIncremento,
       totalAll, ventaHoy, sobre, bajo
     });
   }
@@ -3179,7 +3208,8 @@ function generarCierreHTML(data, today) {
     totalProyectado, diasTranscurridos, diasRestantes, metaTotal,
     ventaMayo2026, ventaJunio2026, ventaBimestre2026,
     MAYO_2025, JUNIO_2025, BIMESTRE_2025,
-    diffBimestre, pctBimestre, totalAll, sobre, bajo } = data;
+    diffBimestre, pctBimestre, pctBonosVsIncremento,
+    totalAll, sobre, bajo } = data;
 
   const G = (v) => '$' + Math.round(v).toLocaleString('es-MX');
   const fmtPct = (n) => n === null ? '—' : (n >= 0 ? '+' : '') + n + '%';
@@ -3315,6 +3345,21 @@ function generarCierreHTML(data, today) {
       '<div><div style="font-size:9px;color:#8A8A8A;margin-bottom:3px">Incremento vs bimestre 2025</div><div style="font-size:20px;font-weight:700;color:' + col(pctBimestre) + '">' + fmtPct(pctBimestre) + '</div></div>' +
     '</div></div></div>' +
 
+    '<div class="sec"><div class="sl">RENTABILIDAD DEL PROGRAMA DE BONOS</div>' +
+    '<div class="box" style="border-left:4px solid ' + (pctBonosVsIncremento !== null ? (pctBonosVsIncremento <= 50 ? '#27AE60' : pctBonosVsIncremento <= 80 ? '#E8D5A3' : '#C0392B') : '#8A8A8A') + '">' +
+      '<div style="display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center">' +
+        '<div style="text-align:center"><div style="font-size:9px;color:#8A8A8A;margin-bottom:4px;letter-spacing:.1em;text-transform:uppercase">Bonos vs incremento generado</div>' +
+        '<div style="font-size:40px;font-weight:900;color:' + (pctBonosVsIncremento !== null ? (pctBonosVsIncremento <= 50 ? '#27AE60' : pctBonosVsIncremento <= 80 ? '#E8D5A3' : '#C0392B') : '#8A8A8A') + '">' + (pctBonosVsIncremento !== null ? pctBonosVsIncremento + '%' : 'N/A') + '</div></div>' +
+        '<div style="font-size:12px;color:rgba(255,255,255,.75);line-height:1.9">' +
+          'Incremento vs 2025: <strong style="color:#fff">$' + diffBimestre.toLocaleString('es-MX') + '</strong><br>' +
+          'Total bonos a pagar: <strong style="color:#fff">$' + bonoTotalAll.toLocaleString('es-MX') + '</strong><br>' +
+          (pctBonosVsIncremento !== null
+            ? 'Retención del negocio: <strong style="color:#27AE60">' + (100 - pctBonosVsIncremento) + '% del incremento ($' + Math.max(0, diffBimestre - bonoTotalAll).toLocaleString('es-MX') + ')</strong>'
+            : 'Sin incremento vs 2025 — los bonos se financian sobre la venta base.') +
+        '</div>' +
+      '</div>' +
+    '</div></div>' +
+
     '<div class="ftr"><div style="font-size:9px;color:#8A8A8A;letter-spacing:.1em">CIERRE BIMESTRAL MAYO\u2013JUNIO 2026 \u00B7 INTERNO \u00B7 SOLO ADMIN</div><div style="font-size:9px;color:#E8D5A3;font-weight:600;letter-spacing:.1em">ZUDA FITNESS \u00B7 ' + today + '</div></div>' +
     '</div></body></html>';
 
@@ -3339,7 +3384,8 @@ async function generarCierreExcel(data, today) {
     totalInd, totalCol, totalMgr, bonoTotalAll, colPorStaff,
     metaTotal, ventaMayo2026, ventaJunio2026, ventaBimestre2026,
     MAYO_2025, JUNIO_2025, BIMESTRE_2025,
-    diffBimestre, pctBimestre, totalAll, sobre, bajo } = data;
+    diffBimestre, pctBimestre, pctBonosVsIncremento,
+    totalAll, sobre, bajo } = data;
 
   const wb = XLSX.utils.book_new();
 
@@ -3373,6 +3419,13 @@ async function generarCierreExcel(data, today) {
     ['Bimestre 2026', ventaBimestre2026],
     ['Diferencia', diffBimestre],
     ['% Incremento', pctBimestre !== null ? pctBimestre + '%' : '—'],
+    [],
+    ['RENTABILIDAD DEL PROGRAMA DE BONOS'],
+    ['Incremento vs 2025', diffBimestre],
+    ['Total bonos pagados', bonoTotalAll],
+    ['% del incremento destinado a bonos', pctBonosVsIncremento !== null ? pctBonosVsIncremento + '%' : 'N/A — sin incremento'],
+    ['% del incremento que retiene el negocio', pctBonosVsIncremento !== null ? (100 - pctBonosVsIncremento) + '%' : 'N/A'],
+    ['Monto que retiene el negocio', pctBonosVsIncremento !== null ? Math.max(0, diffBimestre - bonoTotalAll) : 'N/A'],
   ];
   const wsResumen = XLSX.utils.aoa_to_sheet(resumenRows);
   wsResumen['!cols'] = [{wch:38},{wch:18}];
