@@ -630,6 +630,26 @@ tr:hover td { background:#111; }
           <div style="font-size:11px;color:var(--gray);margin-bottom:16px;">Proporcional a horas trabajadas en el bimestre · Mínimo 160h para calificar (20h/sem × 8 sem)</div>
           <div id="col-reparto-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);"></div>
         </div>
+
+        <!-- TABLA RESUMEN POR STAFF -->
+        <div style="margin-top:32px;">
+          <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:4px;font-weight:500;">RESUMEN POR STAFF</div>
+          <div style="font-size:11px;color:var(--gray);margin-bottom:16px;">Bono individual + parte del bono colectivo</div>
+          <div class="admin-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Estudio</th>
+                  <th style="text-align:right;">Bono individual</th>
+                  <th style="text-align:right;">Bono colectivo</th>
+                  <th style="text-align:right;">Total</th>
+                </tr>
+              </thead>
+              <tbody id="staff-bono-summary-tbody"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
         <div style="margin-top:16px;display:flex;gap:8px;">
@@ -1756,6 +1776,7 @@ function renderAdminView(allSales) {
 
   // ─── REPARTO INDIVIDUAL DEL BONO COLECTIVO (proporcional a horas) ───
   let colRepartoHTML = '';
+  const colPorStaff = {}; // key -> colectivo amount
   bonoEstudios.forEach(est => {
     const estSales = allSales.filter(s => s.estudio === est);
     const ventaEst = estSales.reduce((s,v) => s + Number(v.monto), 0);
@@ -1781,6 +1802,7 @@ function renderAdminView(allSales) {
     } else {
       elegibles.sort((a,b) => b.horas - a.horas).forEach(x => {
         const parte = totalHorasElegibles > 0 ? Math.round(pool * (x.horas / totalHorasElegibles)) : 0;
+        colPorStaff[x.d.key] = parte;
         rows += `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #111;font-size:12px;">
           <span style="color:var(--white)">${x.d.user.name}</span>
           <span style="color:var(--gray);font-size:11px;margin-right:8px;">${x.horas.toFixed(1)}h</span>
@@ -1810,6 +1832,28 @@ function renderAdminView(allSales) {
   });
   const colRepartoEl = document.getElementById('col-reparto-grid');
   if (colRepartoEl) colRepartoEl.innerHTML = colRepartoHTML;
+
+  // ─── TABLA RESUMEN POR STAFF (individual + colectivo) ───
+  let summaryRows = '';
+  staffOnly.slice().sort((a,b) => {
+    const totalA = (a.total >= a.metaInd ? Math.round(a.total * BONO_IND_PCT) : 0) + (colPorStaff[a.key] || 0);
+    const totalB = (b.total >= b.metaInd ? Math.round(b.total * BONO_IND_PCT) : 0) + (colPorStaff[b.key] || 0);
+    return totalB - totalA;
+  }).forEach(d => {
+    const bonoInd = d.total >= d.metaInd ? Math.round(d.total * BONO_IND_PCT) : 0;
+    const bonoCol = colPorStaff[d.key] || 0;
+    const total = bonoInd + bonoCol;
+    const estLabel = d.estudiosVendidos.length ? d.estudiosVendidos.map(e => e.split(' ')[0]).join(', ') : '—';
+    summaryRows += `<tr>
+      <td style="color:var(--white)">${d.user.name}</td>
+      <td style="color:var(--gray)">${estLabel}</td>
+      <td style="text-align:right;color:${bonoInd > 0 ? 'var(--green)' : 'var(--gray3)'}">$${bonoInd.toLocaleString('es-MX')}</td>
+      <td style="text-align:right;color:${bonoCol > 0 ? 'var(--green)' : 'var(--gray3)'}">$${bonoCol.toLocaleString('es-MX')}</td>
+      <td style="text-align:right;font-family:'Bebas Neue',sans-serif;font-size:15px;color:${total > 0 ? 'var(--accent)' : 'var(--gray3)'}">$${total.toLocaleString('es-MX')}</td>
+    </tr>`;
+  });
+  const summaryTbody = document.getElementById('staff-bono-summary-tbody');
+  if (summaryTbody) summaryTbody.innerHTML = summaryRows;
   let totalMgr = 0;
   let mgrDetail = '';
   managerKeys.forEach(k => {
