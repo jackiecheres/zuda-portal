@@ -746,6 +746,16 @@ tr:hover td { background:#111; }
         </div>
       </div>
 
+      <!-- GENERAR CIERRE -->
+      <div class="section">
+        <div class="sec-hd"><span class="sec-num">10</span><span class="sec-title">GENERAR CIERRE</span></div>
+        <div style="font-size:12px;color:var(--gray);margin-bottom:24px;max-width:640px;line-height:1.6;">Genera el cierre completo del bimestre antes de iniciar el siguiente período. Incluye presentación HTML con evaluación de resultados y Excel con toda la data (ventas, bonos, comparativo y resumen) en hojas separadas.</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <button id="btn-generar-cierre" style="padding:16px 32px;border:1px solid var(--accent);background:var(--accent);color:#0D0D0D;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.1em;cursor:pointer;transition:opacity 0.2s;">↓ GENERAR CIERRE COMPLETO</button>
+        </div>
+        <div id="cierre-status" style="margin-top:12px;font-size:12px;color:var(--gray);"></div>
+      </div>
+
       </div><!-- /panel-dashboard -->
 
       <!-- TAB: TABLERO -->
@@ -2026,6 +2036,21 @@ function renderAdminView(allSales) {
         <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${diffBimestre >= 0 ? 'var(--green)' : 'var(--red)'};">${diffBimestre >= 0 ? '+' : ''}${pctBimestre}%</div>
       </div>
     </div>`;
+
+  // ─── GENERAR CIERRE COMPLETO (HTML + Excel) ───
+  const cierreBtn = document.getElementById('btn-generar-cierre');
+  if (cierreBtn) {
+    cierreBtn.onclick = () => generarCierreCompleto({
+      userData, staffOnly, managerKeys, bonoEstudios, allSales,
+      totalInd, totalCol, totalMgr, bonoTotalAll, colPorStaff,
+      totalProyectado, diasTranscurridos, diasRestantes, metaTotal,
+      ventaMayo2026, ventaJunio2026, ventaBimestre2026,
+      MAYO_2025, JUNIO_2025, BIMESTRE_2025,
+      diffMayo, diffJunio, diffBimestre,
+      pctMayo, pctJunio, pctBimestre,
+      totalAll, ventaHoy, sobre, bajo
+    });
+  }
 }
 
 function showDetail(d) {
@@ -3117,6 +3142,316 @@ function exportBonosCSV(staffOnly, bonoEstudios, managerKeys, allSales) {
   a.href = URL.createObjectURL(blob);
   a.download = `zuda_bonos_estimados_${today}.csv`;
   a.click();
+}
+
+// ─── GENERAR CIERRE COMPLETO (HTML presentación + Excel) ───
+async function generarCierreCompleto(data) {
+  const btn = document.getElementById('btn-generar-cierre');
+  const statusEl = document.getElementById('cierre-status');
+  btn.textContent = '↻ Generando cierre...';
+  btn.style.opacity = '0.6';
+  statusEl.textContent = '';
+
+  try {
+    const today = getCDMXDate();
+
+    statusEl.textContent = 'Generando presentación HTML...';
+    generarCierreHTML(data, today);
+
+    statusEl.textContent = 'Generando Excel...';
+    await generarCierreExcel(data, today);
+
+    statusEl.textContent = '✓ Cierre generado: HTML y Excel descargados.';
+    statusEl.style.color = 'var(--accent)';
+  } catch (err) {
+    console.error('Error generando cierre:', err);
+    statusEl.textContent = 'Error al generar cierre: ' + err.message;
+    statusEl.style.color = 'var(--red)';
+  } finally {
+    btn.textContent = '↓ GENERAR CIERRE COMPLETO';
+    btn.style.opacity = '1';
+  }
+}
+
+function generarCierreHTML(data, today) {
+  const { userData, staffOnly, managerKeys, bonoEstudios, allSales,
+    totalInd, totalCol, totalMgr, bonoTotalAll, colPorStaff,
+    totalProyectado, diasTranscurridos, diasRestantes, metaTotal,
+    ventaMayo2026, ventaJunio2026, ventaBimestre2026,
+    MAYO_2025, JUNIO_2025, BIMESTRE_2025,
+    diffBimestre, pctBimestre, totalAll, sobre, bajo } = data;
+
+  const G = (v) => '$' + Math.round(v).toLocaleString('es-MX');
+  const fmtPct = (n) => n === null ? '—' : (n >= 0 ? '+' : '') + n + '%';
+  const col = (n) => n === null ? '#8A8A8A' : (n >= 0 ? '#27AE60' : '#C0392B');
+  const logoEl = document.querySelector('nav img');
+  const logoSrc = logoEl ? logoEl.src : '';
+
+  const staffConMeta = staffOnly.filter(d => d.total >= d.metaInd).sort((a,b) => b.total - a.total);
+  const staffSinMeta = staffOnly.filter(d => d.total < d.metaInd).sort((a,b) => b.total - a.total);
+
+  let estCards = '';
+  bonoEstudios.forEach(est => {
+    const v = allSales.filter(s => s.estudio === est).reduce((s,x) => s + Number(x.monto), 0);
+    const m = META_ESTUDIO[est] || 0;
+    const hit = v >= m;
+    const pct = m > 0 ? Math.min(100, Math.round(v / m * 100)) : 0;
+    const exc = v - m;
+    estCards += '<div style="background:#0D0D0D;padding:20px;border:1px solid #222">' +
+      '<div style="font-size:17px;font-weight:700;margin-bottom:10px;color:#fff">' + est + '</div>' +
+      '<div style="height:6px;background:#2A2A2A;border-radius:3px;margin-bottom:8px"><div style="height:100%;width:' + pct + '%;background:' + (hit?'#27AE60':'#E8D5A3') + ';border-radius:3px"></div></div>' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:10px"><span style="color:' + (hit?'#27AE60':'#E8D5A3') + ';font-weight:700">' + pct + '%</span><span style="color:#8A8A8A;font-size:11px">Meta $' + (m/1000).toFixed(0) + 'K</span></div>' +
+      '<div style="display:flex;justify-content:space-between;padding:5px 0;border-top:1px solid #1E1E1E;font-size:12px;color:#8A8A8A"><span>Venta acumulada</span><span style="color:#fff;font-weight:700;font-size:15px">' + G(v) + '</span></div>' +
+      '<div style="display:flex;justify-content:space-between;padding:5px 0;border-top:1px solid #1E1E1E;font-size:12px;color:#8A8A8A"><span>' + (exc>=0?'Excedente':'Falta') + '</span><span style="color:' + (exc>=0?'#27AE60':'#C0392B') + ';font-weight:700;font-size:15px">' + (exc>=0?'+':'-') + G(Math.abs(exc)) + '</span></div>' +
+      '</div>';
+  });
+
+  // Staff con meta — incluye bono individual + colectivo
+  let staffMetaRows = '';
+  staffConMeta.forEach(d => {
+    const bInd = Math.round(d.total * BONO_IND_PCT);
+    const bCol = (colPorStaff && colPorStaff[d.key]) || 0;
+    const pct = Math.round(d.total / d.metaInd * 100);
+    staffMetaRows += '<tr><td style="color:#6fcf97">' + d.user.name + '</td><td style="text-align:right">' + G(d.total) + '</td><td style="text-align:right;color:#27AE60">' + pct + '%</td><td style="text-align:right">' + G(bInd) + '</td><td style="text-align:right">' + G(bCol) + '</td><td style="text-align:right;color:#27AE60;font-weight:700;font-size:15px">' + G(bInd+bCol) + '</td></tr>';
+  });
+
+  let staffSinMetaRows = '';
+  staffSinMeta.forEach(d => {
+    const pct = d.metaInd > 0 ? Math.round(d.total / d.metaInd * 100) : 0;
+    staffSinMetaRows += '<tr><td style="color:#e57373">' + d.user.name + '</td><td style="text-align:right">' + G(d.total) + '</td><td style="text-align:right;color:#C0392B">' + pct + '%</td><td style="text-align:right;color:#8A8A8A">$0</td></tr>';
+  });
+
+  let colRows = '';
+  bonoEstudios.forEach(est => {
+    const v = allSales.filter(s => s.estudio === est).reduce((s,x) => s + Number(x.monto), 0);
+    const m = META_ESTUDIO[est] || 0;
+    const hit = v >= m;
+    const pool = hit ? Math.round(v * 0.03) : 0;
+    colRows += '<tr><td style="color:' + (hit?'#6fcf97':'#e57373') + '">' + est + '</td><td style="text-align:right">' + G(v) + '</td><td style="text-align:right;color:#27AE60;font-weight:700;font-size:15px">' + G(pool) + '</td></tr>';
+  });
+
+  let mgrRows = '';
+  managerKeys.forEach(k => {
+    const mgr = USERS[k];
+    const v = allSales.filter(s => s.estudio === mgr.estudio).reduce((s,x) => s + Number(x.monto), 0);
+    const m = META_ESTUDIO[mgr.estudio] || 0;
+    const hit = v >= m;
+    const base = hit ? Math.round(v * 0.02) : 0;
+    const exc = hit ? Math.round(Math.max(0, v - m) * 0.03) : 0;
+    mgrRows += '<tr><td style="color:' + (hit?'#6fcf97':'#e57373') + '">' + mgr.name + '</td><td style="text-align:right">' + G(base) + '</td><td style="text-align:right">' + G(exc) + '</td><td style="text-align:right;color:#27AE60;font-weight:700;font-size:15px">' + G(base+exc) + '</td></tr>';
+  });
+
+  const compMonths = [['MAYO', MAYO_2025, ventaMayo2026], ['JUNIO', JUNIO_2025, ventaJunio2026]];
+  let compCards = '';
+  compMonths.forEach(function(row) {
+    const label = row[0], v25 = row[1], v26 = row[2];
+    const p = v25 > 0 ? Math.round((v26/v25-1)*100) : null;
+    const c2 = col(p);
+    compCards += '<div style="text-align:center;padding:14px;background:#0D0D0D;border:1px solid #222">' +
+      '<div style="font-size:10px;color:#8A8A8A;margin-bottom:4px">' + label + '</div>' +
+      '<div style="font-size:11px;color:#8A8A8A">2025: ' + (v25>0?G(v25):'—') + '</div>' +
+      '<div style="font-size:18px;font-weight:700;color:#fff">' + G(v26) + '</div>' +
+      '<div style="font-size:15px;font-weight:700;color:' + c2 + '">' + fmtPct(p) + '</div></div>';
+  });
+
+  const evaluacion = pctBimestre === null ? 'Sin datos de comparación 2025 para evaluar tendencia.' :
+    (pctBimestre >= 22 ? 'El bimestre superó el objetivo de crecimiento (+22%) planteado en el diseño del programa piloto. Resultado sobresaliente.' :
+     pctBimestre >= 7 ? 'El bimestre alcanzó crecimiento real en volumen de venta sobre 2025, dentro del rango esperado.' :
+     pctBimestre >= 0 ? 'El bimestre creció vs 2025 pero por debajo del objetivo de volumen planteado (+7% real).' :
+     'El bimestre cerró por debajo del mismo período de 2025. Requiere revisión de causas y ajuste de estrategia.');
+
+  const css = 'body{background:#0D0D0D;color:#fff;font-family:sans-serif;font-size:13px;line-height:1.6}' +
+    '.w{max-width:1100px;margin:0 auto;padding:40px}' +
+    '.hdr{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:20px;border-bottom:2px solid #E8D5A3;margin-bottom:32px}' +
+    '.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#222;border:1px solid #222;margin-bottom:24px}' +
+    '.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#222;border:1px solid #222}' +
+    '.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px}' +
+    '.kpi{background:#0D0D0D;padding:18px 22px}' +
+    '.kv{font-size:26px;font-weight:700}' +
+    '.kl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#8A8A8A;margin-top:3px}' +
+    '.sl{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#E8D5A3;margin-bottom:12px;font-weight:600}' +
+    '.sec{margin-bottom:36px}' +
+    '.box{background:#111;padding:18px;border:1px solid #222}' +
+    'table{width:100%;border-collapse:collapse;font-size:12px}' +
+    'thead tr{background:#1E1E1E}' +
+    'th{padding:7px 10px;text-align:left;font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#8A8A8A}' +
+    'td{padding:7px 10px;border-bottom:1px solid #111;color:rgba(255,255,255,.85)}' +
+    '.ftr{margin-top:36px;padding-top:14px;border-top:1px solid #E8D5A3;display:flex;justify-content:space-between}' +
+    '.eval-box{background:#111;border:1px solid #222;border-left:4px solid #E8D5A3;padding:20px 24px;font-size:14px;line-height:1.7;color:#fff}' +
+    '@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}';
+
+  const html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>ZUDA Cierre Bimestral ' + today + '</title><style>' + css + '</style></head><body><div class="w">' +
+    '<div class="hdr"><div>' + (logoSrc ? '<img src="' + logoSrc + '" style="height:48px;width:auto">' : '<div style="font-size:32px;font-weight:900;letter-spacing:.1em">ZUDA</div>') + '</div>' +
+    '<div style="text-align:right"><div style="font-size:9px;letter-spacing:.18em;color:#8A8A8A;margin-bottom:4px">CIERRE BIMESTRAL · MAYO\u2013JUNIO 2026</div><div style="font-size:24px;font-weight:700;letter-spacing:.06em">EVALUACI\u00D3N DE RESULTADOS</div><div style="font-size:10px;color:#8A8A8A;margin-top:3px">' + today + '</div></div></div>' +
+
+    '<div class="sec"><div class="sl">RESUMEN GENERAL</div><div class="g4">' +
+      '<div class="kpi"><div class="kv">' + G(totalAll) + '</div><div class="kl">VENTA TOTAL BIMESTRE</div></div>' +
+      '<div class="kpi"><div class="kv" style="color:#27AE60">' + sobre + '</div><div class="kl">STAFF SOBRE META</div></div>' +
+      '<div class="kpi"><div class="kv" style="color:#C0392B">' + bajo + '</div><div class="kl">STAFF BAJO META</div></div>' +
+      '<div class="kpi" style="background:#111"><div class="kv" style="color:#E8D5A3">' + G(bonoTotalAll) + '</div><div class="kl">TOTAL BONOS A PAGAR</div></div>' +
+    '</div></div>' +
+
+    '<div class="sec"><div class="sl">EVALUACI\u00D3N DE RESULTADOS</div><div class="eval-box">' + evaluacion + '<br><br>Incremento del bimestre vs el mismo per\u00edodo 2025: <strong>' + fmtPct(pctBimestre) + '</strong> (' + (diffBimestre>=0?'+':'-') + G(Math.abs(diffBimestre)) + ').</div></div>' +
+
+    '<div class="sec"><div class="sl">PROGRESO POR ESTUDIO</div><div class="g3">' + estCards + '</div></div>' +
+
+    '<div class="sec"><div class="sl">BONOS DEL BIMESTRE</div><div class="g4" style="margin-bottom:24px">' +
+      '<div class="kpi"><div class="kv">' + G(totalInd) + '</div><div class="kl">INDIVIDUAL 4%</div></div>' +
+      '<div class="kpi"><div class="kv">' + G(totalCol) + '</div><div class="kl">COLECTIVO 3%</div></div>' +
+      '<div class="kpi"><div class="kv">' + G(totalMgr) + '</div><div class="kl">MANAGER 2%+3%</div></div>' +
+      '<div class="kpi" style="background:#111"><div class="kv" style="color:#E8D5A3">' + G(bonoTotalAll) + '</div><div class="kl">TOTAL A PAGAR</div></div>' +
+    '</div>' +
+    '<div class="sl">STAFF CON META ALCANZADA (INDIVIDUAL + COLECTIVO)</div><table style="margin-bottom:24px"><thead><tr><th>Nombre</th><th style="text-align:right">Venta</th><th style="text-align:right">% Meta</th><th style="text-align:right">Bono Ind.</th><th style="text-align:right">Bono Col.</th><th style="text-align:right">Total</th></tr></thead><tbody>' + (staffMetaRows || '<tr><td colspan="6" style="color:#8A8A8A">Ning\u00fan staff alcanz\u00f3 su meta.</td></tr>') + '</tbody></table>' +
+    '<div class="g2">' +
+      '<div><div class="sl">BONO COLECTIVO POR ESTUDIO</div><table><thead><tr><th>Estudio</th><th style="text-align:right">Venta</th><th style="text-align:right">Pool 3%</th></tr></thead><tbody>' + colRows + '</tbody></table></div>' +
+      '<div><div class="sl">BONO MANAGER</div><table><thead><tr><th>Manager</th><th style="text-align:right">Base</th><th style="text-align:right">Exc.</th><th style="text-align:right">Total</th></tr></thead><tbody>' + mgrRows + '</tbody></table></div>' +
+    '</div></div>' +
+
+    '<div class="sec"><div class="sl">STAFF BAJO META</div><table><thead><tr><th>Nombre</th><th style="text-align:right">Venta</th><th style="text-align:right">% Meta</th><th style="text-align:right">Bono</th></tr></thead><tbody>' + (staffSinMetaRows || '<tr><td colspan="4" style="color:#8A8A8A">Todo el staff alcanz\u00f3 su meta.</td></tr>') + '</tbody></table></div>' +
+
+    '<div class="sec"><div class="sl">COMPARATIVO VS 2025</div><div class="g3" style="margin-bottom:16px;grid-template-columns:repeat(2,1fr)">' + compCards + '</div>' +
+    '<div class="box"><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
+      '<div><div style="font-size:9px;color:#8A8A8A;margin-bottom:3px">Meta bimestral 2026</div><div style="font-size:20px;font-weight:700">' + G(metaTotal) + '</div></div>' +
+      '<div><div style="font-size:9px;color:#8A8A8A;margin-bottom:3px">Incremento vs bimestre 2025</div><div style="font-size:20px;font-weight:700;color:' + col(pctBimestre) + '">' + fmtPct(pctBimestre) + '</div></div>' +
+    '</div></div></div>' +
+
+    '<div class="ftr"><div style="font-size:9px;color:#8A8A8A;letter-spacing:.1em">CIERRE BIMESTRAL MAYO\u2013JUNIO 2026 \u00B7 INTERNO \u00B7 SOLO ADMIN</div><div style="font-size:9px;color:#E8D5A3;font-weight:600;letter-spacing:.1em">ZUDA FITNESS \u00B7 ' + today + '</div></div>' +
+    '</div></body></html>';
+
+  const blob = new Blob([html], {type: 'text/html;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'zuda_cierre_bimestral_' + today + '.html';
+  a.click();
+}
+
+async function generarCierreExcel(data, today) {
+  if (typeof XLSX === 'undefined') {
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+      s.onload = resolve; s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+
+  const { userData, staffOnly, managerKeys, bonoEstudios, allSales,
+    totalInd, totalCol, totalMgr, bonoTotalAll, colPorStaff,
+    metaTotal, ventaMayo2026, ventaJunio2026, ventaBimestre2026,
+    MAYO_2025, JUNIO_2025, BIMESTRE_2025,
+    diffBimestre, pctBimestre, totalAll, sobre, bajo } = data;
+
+  const wb = XLSX.utils.book_new();
+
+  const resumenRows = [
+    ['ZUDA — CIERRE BIMESTRAL MAYO–JUNIO 2026'],
+    ['Generado', today],
+    [],
+    ['RESUMEN GENERAL'],
+    ['Venta total bimestre', totalAll],
+    ['Staff sobre meta', sobre],
+    ['Staff bajo meta', bajo],
+    ['Total bonos a pagar', bonoTotalAll],
+    [],
+    ['BONOS POR TIPO'],
+    ['Bonos individuales (4%)', totalInd],
+    ['Bonos colectivos (3%, repartidos por horas)', totalCol],
+    ['Bonos managers (2% base + 3% excedente)', totalMgr],
+    ['TOTAL', bonoTotalAll],
+    [],
+    ['METAS Y AVANCE'],
+    ['Meta bimestral total', metaTotal],
+    ['Venta acumulada bimestre', ventaBimestre2026],
+    ['% Avance', metaTotal > 0 ? Math.round(ventaBimestre2026/metaTotal*100) + '%' : '—'],
+    [],
+    ['COMPARATIVO VS 2025'],
+    ['Mayo 2025', MAYO_2025],
+    ['Mayo 2026', ventaMayo2026],
+    ['Junio 2025', JUNIO_2025],
+    ['Junio 2026', ventaJunio2026],
+    ['Bimestre 2025', BIMESTRE_2025],
+    ['Bimestre 2026', ventaBimestre2026],
+    ['Diferencia', diffBimestre],
+    ['% Incremento', pctBimestre !== null ? pctBimestre + '%' : '—'],
+  ];
+  const wsResumen = XLSX.utils.aoa_to_sheet(resumenRows);
+  wsResumen['!cols'] = [{wch:38},{wch:18}];
+  XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen');
+
+  const estRows = [['Estudio','Venta Acumulada','Meta','% Avance','Excedente/Falta','Estado']];
+  bonoEstudios.forEach(est => {
+    const v = allSales.filter(s => s.estudio === est).reduce((s,x) => s + Number(x.monto), 0);
+    const m = META_ESTUDIO[est] || 0;
+    const hit = v >= m;
+    const pct = m > 0 ? Math.round(v/m*100) : 0;
+    estRows.push([est, v, m, pct + '%', v - m, hit ? 'Meta alcanzada' : 'Bajo meta']);
+  });
+  const wsEst = XLSX.utils.aoa_to_sheet(estRows);
+  wsEst['!cols'] = [{wch:16},{wch:16},{wch:14},{wch:10},{wch:16},{wch:16}];
+  XLSX.utils.book_append_sheet(wb, wsEst, 'Progreso Estudios');
+
+  // Bonos individuales (incluye parte del colectivo por horas)
+  const indRows = [['Nombre','Estudio(s)','Venta Total','Meta Individual','% Meta','Bono Individual 4%','Bono Colectivo (horas)','Bono Total','Estado']];
+  staffOnly.slice().sort((a,b) => b.total - a.total).forEach(d => {
+    const hit = d.total >= d.metaInd;
+    const bInd = hit ? Math.round(d.total * BONO_IND_PCT) : 0;
+    const bCol = (colPorStaff && colPorStaff[d.key]) || 0;
+    const pct = d.metaInd > 0 ? Math.round(d.total/d.metaInd*100) : 0;
+    indRows.push([d.user.name, d.estudiosVendidos.join('/'), d.total, d.metaInd, pct + '%', bInd, bCol, bInd+bCol, hit ? 'Activo' : 'Pendiente']);
+  });
+  const wsInd = XLSX.utils.aoa_to_sheet(indRows);
+  wsInd['!cols'] = [{wch:26},{wch:16},{wch:14},{wch:16},{wch:10},{wch:16},{wch:18},{wch:14},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, wsInd, 'Bonos Individuales');
+
+  const colMgrRows = [['BONO COLECTIVO (3% sobre venta del estudio, repartido por horas)'], ['Estudio','Venta','Meta','Pool 3%','Estado']];
+  bonoEstudios.forEach(est => {
+    const v = allSales.filter(s => s.estudio === est).reduce((s,x) => s + Number(x.monto), 0);
+    const m = META_ESTUDIO[est] || 0;
+    const hit = v >= m;
+    const pool = hit ? Math.round(v*0.03) : 0;
+    colMgrRows.push([est, v, m, pool, hit ? 'Activo' : 'Pendiente']);
+  });
+  colMgrRows.push([]);
+  colMgrRows.push(['BONO MANAGER (2% base + 3% sobre excedente)']);
+  colMgrRows.push(['Manager','Estudio','Venta Estudio','Meta','Base 2%','Excedente 3%','Total','Estado']);
+  managerKeys.forEach(k => {
+    const mgr = USERS[k];
+    const v = allSales.filter(s => s.estudio === mgr.estudio).reduce((s,x) => s + Number(x.monto), 0);
+    const m = META_ESTUDIO[mgr.estudio] || 0;
+    const hit = v >= m;
+    const base = hit ? Math.round(v * 0.02) : 0;
+    const exc = hit ? Math.round(Math.max(0, v - m) * 0.03) : 0;
+    colMgrRows.push([mgr.name, mgr.estudio, v, m, base, exc, base+exc, hit ? 'Activo' : 'Pendiente']);
+  });
+  const wsColMgr = XLSX.utils.aoa_to_sheet(colMgrRows);
+  wsColMgr['!cols'] = [{wch:22},{wch:16},{wch:16},{wch:14},{wch:14},{wch:14},{wch:12},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, wsColMgr, 'Colectivo y Managers');
+
+  const compRows = [
+    ['Mes','2025','2026','Diferencia','% Incremento'],
+    ['Mayo', MAYO_2025, ventaMayo2026, ventaMayo2026 - MAYO_2025, MAYO_2025 > 0 ? Math.round((ventaMayo2026/MAYO_2025-1)*100)+'%' : '—'],
+    ['Junio', JUNIO_2025, ventaJunio2026, ventaJunio2026 - JUNIO_2025, JUNIO_2025 > 0 ? Math.round((ventaJunio2026/JUNIO_2025-1)*100)+'%' : '—'],
+    ['BIMESTRE TOTAL', BIMESTRE_2025, ventaBimestre2026, diffBimestre, pctBimestre !== null ? pctBimestre+'%' : '—'],
+  ];
+  const wsComp = XLSX.utils.aoa_to_sheet(compRows);
+  wsComp['!cols'] = [{wch:18},{wch:16},{wch:16},{wch:16},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, wsComp, 'Comparativo 2025');
+
+  const ventasRows = [['Fecha','Estudio','Producto','Categoría','Nombre','Usuario','Precio Original','Descuento %','Monto Final','Motivo Descuento','Order #','Registrado']];
+  allSales.slice().sort((a,b) => (a.fecha||'').localeCompare(b.fecha||'')).forEach(s => {
+    const user = USERS[s.usuario];
+    ventasRows.push([
+      s.fecha || '', s.estudio || '', s.paquete || '', s.categoria || '',
+      user ? user.name : s.usuario, s.usuario || '',
+      s.precio_original || s.monto, s.descuento || 0, s.monto,
+      s.motivo_descuento || '', s.numero_orden || '', s.created_at || ''
+    ]);
+  });
+  const wsVentas = XLSX.utils.aoa_to_sheet(ventasRows);
+  wsVentas['!cols'] = [{wch:12},{wch:14},{wch:24},{wch:14},{wch:24},{wch:20},{wch:14},{wch:10},{wch:12},{wch:18},{wch:12},{wch:20}];
+  XLSX.utils.book_append_sheet(wb, wsVentas, 'Detalle de Ventas');
+
+  XLSX.writeFile(wb, 'zuda_cierre_bimestral_' + today + '.xlsx');
 }
 
 // ─── EXPORT CSV ───
