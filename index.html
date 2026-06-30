@@ -623,6 +623,13 @@ tr:hover td { background:#111; }
           </div>
 
         </div>
+
+        <!-- REPARTO INDIVIDUAL BONO COLECTIVO -->
+        <div style="margin-top:8px;">
+          <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:4px;font-weight:500;">REPARTO INDIVIDUAL · BONO COLECTIVO</div>
+          <div style="font-size:11px;color:var(--gray);margin-bottom:16px;">Proporcional a horas trabajadas en el bimestre · Mínimo 160h para calificar (20h/sem × 8 sem)</div>
+          <div id="col-reparto-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);"></div>
+        </div>
       </div>
 
         <div style="margin-top:16px;display:flex;gap:8px;">
@@ -945,6 +952,25 @@ const META = 65000;
 const META_ESTUDIO = {'LILAS':356000,'PRADO NORTE':285000,'ARTZ PEDREGAL':249000};
 const META_IND = {'LILAS':65000,'PRADO NORTE':65000,'ARTZ PEDREGAL':60000};
 const BONO_IND_PCT = 0.04;
+const MIN_HORAS_COLECTIVO = 160; // 20h/sem x 8 semanas del bimestre
+
+// Horas trabajadas por staff en el bimestre Mayo-Junio 2026 (de planilla operativa)
+// Nota: el estudio que cuenta para el bono es el de las VENTAS REGISTRADAS, no esta tabla
+const HORAS_STAFF = {
+  'Alexa':238.75, 'Andrea':208.63, 'Elisa':202.47, 'Karyme':181.92,
+  'Fanny':145.61, 'Fanny Cohen':145.61, 'Mariana':162.7, 'Nicolas':185.12, 'Nicolás':185.12, 'Nicolás Flores':185.12,
+  'Sara':211.73, 'Valentina':170.52, 'Vale':170.52,
+  'Valeria':198.75, 'Valeria Frid':198.75, 'Regina':343.75, 'Isa':215.75, 'Isabella':215.75
+};
+
+function getHorasForStaff(fullName) {
+  // Try exact match first, then first-name match
+  if (HORAS_STAFF[fullName] !== undefined) return HORAS_STAFF[fullName];
+  const firstName = fullName.split(' ')[0];
+  if (HORAS_STAFF[firstName] !== undefined) return HORAS_STAFF[firstName];
+  return 0;
+}
+
 const CATALOG = {
   paquete:[{name:"1 clase",price:380},{name:"3 clases (primera vez)",price:949},{name:"5 clases",price:1850},{name:"10 clases",price:3600},{name:"20 clases",price:6800},{name:"30 clases",price:9600},{name:"Office 10 clases",price:2400},{name:"100 clases",price:25000}],
   mensualidad:[{name:"Platinum 16 clases",price:4400},{name:"Platinum 24 clases",price:4900},{name:"Ilimitado All Access",price:5600},{name:"ARTZ Ilimitado",price:3600}],
@@ -1728,7 +1754,62 @@ function renderAdminView(allSales) {
     </div>`;
   });
 
-  // 3. Bonos managers (2% base + 3% excedente)
+  // ─── REPARTO INDIVIDUAL DEL BONO COLECTIVO (proporcional a horas) ───
+  let colRepartoHTML = '';
+  bonoEstudios.forEach(est => {
+    const estSales = allSales.filter(s => s.estudio === est);
+    const ventaEst = estSales.reduce((s,v) => s + Number(v.monto), 0);
+    const meta = META_ESTUDIO[est] || 0;
+    const hit = ventaEst >= meta;
+    const pool = hit ? Math.round(ventaEst * 0.03) : 0;
+
+    // Staff that sold in this estudio (per the portal's sales records)
+    const staffEnEstudio = staffOnly.filter(d => d.estudiosVendidos && d.estudiosVendidos.includes(est));
+
+    // Filter by minimum hours
+    const elegibles = staffEnEstudio
+      .map(d => ({ d, horas: getHorasForStaff(d.user.name) }))
+      .filter(x => x.horas >= MIN_HORAS_COLECTIVO);
+
+    const totalHorasElegibles = elegibles.reduce((s, x) => s + x.horas, 0);
+
+    let rows = '';
+    if (!hit) {
+      rows = `<div style="color:var(--gray3);font-size:11px;padding:8px 0;">Estudio no alcanzó meta · sin reparto</div>`;
+    } else if (elegibles.length === 0) {
+      rows = `<div style="color:var(--gray3);font-size:11px;padding:8px 0;">Nadie cumple el mínimo de ${MIN_HORAS_COLECTIVO}h</div>`;
+    } else {
+      elegibles.sort((a,b) => b.horas - a.horas).forEach(x => {
+        const parte = totalHorasElegibles > 0 ? Math.round(pool * (x.horas / totalHorasElegibles)) : 0;
+        rows += `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #111;font-size:12px;">
+          <span style="color:var(--white)">${x.d.user.name}</span>
+          <span style="color:var(--gray);font-size:11px;margin-right:8px;">${x.horas.toFixed(1)}h</span>
+          <span style="color:var(--green);font-family:'Bebas Neue',sans-serif;font-size:15px;">$${parte.toLocaleString('es-MX')}</span>
+        </div>`;
+      });
+      // Show staff that sold but don't meet hours minimum
+      const noElegibles = staffEnEstudio
+        .map(d => ({ d, horas: getHorasForStaff(d.user.name) }))
+        .filter(x => x.horas < MIN_HORAS_COLECTIVO);
+      noElegibles.forEach(x => {
+        rows += `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #111;font-size:12px;">
+          <span style="color:var(--gray3)">${x.d.user.name}</span>
+          <span style="color:var(--gray3);font-size:11px;margin-right:8px;">${x.horas.toFixed(1)}h</span>
+          <span style="color:var(--gray3);font-family:'Bebas Neue',sans-serif;font-size:15px;">No elegible</span>
+        </div>`;
+      });
+    }
+
+    colRepartoHTML += `<div style="background:var(--black);padding:20px 22px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.06em;color:var(--gray);">${est}</div>
+        <div style="font-size:11px;color:var(--gray);">Pool: <span style="color:${hit?'var(--accent)':'var(--gray3)'};font-weight:500;">$${pool.toLocaleString('es-MX')}</span></div>
+      </div>
+      <div style="margin-top:10px;">${rows}</div>
+    </div>`;
+  });
+  const colRepartoEl = document.getElementById('col-reparto-grid');
+  if (colRepartoEl) colRepartoEl.innerHTML = colRepartoHTML;
   let totalMgr = 0;
   let mgrDetail = '';
   managerKeys.forEach(k => {
