@@ -235,9 +235,16 @@ tr:hover td { background:#f5f2ed; }
           <div class="bonus-note" id="box-bono-note">Necesitas $130,000 (o $120,000 en Artz) para activar tu bono individual. Para el colectivo: $100,000 en ese estudio.</div>
         </div>
         <div class="bonus-box" style="border-left:1px solid var(--sand)">
-          <div class="bonus-lbl">Pago estimado · julio 2026</div>
+          <div class="bonus-lbl">Pago estimado · primera quincena octubre 2026</div>
           <div class="bonus-amt" id="box-bono-total" style="color:var(--gray3)">$0</div>
-          <div class="bonus-note">Requieres $100,000 en ventas en ese estudio para ser elegible al bono colectivo.</div>
+          <div class="bonus-note" style="line-height:1.7;">
+            <strong style="color:var(--tan);">Bono colectivo · condiciones:</strong><br>
+            · El estudio debe superar su meta trimestral<br>
+            · Se reparte el <strong>2% de la meta</strong> del estudio entre los elegibles<br>
+            · Para ser elegible: mínimo <strong>$100,000 en ventas</strong> en ese estudio<br>
+            · Se distribuye proporcional a las horas trabajadas en el bimestre<br>
+            · No aplica porcentaje sobre excedente — solo el 2% fijo de la meta
+          </div>
         </div>
       </div>
     </div>
@@ -631,7 +638,7 @@ tr:hover td { background:#f5f2ed; }
 
           <!-- Colectivos -->
           <div style="background:var(--surface);padding:24px;border-left:1px solid var(--sand);">
-            <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--tan);margin-bottom:16px;font-weight:500;">BONO COLECTIVO · 2% (topado)</div>
+            <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--tan);margin-bottom:16px;font-weight:500;">BONO COLECTIVO · 2% DE LA META (topado) · mín. $100K individual</div>
             <div id="est-col-detail" style="font-size:12px;color:var(--gray);line-height:1.8;"></div>
             <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--gray);">Condición: estudio supera meta · Topado a 2% de la meta · Se reparte proporcional a horas (mín. 20h/sem)</div>
           </div>
@@ -1394,6 +1401,7 @@ async function loadEstudioTotals() {
         <div class="est-row"><span>${hit ? 'Excedente' : 'Falta'}</span><span style="color:${hit ? 'var(--green)' : 'var(--red)'};">${hit ? '+$'+exc.toLocaleString('es-MX') : '$'+falta.toLocaleString('es-MX')}</span></div>
         ${!hit ? `<div class="est-row"><span>Necesario/día (${daysLeft}d)</span><span style="color:var(--tan);">$${necesarioDia.toLocaleString('es-MX')}</span></div>` : ''}
         <div class="est-row"><span>Estado</span><span style="font-size:12px;color:${hit ? 'var(--green)' : 'var(--red)'};">${hit ? '✓ META' : '✗ EN PROGRESO'}</span></div>
+        ${mensualDesgloseHTML(allSales, est, hit ? 'var(--green)' : null)}
       </div>`;
     }).join('');
 
@@ -1644,6 +1652,7 @@ function renderAdminView(allSales) {
       </div>
       <div class="est-row"><span>Venta acumulada</span><span style="color:${hit ? 'var(--green)' : 'var(--white)'}">$${total.toLocaleString('es-MX')}</span></div>
       <div class="est-row"><span>${hit ? 'Excedente' : 'Falta'}</span><span style="color:${hit ? 'var(--green)' : 'var(--red)'};">${hit ? '+$'+exc.toLocaleString('es-MX') : '$'+falta.toLocaleString('es-MX')}</span></div>
+      ${mensualDesgloseHTML(allSales, est, hit ? 'var(--green)' : null)}
     </div>`;
   }).join('');
 
@@ -2362,6 +2371,37 @@ function renderMgrDiaGrid(allSales, myEst, today, yesterday) {
   </div>`;
 }
 
+// ─── HELPER: desglose mensual de ventas por estudio ───
+function mensualDesglose(allSales, est) {
+  const meses = [
+    { label: 'Julio', desde: '2026-07-01', hasta: '2026-07-31' },
+    { label: 'Agosto', desde: '2026-08-01', hasta: '2026-08-31' },
+    { label: 'Septiembre', desde: '2026-09-01', hasta: '2026-09-30' },
+  ];
+  const estSales = allSales.filter(s => s.estudio === est);
+  return meses.map(m => {
+    const v = estSales.filter(s => s.fecha >= m.desde && s.fecha <= m.hasta)
+                      .reduce((a,b) => a + Number(b.monto), 0);
+    return { label: m.label, venta: v };
+  });
+}
+
+function mensualDesgloseHTML(allSales, est, colorVar) {
+  const meses = mensualDesglose(allSales, est);
+  const total = meses.reduce((a,m) => a + m.venta, 0);
+  return `<div style="border-top:1px solid var(--border);margin-top:10px;padding-top:10px;">
+    <div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Desglose mensual</div>
+    ${meses.map(m => `<div class="est-row" style="padding:2px 0;">
+      <span style="color:var(--gray)">${m.label}</span>
+      <span style="color:${m.venta > 0 ? (colorVar || 'var(--white)') : 'var(--gray3)'}">$${m.venta.toLocaleString('es-MX')}</span>
+    </div>`).join('')}
+    <div class="est-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:4px;">
+      <span style="font-weight:500;color:var(--gray)">Total trimestre</span>
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:15px;color:${colorVar || 'var(--white)'}">$${total.toLocaleString('es-MX')}</span>
+    </div>
+  </div>`;
+}
+
 function renderMgrEstGrid(allSales, myEst) {
   const grid = document.getElementById('mgr-est-grid');
   if (!grid) return;
@@ -2411,6 +2451,7 @@ function renderMgrEstGrid(allSales, myEst) {
       <div class="est-row"><span>${hit ? 'Excedente' : 'Falta'}</span><span style="color:${hit ? 'var(--green)' : 'var(--red)'};">${hit ? '+$'+exc.toLocaleString('es-MX') : '$'+falta.toLocaleString('es-MX')}</span></div>
       ${!hit ? `<div class="est-row"><span>Necesario/día (${daysLeft}d)</span><span style="color:var(--tan);">$${necesarioDia.toLocaleString('es-MX')}</span></div>` : ''}
       <div class="est-row"><span>Estado</span><span style="font-size:12px;color:${hit ? 'var(--green)' : 'var(--red)'};">${hit ? '✓ META' : '✗ EN PROGRESO'}</span></div>
+      ${mensualDesgloseHTML(allSales, est, hit ? 'var(--green)' : null)}
     </div>`;
   }).join('');
 }
@@ -2713,6 +2754,7 @@ function renderDirEstudios(allSales) {
       <div class="est-row"><span>Venta acumulada</span><span style="color:${hit ? 'var(--green)' : 'var(--white)'}">$${total.toLocaleString('es-MX')}</span></div>
       <div class="est-row"><span>${hit ? 'Excedente' : 'Falta'}</span><span style="color:${hit ? 'var(--green)' : 'var(--red)'};">${hit ? '+$'+exc.toLocaleString('es-MX') : '$'+falta.toLocaleString('es-MX')}</span></div>
       <div class="est-row"><span>Estado</span><span style="font-size:12px;color:${hit ? 'var(--green)' : 'var(--red)'};">${hit ? '✓ META' : '✗ EN PROGRESO'}</span></div>
+      ${mensualDesgloseHTML(allSales, est, hit ? 'var(--green)' : 'var(--charcoal)')}
     </div>`;
   }).join('');
 }
