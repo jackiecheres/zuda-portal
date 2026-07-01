@@ -237,7 +237,7 @@ tr:hover td { background:#f5f2ed; }
           <div class="bonus-note" id="box-bono-note">Necesitas $130,000 (o $120,000 en Artz) para activar tu bono individual.</div>
         </div>
         <div class="bonus-box" style="border-left:1px solid var(--sand)">
-          <div class="bonus-lbl">Total estimado · primera quincena octubre 2026</div>
+          <div class="bonus-lbl">Total estimado · pago en los primeros 15 días de octubre 2026</div>
           <div class="bonus-amt" id="box-bono-total" style="color:var(--gray3)">$0</div>
           <div class="bonus-note">Suma de tu bono individual + parte del bono colectivo si calificas.</div>
         </div>
@@ -434,9 +434,9 @@ tr:hover td { background:#f5f2ed; }
             <div class="bonus-note" id="mgr-bono-extra-note">Solo aplica sobre el monto por encima de la meta.</div>
           </div>
         </div>
-        <!-- Bono individual del manager (como coach) -->
+        <!-- Bono individual del manager como vendedor -->
         <div style="border:1px solid var(--border);border-top:none;background:var(--gray2);padding:20px 32px;">
-          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--tan);margin-bottom:12px;font-weight:600;">BONO INDIVIDUAL · COMO COACH</div>
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--tan);margin-bottom:12px;font-weight:600;">BONO INDIVIDUAL · COMO VENDEDOR</div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
             <div>
               <div style="font-size:10px;color:var(--gray);margin-bottom:4px;text-transform:uppercase;letter-spacing:.1em;">Mis ventas trimestre</div>
@@ -451,12 +451,13 @@ tr:hover td { background:#f5f2ed; }
               <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--gray3);" id="mgr-ind-bono">$0</div>
             </div>
           </div>
-          <div style="margin-top:10px;font-size:11px;color:var(--gray);" id="mgr-ind-note">3% sobre meta ($130K o $120K Artz) + 1% sobre excedente. Aplica si alcanzas tu meta individual.</div>
+          <div style="margin-top:10px;font-size:11px;color:var(--gray);" id="mgr-ind-note">3% sobre meta ($130K o $120K Artz) + 1% sobre excedente. Aplica si alcanzas tu meta de ventas propias.</div>
         </div>
 
-        <!-- Bono colectivo — managers no participan pero pueden ver el progreso de su estudio -->
+        <!-- Colectivo de su equipo — solo visible para que el manager monitoree -->
         <div style="border:1px solid var(--border);border-top:none;background:var(--surface);padding:20px 32px;">
-          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--tan);margin-bottom:12px;font-weight:600;">BONO COLECTIVO · PROGRESO DE TU ESTUDIO</div>
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);margin-bottom:4px;font-weight:600;">BONO COLECTIVO DE TU EQUIPO · SOLO SEGUIMIENTO</div>
+          <div style="font-size:11px;color:var(--gray3);margin-bottom:12px;">Los managers no participan en el bono colectivo. Esta sección es para que monitorees el progreso de tu estudio y cuántos de tu equipo son elegibles.</div>
           <div id="mgr-col-progress" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px;">
             <div style="color:var(--gray3);font-size:12px;">Cargando...</div>
           </div>
@@ -472,15 +473,15 @@ tr:hover td { background:#f5f2ed; }
             <div>
               <div style="font-size:10px;color:var(--gray);margin-bottom:6px;text-transform:uppercase;letter-spacing:.1em;">Elegibilidad (para tu equipo)</div>
               <div style="font-size:12px;color:var(--charcoal);line-height:1.8;">
-                · Cada coach necesita <strong>$100,000 en ventas</strong> en el estudio<br>
+                · Cada staff necesita <strong>$100,000 en ventas</strong> en el estudio<br>
                 · Se distribuye proporcional a <strong>horas trabajadas</strong><br>
-                · Los managers no participan en el colectivo
+                · El staff de front desk participa; managers no
               </div>
             </div>
           </div>
         </div>
         <div style="border:1px solid var(--border);border-top:none;background:var(--surface);padding:24px 32px;display:flex;justify-content:space-between;align-items:center;">
-          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);">Total bono manager · Pago primer quincena octubre 2026</div>
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);">Total bono manager · pago en los primeros 15 días de octubre 2026</div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:0.04em;" id="mgr-bono-total">$0</div>
         </div>
       </div>
@@ -1878,7 +1879,7 @@ function renderAdminView(allSales) {
         <span style="color:${hit ? 'var(--green)' : 'var(--gray3)'};font-family:'Bebas Neue',sans-serif;font-size:15px;">$${pool.toLocaleString('es-MX')}</span>
       </div>
       <div style="font-size:10px;color:var(--gray);margin-top:2px;">
-        ${hit ? `Venta $${ventaEst.toLocaleString('es-MX')} · Excedente +$${exc.toLocaleString('es-MX')} · ${elegibles.length} staff elegible${elegibles.length !== 1 ? 's' : ''}` : `Falta $${(meta-ventaEst).toLocaleString('es-MX')} para activar`}
+        ${hit ? `Venta $${ventaEst.toLocaleString('es-MX')} · Excedente +$${exc.toLocaleString('es-MX')} · ${elegibles.length} staff elegibles` : `Falta $${(meta-ventaEst).toLocaleString('es-MX')} para activar`}
       </div>
     </div>`;
   });
