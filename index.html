@@ -228,22 +228,57 @@ tr:hover td { background:#f5f2ed; }
     <!-- 02 BONO -->
     <div class="section staff-only">
       <div class="sec-hd"><span class="sec-num">02</span><span class="sec-title">DESGLOSE DEL BONO</span></div>
-      <div class="bonus-grid">
+
+      <!-- Bono individual -->
+      <div class="bonus-grid" style="margin-bottom:1px;">
         <div class="bonus-box">
           <div class="bonus-lbl">Bono individual · 3% sobre meta + 1% sobre excedente</div>
           <div class="bonus-amt" id="box-bono-ind">$0</div>
-          <div class="bonus-note" id="box-bono-note">Necesitas $130,000 (o $120,000 en Artz) para activar tu bono individual. Para el colectivo: $100,000 en ese estudio.</div>
+          <div class="bonus-note" id="box-bono-note">Necesitas $130,000 (o $120,000 en Artz) para activar tu bono individual.</div>
         </div>
         <div class="bonus-box" style="border-left:1px solid var(--sand)">
-          <div class="bonus-lbl">Pago estimado · primera quincena octubre 2026</div>
+          <div class="bonus-lbl">Total estimado · primera quincena octubre 2026</div>
           <div class="bonus-amt" id="box-bono-total" style="color:var(--gray3)">$0</div>
-          <div class="bonus-note" style="line-height:1.7;">
-            <strong style="color:var(--tan);">Bono colectivo · condiciones:</strong><br>
-            · El estudio debe superar su meta trimestral<br>
-            · Se reparte el <strong>2% de la meta</strong> del estudio entre los elegibles<br>
-            · Para ser elegible: mínimo <strong>$100,000 en ventas</strong> en ese estudio<br>
-            · Se distribuye proporcional a las horas trabajadas en el bimestre<br>
-            · No aplica porcentaje sobre excedente — solo el 2% fijo de la meta
+          <div class="bonus-note">Suma de tu bono individual + parte del bono colectivo si calificas.</div>
+        </div>
+      </div>
+
+      <!-- Bono colectivo — sección propia -->
+      <div style="border:1px solid var(--border);background:var(--surface);padding:20px 24px;margin-top:1px;">
+        <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--tan);margin-bottom:14px;font-weight:600;">BONO COLECTIVO · PROGRESO Y CONDICIONES</div>
+
+        <!-- Progreso por estudio (se llena dinámicamente) -->
+        <div id="staff-col-progress" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+          <div style="color:var(--gray3);font-size:12px;">Cargando...</div>
+        </div>
+
+        <!-- Condiciones fijas -->
+        <div style="border-top:1px solid var(--border);padding-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div>
+            <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);margin-bottom:8px;">Para activar el pool</div>
+            <div style="font-size:12px;color:var(--charcoal);line-height:1.8;">
+              · El estudio debe superar su <strong>meta trimestral</strong><br>
+              · El pool es el <strong>2% de la meta</strong> del estudio<br>
+              · No hay porcentaje adicional sobre excedente
+            </div>
+          </div>
+          <div>
+            <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);margin-bottom:8px;">Para ser elegible</div>
+            <div style="font-size:12px;color:var(--charcoal);line-height:1.8;">
+              · Mínimo <strong>$100,000 en ventas</strong> en ese estudio<br>
+              · Se distribuye <strong>proporcional a horas</strong> trabajadas<br>
+              · Aplica por estudio donde vendiste
+            </div>
+          </div>
+        </div>
+
+        <!-- Ejemplos de pool por estudio -->
+        <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:12px;">
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);margin-bottom:8px;">Pool máximo por estudio (2% de la meta)</div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;">
+            <div style="font-size:12px;color:var(--gray);">Lilas <strong style="color:var(--charcoal);">$14,540</strong></div>
+            <div style="font-size:12px;color:var(--gray);">Prado Norte <strong style="color:var(--charcoal);">$9,140</strong></div>
+            <div style="font-size:12px;color:var(--gray);">Artz <strong style="color:var(--charcoal);">$6,440</strong></div>
           </div>
         </div>
       </div>
@@ -417,6 +452,32 @@ tr:hover td { background:#f5f2ed; }
             </div>
           </div>
           <div style="margin-top:10px;font-size:11px;color:var(--gray);" id="mgr-ind-note">3% sobre meta ($130K o $120K Artz) + 1% sobre excedente. Aplica si alcanzas tu meta individual.</div>
+        </div>
+
+        <!-- Bono colectivo — managers no participan pero pueden ver el progreso de su estudio -->
+        <div style="border:1px solid var(--border);border-top:none;background:var(--surface);padding:20px 32px;">
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--tan);margin-bottom:12px;font-weight:600;">BONO COLECTIVO · PROGRESO DE TU ESTUDIO</div>
+          <div id="mgr-col-progress" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px;">
+            <div style="color:var(--gray3);font-size:12px;">Cargando...</div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div>
+              <div style="font-size:10px;color:var(--gray);margin-bottom:6px;text-transform:uppercase;letter-spacing:.1em;">Condiciones del pool</div>
+              <div style="font-size:12px;color:var(--charcoal);line-height:1.8;">
+                · Pool = <strong>2% de la meta</strong> del estudio<br>
+                · Solo activa si el estudio <strong>supera su meta trimestral</strong><br>
+                · Sin porcentaje adicional sobre excedente
+              </div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:var(--gray);margin-bottom:6px;text-transform:uppercase;letter-spacing:.1em;">Elegibilidad (para tu equipo)</div>
+              <div style="font-size:12px;color:var(--charcoal);line-height:1.8;">
+                · Cada coach necesita <strong>$100,000 en ventas</strong> en el estudio<br>
+                · Se distribuye proporcional a <strong>horas trabajadas</strong><br>
+                · Los managers no participan en el colectivo
+              </div>
+            </div>
+          </div>
         </div>
         <div style="border:1px solid var(--border);border-top:none;background:var(--surface);padding:24px 32px;display:flex;justify-content:space-between;align-items:center;">
           <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);">Total bono manager · Pago primer quincena octubre 2026</div>
@@ -983,6 +1044,12 @@ const META = 130000;
 const META_ESTUDIO = {'LILAS':727000,'PRADO NORTE':457000,'ARTZ PEDREGAL':322000};
 const META_IND = {'LILAS':130000,'PRADO NORTE':130000,'ARTZ PEDREGAL':120000};
 const BONO_IND_PCT = 0.03; // 3% sobre meta individual; +1% sobre excedente se calcula aparte
+// Metas mensuales por estudio (30% sobre mostrador bruta 2025, distribuido por peso implícito)
+const META_MENSUAL = {
+  'LILAS':       { julio: 229645, agosto: 271272, septiembre: 226281 },
+  'PRADO NORTE': { julio: 144357, agosto: 170525, septiembre: 142243 },
+  'ARTZ PEDREGAL':{ julio: 101713, agosto: 120151, septiembre: 100224 },
+};
 
 // Comparativo vs 2025 — completar con datos reales de julio/agosto/septiembre 2025 cuando estén disponibles
 const JULIO_2025 = 365934.70;
@@ -1241,6 +1308,41 @@ function renderSales(sales) {
   const totEl = document.getElementById('box-bono-total');
   totEl.textContent = '$' + bono.toLocaleString('es-MX');
   totEl.style.color = hit ? 'var(--white)' : 'var(--gray3)';
+
+  // Colectivo progress por estudio
+  const colProgressEl = document.getElementById('staff-col-progress');
+  if (colProgressEl) {
+    (async () => {
+      try {
+        const allSalesCol = await dbGet('fecha=gte.2026-07-01&order=created_at.desc&limit=10000');
+      const estudios = ['LILAS','PRADO NORTE','ARTZ PEDREGAL'];
+      colProgressEl.innerHTML = estudios.map(est => {
+        const estTotal = allSalesCol.filter(s => s.estudio === est).reduce((a,b) => a + Number(b.monto), 0);
+        const miVentaEst = allSalesCol.filter(s => s.usuario === currentUserKey && s.estudio === est).reduce((a,b) => a + Number(b.monto), 0);
+        const metaEst = META_ESTUDIO[est] || 0;
+        const pool = Math.min(Math.round(metaEst * 0.02), Math.round(metaEst * 0.02)); // 2% de la meta
+        const hitEst = estTotal >= metaEst;
+        const pctEst = metaEst > 0 ? Math.min(100, Math.round(estTotal / metaEst * 100)) : 0;
+        const eligible = miVentaEst >= 100000;
+        const barC = hitEst ? 'var(--green)' : pctEst > 60 ? 'var(--accent)' : 'var(--red)';
+        return `<div style="background:var(--gray2);padding:12px;border:1px solid var(--border);">
+          <div style="font-size:10px;font-weight:600;color:${hitEst ? 'var(--tan)' : 'var(--gray)'};letter-spacing:.08em;margin-bottom:6px;">${est.split(' ')[0]}</div>
+          <div style="height:4px;background:var(--border);border-radius:2px;margin-bottom:6px;">
+            <div style="height:100%;width:${pctEst}%;background:${barC};border-radius:2px;"></div>
+          </div>
+          <div style="font-size:11px;color:var(--gray);margin-bottom:4px;">Estudio: <strong style="color:${hitEst?'var(--green)':'var(--charcoal)'}">$${estTotal.toLocaleString('es-MX')}</strong> <span style="color:${barC}">(${pctEst}%)</span></div>
+          <div style="font-size:11px;color:var(--gray);margin-bottom:4px;">Pool disponible: <strong style="color:${hitEst?'var(--green)':'var(--gray3)'}">$${hitEst ? pool.toLocaleString('es-MX') : '—'}</strong></div>
+          <div style="font-size:11px;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">
+            <span style="color:${eligible ? 'var(--green)' : 'var(--gray3)'};">${eligible ? '✓ Elegible' : '✗ Necesitas $' + Math.max(0,100000-miVentaEst).toLocaleString('es-MX') + ' más'}</span>
+            <span style="font-size:10px;color:var(--gray);display:block;margin-top:2px;">Mis ventas aquí: $${miVentaEst.toLocaleString('es-MX')}</span>
+          </div>
+        </div>`;
+      }).join('');
+    } catch(e) {
+      colProgressEl.innerHTML = '<div style="color:var(--gray3);font-size:12px;">Error cargando colectivo.</div>';
+    }
+    })();
+  }
 
   // Update bar label meta amount dynamically
   const barMetaLabel = document.querySelector('.bar-labels span:last-child');
@@ -2313,6 +2415,29 @@ async function refreshManagerData() {
     // Venta del día
     renderMgrDiaGrid(allSales, est, today, yesterday);
 
+    // Colectivo progress en vista manager
+    const mgrColEl = document.getElementById('mgr-col-progress');
+    if (mgrColEl) {
+      const estudios = ['LILAS','PRADO NORTE','ARTZ PEDREGAL'];
+      mgrColEl.innerHTML = estudios.map(e => {
+        const eTotal = allSales.filter(s => s.estudio === e).reduce((a,b) => a + Number(b.monto), 0);
+        const metaE = META_ESTUDIO[e] || 0;
+        const pool = Math.round(metaE * 0.02);
+        const hitE = eTotal >= metaE;
+        const pctE = metaE > 0 ? Math.min(100, Math.round(eTotal / metaE * 100)) : 0;
+        const barC = hitE ? 'var(--green)' : pctE > 60 ? 'var(--accent)' : 'var(--red)';
+        const isMine = e === est;
+        return `<div style="background:var(--gray2);padding:14px;border:1px solid var(--border);${isMine ? 'border-color:var(--tan);' : ''}">
+          <div style="font-size:10px;font-weight:600;color:${isMine ? 'var(--tan)' : 'var(--gray)'};letter-spacing:.08em;margin-bottom:6px;">${e}${isMine ? ' ·  Tu estudio' : ''}</div>
+          <div style="height:4px;background:var(--border);border-radius:2px;margin-bottom:6px;">
+            <div style="height:100%;width:${pctE}%;background:${barC};border-radius:2px;"></div>
+          </div>
+          <div style="font-size:12px;color:var(--gray);margin-bottom:3px;">Venta: <strong style="color:${hitE?'var(--green)':'var(--charcoal)'}">$${eTotal.toLocaleString('es-MX')}</strong> <span style="color:${barC}">(${pctE}%)</span></div>
+          <div style="font-size:12px;color:var(--gray);">Pool: <strong style="color:${hitE?'var(--green)':'var(--gray3)'}">$${hitE ? pool.toLocaleString('es-MX') : '—'}</strong> <span style="font-size:10px;color:var(--gray3)">(2% de $${(metaE/1000).toFixed(0)}K)</span></div>
+        </div>`;
+      }).join('');
+    }
+
     // Red de estudios
     renderMgrEstGrid(allSales, est);
 
@@ -2374,8 +2499,8 @@ function renderMgrDiaGrid(allSales, myEst, today, yesterday) {
 // ─── HELPER: desglose mensual de ventas por estudio ───
 function mensualDesglose(allSales, est) {
   const meses = [
-    { label: 'Julio', desde: '2026-07-01', hasta: '2026-07-31' },
-    { label: 'Agosto', desde: '2026-08-01', hasta: '2026-08-31' },
+    { label: 'Julio',      desde: '2026-07-01', hasta: '2026-07-31' },
+    { label: 'Agosto',     desde: '2026-08-01', hasta: '2026-08-31' },
     { label: 'Septiembre', desde: '2026-09-01', hasta: '2026-09-30' },
   ];
   const estSales = allSales.filter(s => s.estudio === est);
@@ -2388,16 +2513,34 @@ function mensualDesglose(allSales, est) {
 
 function mensualDesgloseHTML(allSales, est, colorVar) {
   const meses = mensualDesglose(allSales, est);
+  const metaMes = META_MENSUAL[est] || {};
+  const keys = ['julio','agosto','septiembre'];
   const total = meses.reduce((a,m) => a + m.venta, 0);
+  const metaTotal = META_ESTUDIO[est] || 0;
   return `<div style="border-top:1px solid var(--border);margin-top:10px;padding-top:10px;">
-    <div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Desglose mensual</div>
-    ${meses.map(m => `<div class="est-row" style="padding:2px 0;">
-      <span style="color:var(--gray)">${m.label}</span>
-      <span style="color:${m.venta > 0 ? (colorVar || 'var(--white)') : 'var(--gray3)'}">$${m.venta.toLocaleString('es-MX')}</span>
-    </div>`).join('')}
-    <div class="est-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:4px;">
-      <span style="font-weight:500;color:var(--gray)">Total trimestre</span>
-      <span style="font-family:'Bebas Neue',sans-serif;font-size:15px;color:${colorVar || 'var(--white)'}">$${total.toLocaleString('es-MX')}</span>
+    <div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;">Meta vs avance por mes</div>
+    ${meses.map((m,i) => {
+      const metaM = metaMes[keys[i]] || 0;
+      const pctM = metaM > 0 ? Math.min(100, Math.round(m.venta / metaM * 100)) : 0;
+      const hitM = m.venta >= metaM;
+      const barC = hitM ? 'var(--green)' : pctM > 60 ? 'var(--accent)' : 'var(--red)';
+      return `<div style="margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;">
+          <span style="color:var(--gray)">${m.label}</span>
+          <span style="color:var(--gray)">Meta <strong style="color:var(--white)">$${(metaM/1000).toFixed(0)}K</strong></span>
+        </div>
+        <div style="height:4px;background:var(--border);border-radius:2px;margin-bottom:3px;">
+          <div style="height:100%;width:${pctM}%;background:${barC};border-radius:2px;transition:width .3s;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;">
+          <span style="color:${m.venta > 0 ? (hitM ? 'var(--green)' : colorVar||'var(--white)') : 'var(--gray3)'}">$${m.venta.toLocaleString('es-MX')}</span>
+          <span style="color:${barC}">${pctM}%</span>
+        </div>
+      </div>`;
+    }).join('')}
+    <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:6px;margin-top:2px;">
+      <span style="font-size:11px;font-weight:500;color:var(--gray)">Total trimestre</span>
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:15px;color:${total >= metaTotal ? 'var(--green)' : (colorVar||'var(--white)')}">$${total.toLocaleString('es-MX')} <span style="font-size:10px;color:var(--gray)">/ $${(metaTotal/1000).toFixed(0)}K</span></span>
     </div>
   </div>`;
 }
