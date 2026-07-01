@@ -215,12 +215,12 @@ tr:hover td { background:#f5f2ed; }
           <div class="prog-cell">
             <div class="prog-lbl">Bono individual estimado</div>
             <div class="prog-val" id="prog-bono" style="color:var(--gray3)">$0</div>
-            <div class="prog-sub" id="prog-bono-sub">Activa a los $65,000 en ventas propias</div>
+            <div class="prog-sub" id="prog-bono-sub">Activa al alcanzar tu meta individual</div>
           </div>
         </div>
         <div class="bar-container">
           <div class="bar-track"><div class="bar-fill" id="bar-fill" style="width:0%"></div></div>
-          <div class="bar-labels"><span>$0</span><span id="bar-pct-lbl" class="bar-pct">0%</span><span>Meta $65,000</span></div>
+          <div class="bar-labels"><span>$0</span><span id="bar-pct-lbl" class="bar-pct">0%</span><span>Meta $130K / $120K Artz</span></div>
         </div>
       </div>
     </div>
@@ -232,12 +232,12 @@ tr:hover td { background:#f5f2ed; }
         <div class="bonus-box">
           <div class="bonus-lbl">Bono individual · 3% sobre meta + 1% sobre excedente</div>
           <div class="bonus-amt" id="box-bono-ind">$0</div>
-          <div class="bonus-note" id="box-bono-note">Necesitas $65,000 (o $60,000 si vendes en Artz) en ventas para activarlo. Aplica sobre el total.</div>
+          <div class="bonus-note" id="box-bono-note">Necesitas $130,000 (o $120,000 en Artz) para activar tu bono individual. Para el colectivo: $100,000 en ese estudio.</div>
         </div>
         <div class="bonus-box" style="border-left:1px solid var(--sand)">
           <div class="bonus-lbl">Pago estimado · julio 2026</div>
           <div class="bonus-amt" id="box-bono-total" style="color:var(--gray3)">$0</div>
-          <div class="bonus-note">Se suma al bono colectivo de cada estudio donde vendiste.</div>
+          <div class="bonus-note">Requieres $100,000 en ventas en ese estudio para ser elegible al bono colectivo.</div>
         </div>
       </div>
     </div>
@@ -382,18 +382,37 @@ tr:hover td { background:#f5f2ed; }
         <div class="sec-hd"><span class="sec-num">02</span><span class="sec-title">DESGLOSE DEL BONO</span></div>
         <div class="bonus-grid">
           <div class="bonus-box">
-            <div class="bonus-lbl">Bono base · 2% sobre venta total del estudio</div>
+            <div class="bonus-lbl">Bono fijo · Al alcanzar meta del estudio</div>
             <div class="bonus-amt" id="mgr-bono-base" style="color:var(--gray3)">$0</div>
-            <div class="bonus-note" id="mgr-bono-base-note">Activa cuando el estudio alcanza la meta trimestral.</div>
+            <div class="bonus-note" id="mgr-bono-base-note">$5,000 fijos cuando el estudio alcanza la meta trimestral.</div>
           </div>
           <div class="bonus-box" style="border-left:1px solid var(--sand)">
-            <div class="bonus-lbl">Bono adicional · 3% sobre excedente</div>
+            <div class="bonus-lbl">Bono excedente · 1% sobre venta por encima de meta</div>
             <div class="bonus-amt" id="mgr-bono-extra" style="color:var(--gray3)">$0</div>
             <div class="bonus-note" id="mgr-bono-extra-note">Solo aplica sobre el monto por encima de la meta.</div>
           </div>
         </div>
+        <!-- Bono individual del manager (como coach) -->
+        <div style="border:1px solid var(--border);border-top:none;background:var(--gray2);padding:20px 32px;">
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--tan);margin-bottom:12px;font-weight:600;">BONO INDIVIDUAL · COMO COACH</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+            <div>
+              <div style="font-size:10px;color:var(--gray);margin-bottom:4px;text-transform:uppercase;letter-spacing:.1em;">Mis ventas trimestre</div>
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;" id="mgr-ind-venta">$0</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:var(--gray);margin-bottom:4px;text-transform:uppercase;letter-spacing:.1em;">Meta individual</div>
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;" id="mgr-ind-meta">$0</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:var(--gray);margin-bottom:4px;text-transform:uppercase;letter-spacing:.1em;">Bono individual est.</div>
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--gray3);" id="mgr-ind-bono">$0</div>
+            </div>
+          </div>
+          <div style="margin-top:10px;font-size:11px;color:var(--gray);" id="mgr-ind-note">3% sobre meta ($130K o $120K Artz) + 1% sobre excedente. Aplica si alcanzas tu meta individual.</div>
+        </div>
         <div style="border:1px solid var(--border);border-top:none;background:var(--surface);padding:24px 32px;display:flex;justify-content:space-between;align-items:center;">
-          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);">Total bono manager · Pago julio 2026</div>
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);">Total bono manager · Pago primer quincena octubre 2026</div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:0.04em;" id="mgr-bono-total">$0</div>
         </div>
       </div>
@@ -1204,13 +1223,13 @@ function renderSales(sales) {
   document.getElementById('prog-bono').textContent = '$' + bono.toLocaleString('es-MX');
   document.getElementById('prog-bono').style.color = hit ? 'var(--green)' : 'var(--gray3)';
   document.getElementById('prog-bono-sub').textContent = hit
-    ? '4% sobre $' + total.toLocaleString('es-MX') + ' — todos los estudios suman'
+    ? '3% sobre meta + 1% excedente — todos los estudios suman'
     : 'Activa a los ' + metaLabel + ' — suman todos los estudios';
   const bEl = document.getElementById('box-bono-ind');
   bEl.textContent = '$' + bono.toLocaleString('es-MX');
   bEl.classList.toggle('active', hit);
   document.getElementById('box-bono-note').textContent = hit
-    ? '¡Bono activo! 4% de $' + total.toLocaleString('es-MX') + '. Cada venta también suma al bono colectivo del estudio.'
+    ? '¡Bono activo! Cada venta también suma al bono colectivo si alcanzas $100K en el estudio.'
     : 'Necesitas ' + metaLabel + ' en total. Tus ventas de todos los estudios suman.';
   const totEl = document.getElementById('box-bono-total');
   totEl.textContent = '$' + bono.toLocaleString('es-MX');
@@ -1725,7 +1744,8 @@ function renderAdminView(allSales) {
   });
   if (!indDetail) indDetail = '<div style="color:var(--gray3)">Ningún staff ha alcanzado su meta aún.</div>';
 
-  // 2. Bonos colectivos (3% venta estudio si supera meta)
+  // 2. Bonos colectivos (2% venta estudio topado a meta, solo para staff con ≥$100K individual)
+  const MIN_VENTA_COLECTIVO = 100000; // requisito mínimo individual para acceder al colectivo
   let totalCol = 0;
   let colDetail = '';
   bonoEstudios.forEach(est => {
@@ -1733,6 +1753,11 @@ function renderAdminView(allSales) {
     const ventaEst = estSales.reduce((s,v) => s + Number(v.monto), 0);
     const meta = META_ESTUDIO[est] || 0;
     const hit = ventaEst >= meta;
+    // Solo staff con ≥$100K en ventas propias en ese estudio califican al colectivo
+    const elegibles = staffOnly.filter(d => {
+      const ventaEnEst = allSales.filter(s => s.usuario === d.key && s.estudio === est).reduce((s,v) => s + Number(v.monto), 0);
+      return ventaEnEst >= MIN_VENTA_COLECTIVO;
+    });
     const pool = hit ? Math.min(Math.round(ventaEst * 0.02), Math.round(meta * 0.02)) : 0;
     totalCol += pool;
     const exc = ventaEst - meta;
@@ -1742,12 +1767,12 @@ function renderAdminView(allSales) {
         <span style="color:${hit ? 'var(--green)' : 'var(--gray3)'};font-family:'Bebas Neue',sans-serif;font-size:15px;">$${pool.toLocaleString('es-MX')}</span>
       </div>
       <div style="font-size:10px;color:var(--gray);margin-top:2px;">
-        ${hit ? `Venta $${ventaEst.toLocaleString('es-MX')} · Excedente +$${exc.toLocaleString('es-MX')}` : `Falta $${(meta-ventaEst).toLocaleString('es-MX')} para activar`}
+        ${hit ? `Venta $${ventaEst.toLocaleString('es-MX')} · Excedente +$${exc.toLocaleString('es-MX')} · ${elegibles.length} staff elegible${elegibles.length !== 1 ? 's' : ''}` : `Falta $${(meta-ventaEst).toLocaleString('es-MX')} para activar`}
       </div>
     </div>`;
   });
 
-  // 3. Bonos managers (2% base + 3% excedente)
+  // 3. Bonos managers ($5,000 fijo + 1% excedente) + bono individual como coach
   let totalMgr = 0;
   let mgrDetail = '';
   managerKeys.forEach(k => {
@@ -1760,17 +1785,24 @@ function renderAdminView(allSales) {
     const bonoBase = hit ? 5000 : 0;
     const excedente = hit ? Math.max(0, ventaEst - meta) : 0;
     const bonoExtra = Math.round(excedente * 0.01);
-    const bonoTotal = bonoBase + bonoExtra;
+    const bonoMgr = bonoBase + bonoExtra;
+    // Manager individual bonus as coach
+    const metaInd = est === 'ARTZ PEDREGAL' ? 120000 : 130000;
+    const mgrVentaInd = allSales.filter(s => s.usuario === k).reduce((s,v) => s + Number(v.monto), 0);
+    const hitInd = mgrVentaInd >= metaInd;
+    const bonoIndMgr = hitInd ? Math.round(metaInd * 0.03) + Math.round(Math.max(0, mgrVentaInd - metaInd) * 0.01) : 0;
+    const bonoTotal = bonoMgr + bonoIndMgr;
     totalMgr += bonoTotal;
     mgrDetail += `<div style="padding:6px 0;border-bottom:1px solid #E8E2D9;">
       <div style="display:flex;justify-content:space-between;">
         <span style="color:${hit ? 'var(--white)' : 'var(--gray)'}">${mgr.name.split(' ')[0]} ${mgr.name.split(' ')[1]}</span>
-        <span style="color:${hit ? 'var(--green)' : 'var(--gray3)'};font-family:'Bebas Neue',sans-serif;font-size:15px;">$${bonoTotal.toLocaleString('es-MX')}</span>
+        <span style="color:${(hit || hitInd) ? 'var(--green)' : 'var(--gray3)'};font-family:'Bebas Neue',sans-serif;font-size:15px;">$${bonoTotal.toLocaleString('es-MX')}</span>
       </div>
       <div style="font-size:10px;color:var(--gray);margin-top:2px;">
         ${hit
-          ? `Base $${bonoBase.toLocaleString('es-MX')} + Excedente $${bonoExtra.toLocaleString('es-MX')} · ${est}`
-          : `${est} · Falta $${(meta-ventaEst).toLocaleString('es-MX')} para activar`}
+          ? `Mgr: $${bonoBase.toLocaleString('es-MX')} fijo + $${bonoExtra.toLocaleString('es-MX')} exc.`
+          : `Mgr: falta $${(meta-ventaEst).toLocaleString('es-MX')} para activar`}
+        ${hitInd ? ` · Ind: $${bonoIndMgr.toLocaleString('es-MX')}` : ` · Ind: falta $${(metaInd-mgrVentaInd).toLocaleString('es-MX')}`}
       </div>
     </div>`;
   });
@@ -2201,9 +2233,18 @@ async function refreshManagerData() {
     const bonoBase = hitMeta ? 5000 : 0;
     const excedente = hitMeta ? Math.max(0, estTotal - meta) : 0;
     const bonoExtra = Math.round(excedente * 0.01);
-    const bonoTotal = bonoBase + bonoExtra;
+    const bonoManagerTotal = bonoBase + bonoExtra;
     const falta = Math.max(0, meta - estTotal);
     const pct = Math.min(100, Math.round(estTotal / meta * 100));
+
+    // Manager individual bonus (como coach)
+    const metaInd = (currentUser.estudio === 'ARTZ PEDREGAL') ? 120000 : META_ESTUDIO['LILAS'] > 0 ? 130000 : 130000;
+    const miVentaTotal = mySales.reduce((s,v) => s + Number(v.monto), 0);
+    const hitInd = miVentaTotal >= metaInd;
+    const bonoIndBase = hitInd ? Math.round(metaInd * 0.03) : 0;
+    const bonoIndExc = hitInd ? Math.round(Math.max(0, miVentaTotal - metaInd) * 0.01) : 0;
+    const bonoIndTotal = bonoIndBase + bonoIndExc;
+    const bonoTotal = bonoManagerTotal + bonoIndTotal;
 
     // KPIs
     document.getElementById('mgr-kpi-venta').textContent = '$' + estTotal.toLocaleString('es-MX');
@@ -2220,28 +2261,45 @@ async function refreshManagerData() {
     document.getElementById('mgr-bar-fill').style.width = pct + '%';
     document.getElementById('mgr-bar-fill').style.background = hitMeta ? 'var(--green)' : 'var(--white)';
     document.getElementById('mgr-bar-pct').textContent = pct + '%';
-    document.getElementById('mgr-prog-bono').textContent = '$' + bonoTotal.toLocaleString('es-MX');
+    document.getElementById('mgr-prog-bono').textContent = '$' + bonoManagerTotal.toLocaleString('es-MX');
     document.getElementById('mgr-prog-bono').style.color = hitMeta ? 'var(--green)' : 'var(--gray3)';
     document.getElementById('mgr-prog-bono-sub').textContent = hitMeta
-      ? 'Base $' + bonoBase.toLocaleString('es-MX') + ' + Excedente $' + bonoExtra.toLocaleString('es-MX')
+      ? '$5,000 fijo + $' + bonoExtra.toLocaleString('es-MX') + ' (1% excedente)'
       : '$5,000 fijo + 1% sobre excedente — activa al llegar a meta';
 
-    // Bono boxes
+    // Bono boxes — manager
     const baseEl = document.getElementById('mgr-bono-base');
     baseEl.textContent = '$' + bonoBase.toLocaleString('es-MX');
     baseEl.style.color = hitMeta ? 'var(--white)' : 'var(--gray3)';
     document.getElementById('mgr-bono-base-note').textContent = hitMeta
-      ? '2% de $' + estTotal.toLocaleString('es-MX') + ' — ¡meta alcanzada!'
+      ? '$5,000 fijos — ¡meta del estudio alcanzada!'
       : 'Activa cuando el estudio alcanza $' + meta.toLocaleString('es-MX');
     const extraEl = document.getElementById('mgr-bono-extra');
     extraEl.textContent = '$' + bonoExtra.toLocaleString('es-MX');
     extraEl.style.color = excedente > 0 ? 'var(--green)' : 'var(--gray3)';
     document.getElementById('mgr-bono-extra-note').textContent = excedente > 0
       ? '1% de $' + excedente.toLocaleString('es-MX') + ' en excedente'
-      : 'Aplica solo sobre la venta por encima de la meta';
+      : 'Aplica solo sobre la venta por encima de $' + meta.toLocaleString('es-MX');
+
+    // Bono individual del manager como coach
+    const indVentaEl = document.getElementById('mgr-ind-venta');
+    const indMetaEl = document.getElementById('mgr-ind-meta');
+    const indBonoEl = document.getElementById('mgr-ind-bono');
+    const indNoteEl = document.getElementById('mgr-ind-note');
+    if (indVentaEl) {
+      indVentaEl.textContent = '$' + miVentaTotal.toLocaleString('es-MX');
+      indVentaEl.style.color = hitInd ? 'var(--green)' : 'var(--white)';
+      indMetaEl.textContent = '$' + metaInd.toLocaleString('es-MX');
+      indBonoEl.textContent = '$' + bonoIndTotal.toLocaleString('es-MX');
+      indBonoEl.style.color = hitInd ? 'var(--green)' : 'var(--gray3)';
+      indNoteEl.textContent = hitInd
+        ? '3% de $' + metaInd.toLocaleString('es-MX') + ' = $' + bonoIndBase.toLocaleString('es-MX') + (bonoIndExc > 0 ? ' + 1% excedente $' + bonoIndExc.toLocaleString('es-MX') : '')
+        : 'Faltan $' + Math.max(0, metaInd - miVentaTotal).toLocaleString('es-MX') + ' para activar el bono individual (meta: $' + metaInd.toLocaleString('es-MX') + ')';
+    }
+
     const totalEl = document.getElementById('mgr-bono-total');
     totalEl.textContent = '$' + bonoTotal.toLocaleString('es-MX');
-    totalEl.style.color = hitMeta ? 'var(--white)' : 'var(--gray3)';
+    totalEl.style.color = (hitMeta || hitInd) ? 'var(--white)' : 'var(--gray3)';
 
     // Venta del día
     renderMgrDiaGrid(allSales, est, today, yesterday);
@@ -2986,7 +3044,7 @@ function exportBonosCSV(staffOnly, bonoEstudios, managerKeys, allSales) {
   rows.push('');
 
   // Individual
-  rows.push('BONOS INDIVIDUALES (4%)');
+  rows.push('BONOS INDIVIDUALES (3% meta + 1% excedente)');
   rows.push('Nombre,Estudio,Venta Acumulada,Meta Individual,% Avance,Bono Estimado,Estado');
   staffOnly.forEach(d => {
     const hit = d.total >= d.metaInd;
@@ -3035,7 +3093,11 @@ function exportBonosCSV(staffOnly, bonoEstudios, managerKeys, allSales) {
     const v = allSales.filter(x => x.estudio === USERS[k].estudio).reduce((a,b) => a + Number(b.monto), 0);
     const meta = META_ESTUDIO[USERS[k].estudio]||0;
     const hit = v >= meta;
-    return s + (hit ? Math.round(v*0.02) + Math.round(Math.max(0,v-meta)*0.03) : 0);
+    const bonoMgr = hit ? 5000 + Math.round(Math.max(0,v-meta)*0.01) : 0;
+    const metaInd = USERS[k].estudio === 'ARTZ PEDREGAL' ? 120000 : 130000;
+    const vInd = allSales.filter(x => x.usuario === k).reduce((a,b) => a + Number(b.monto), 0);
+    const bonoInd = vInd >= metaInd ? Math.round(metaInd*0.03) + Math.round(Math.max(0,vInd-metaInd)*0.01) : 0;
+    return s + bonoMgr + bonoInd;
   }, 0);
 
   rows.push('RESUMEN TOTAL');
