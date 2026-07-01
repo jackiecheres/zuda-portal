@@ -266,6 +266,7 @@ tr:hover td { background:#f5f2ed; }
             <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);margin-bottom:8px;">Para ser elegible</div>
             <div style="font-size:12px;color:var(--charcoal);line-height:1.8;">
               · Mínimo <strong>$100,000 en ventas</strong> en ese estudio<br>
+              · Mínimo <strong>20 horas semanales</strong> trabajadas<br>
               · Se distribuye <strong>proporcional a horas</strong> trabajadas<br>
               · Aplica por estudio donde vendiste
             </div>
@@ -434,26 +435,6 @@ tr:hover td { background:#f5f2ed; }
             <div class="bonus-note" id="mgr-bono-extra-note">Solo aplica sobre el monto por encima de la meta.</div>
           </div>
         </div>
-        <!-- Bono individual del manager como vendedor -->
-        <div style="border:1px solid var(--border);border-top:none;background:var(--gray2);padding:20px 32px;">
-          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--tan);margin-bottom:12px;font-weight:600;">BONO INDIVIDUAL · COMO VENDEDOR</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
-            <div>
-              <div style="font-size:10px;color:var(--gray);margin-bottom:4px;text-transform:uppercase;letter-spacing:.1em;">Mis ventas trimestre</div>
-              <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;" id="mgr-ind-venta">$0</div>
-            </div>
-            <div>
-              <div style="font-size:10px;color:var(--gray);margin-bottom:4px;text-transform:uppercase;letter-spacing:.1em;">Meta individual</div>
-              <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;" id="mgr-ind-meta">$0</div>
-            </div>
-            <div>
-              <div style="font-size:10px;color:var(--gray);margin-bottom:4px;text-transform:uppercase;letter-spacing:.1em;">Bono individual est.</div>
-              <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--gray3);" id="mgr-ind-bono">$0</div>
-            </div>
-          </div>
-          <div style="margin-top:10px;font-size:11px;color:var(--gray);" id="mgr-ind-note">3% sobre meta ($130K o $120K Artz) + 1% sobre excedente. Aplica si alcanzas tu meta de ventas propias.</div>
-        </div>
-
         <!-- Colectivo de su equipo — solo visible para que el manager monitoree -->
         <div style="border:1px solid var(--border);border-top:none;background:var(--surface);padding:20px 32px;">
           <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);margin-bottom:4px;font-weight:600;">BONO COLECTIVO DE TU EQUIPO · SOLO SEGUIMIENTO</div>
@@ -474,6 +455,7 @@ tr:hover td { background:#f5f2ed; }
               <div style="font-size:10px;color:var(--gray);margin-bottom:6px;text-transform:uppercase;letter-spacing:.1em;">Elegibilidad (para tu equipo)</div>
               <div style="font-size:12px;color:var(--charcoal);line-height:1.8;">
                 · Cada staff necesita <strong>$100,000 en ventas</strong> en el estudio<br>
+                · Y cubrir <strong>mínimo 20 horas semanales</strong><br>
                 · Se distribuye proporcional a <strong>horas trabajadas</strong><br>
                 · El staff de front desk participa; managers no
               </div>
@@ -1046,6 +1028,16 @@ const META_ESTUDIO = {'LILAS':727000,'PRADO NORTE':457000,'ARTZ PEDREGAL':322000
 const META_IND = {'LILAS':130000,'PRADO NORTE':130000,'ARTZ PEDREGAL':120000};
 const BONO_IND_PCT = 0.03; // 3% sobre meta individual; +1% sobre excedente se calcula aparte
 // Metas mensuales por estudio (30% sobre mostrador bruta 2025, distribuido por peso implícito)
+// Horas trabajadas en el trimestre (llenar con datos de planilla al cierre)
+// Mínimo 20h/sem × 13 semanas = 260h para ser elegible al bono colectivo
+const MIN_HORAS_COLECTIVO = 260;
+const HORAS_STAFF_TRIMESTRE = {};
+function getHorasTrimestre(fullName) {
+  if (HORAS_STAFF_TRIMESTRE[fullName] !== undefined) return HORAS_STAFF_TRIMESTRE[fullName];
+  const firstName = fullName.split(' ')[0];
+  return HORAS_STAFF_TRIMESTRE[firstName] !== undefined ? HORAS_STAFF_TRIMESTRE[firstName] : null;
+}
+
 const META_MENSUAL = {
   'LILAS':       { julio: 229645, agosto: 271272, septiembre: 226281 },
   'PRADO NORTE': { julio: 144357, agosto: 170525, septiembre: 142243 },
@@ -1334,8 +1326,8 @@ function renderSales(sales) {
           <div style="font-size:11px;color:var(--gray);margin-bottom:4px;">Estudio: <strong style="color:${hitEst?'var(--green)':'var(--charcoal)'}">$${estTotal.toLocaleString('es-MX')}</strong> <span style="color:${barC}">(${pctEst}%)</span></div>
           <div style="font-size:11px;color:var(--gray);margin-bottom:4px;">Pool disponible: <strong style="color:${hitEst?'var(--green)':'var(--gray3)'}">$${hitEst ? pool.toLocaleString('es-MX') : '—'}</strong></div>
           <div style="font-size:11px;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">
-            <span style="color:${eligible ? 'var(--green)' : 'var(--gray3)'};">${eligible ? '✓ Elegible' : '✗ Necesitas $' + Math.max(0,100000-miVentaEst).toLocaleString('es-MX') + ' más'}</span>
-            <span style="font-size:10px;color:var(--gray);display:block;margin-top:2px;">Mis ventas aquí: $${miVentaEst.toLocaleString('es-MX')}</span>
+            <span style="color:${eligible ? 'var(--green)' : 'var(--gray3)'};">${eligible ? '✓ Ventas elegibles ($100K+)' : '✗ Necesitas $' + Math.max(0,100000-miVentaEst).toLocaleString('es-MX') + ' más para llegar a $100K'}</span>
+            <span style="font-size:10px;color:var(--gray);display:block;margin-top:2px;">Mis ventas aquí: $${miVentaEst.toLocaleString('es-MX')} · También se requieren 20h/sem</span>
           </div>
         </div>`;
       }).join('');
@@ -1865,10 +1857,13 @@ function renderAdminView(allSales) {
     const ventaEst = estSales.reduce((s,v) => s + Number(v.monto), 0);
     const meta = META_ESTUDIO[est] || 0;
     const hit = ventaEst >= meta;
-    // Solo staff con ≥$100K en ventas propias en ese estudio califican al colectivo
+    // Solo staff con ≥$100K en ventas en ese estudio Y ≥20h/semana califican al colectivo
     const elegibles = staffOnly.filter(d => {
       const ventaEnEst = allSales.filter(s => s.usuario === d.key && s.estudio === est).reduce((s,v) => s + Number(v.monto), 0);
-      return ventaEnEst >= MIN_VENTA_COLECTIVO;
+      if (ventaEnEst < MIN_VENTA_COLECTIVO) return false;
+      const horas = getHorasTrimestre(d.user.name);
+      if (horas !== null && horas < MIN_HORAS_COLECTIVO) return false;
+      return true;
     });
     const pool = hit ? Math.min(Math.round(ventaEst * 0.02), Math.round(meta * 0.02)) : 0;
     totalCol += pool;
@@ -1897,24 +1892,17 @@ function renderAdminView(allSales) {
     const bonoBase = hit ? 5000 : 0;
     const excedente = hit ? Math.max(0, ventaEst - meta) : 0;
     const bonoExtra = Math.round(excedente * 0.01);
-    const bonoMgr = bonoBase + bonoExtra;
-    // Manager individual bonus as coach
-    const metaInd = est === 'ARTZ PEDREGAL' ? 120000 : 130000;
-    const mgrVentaInd = allSales.filter(s => s.usuario === k).reduce((s,v) => s + Number(v.monto), 0);
-    const hitInd = mgrVentaInd >= metaInd;
-    const bonoIndMgr = hitInd ? Math.round(metaInd * 0.03) + Math.round(Math.max(0, mgrVentaInd - metaInd) * 0.01) : 0;
-    const bonoTotal = bonoMgr + bonoIndMgr;
+    const bonoTotal = bonoBase + bonoExtra;
     totalMgr += bonoTotal;
     mgrDetail += `<div style="padding:6px 0;border-bottom:1px solid #E8E2D9;">
       <div style="display:flex;justify-content:space-between;">
         <span style="color:${hit ? 'var(--white)' : 'var(--gray)'}">${mgr.name.split(' ')[0]} ${mgr.name.split(' ')[1]}</span>
-        <span style="color:${(hit || hitInd) ? 'var(--green)' : 'var(--gray3)'};font-family:'Bebas Neue',sans-serif;font-size:15px;">$${bonoTotal.toLocaleString('es-MX')}</span>
+        <span style="color:${hit ? 'var(--green)' : 'var(--gray3)'};font-family:'Bebas Neue',sans-serif;font-size:15px;">$${bonoTotal.toLocaleString('es-MX')}</span>
       </div>
       <div style="font-size:10px;color:var(--gray);margin-top:2px;">
         ${hit
-          ? `Mgr: $${bonoBase.toLocaleString('es-MX')} fijo + $${bonoExtra.toLocaleString('es-MX')} exc.`
-          : `Mgr: falta $${(meta-ventaEst).toLocaleString('es-MX')} para activar`}
-        ${hitInd ? ` · Ind: $${bonoIndMgr.toLocaleString('es-MX')}` : ` · Ind: falta $${(metaInd-mgrVentaInd).toLocaleString('es-MX')}`}
+          ? `$5,000 fijo + $${bonoExtra.toLocaleString('es-MX')} (1% exc.) · ${est}`
+          : `${est} · Falta $${(meta-ventaEst).toLocaleString('es-MX')} para activar`}
       </div>
     </div>`;
   });
@@ -2345,18 +2333,9 @@ async function refreshManagerData() {
     const bonoBase = hitMeta ? 5000 : 0;
     const excedente = hitMeta ? Math.max(0, estTotal - meta) : 0;
     const bonoExtra = Math.round(excedente * 0.01);
-    const bonoManagerTotal = bonoBase + bonoExtra;
+    const bonoTotal = bonoBase + bonoExtra;
     const falta = Math.max(0, meta - estTotal);
     const pct = Math.min(100, Math.round(estTotal / meta * 100));
-
-    // Manager individual bonus (como coach)
-    const metaInd = (currentUser.estudio === 'ARTZ PEDREGAL') ? 120000 : META_ESTUDIO['LILAS'] > 0 ? 130000 : 130000;
-    const miVentaTotal = mySales.reduce((s,v) => s + Number(v.monto), 0);
-    const hitInd = miVentaTotal >= metaInd;
-    const bonoIndBase = hitInd ? Math.round(metaInd * 0.03) : 0;
-    const bonoIndExc = hitInd ? Math.round(Math.max(0, miVentaTotal - metaInd) * 0.01) : 0;
-    const bonoIndTotal = bonoIndBase + bonoIndExc;
-    const bonoTotal = bonoManagerTotal + bonoIndTotal;
 
     // KPIs
     document.getElementById('mgr-kpi-venta').textContent = '$' + estTotal.toLocaleString('es-MX');
@@ -2373,7 +2352,7 @@ async function refreshManagerData() {
     document.getElementById('mgr-bar-fill').style.width = pct + '%';
     document.getElementById('mgr-bar-fill').style.background = hitMeta ? 'var(--green)' : 'var(--white)';
     document.getElementById('mgr-bar-pct').textContent = pct + '%';
-    document.getElementById('mgr-prog-bono').textContent = '$' + bonoManagerTotal.toLocaleString('es-MX');
+    document.getElementById('mgr-prog-bono').textContent = '$' + bonoTotal.toLocaleString('es-MX');
     document.getElementById('mgr-prog-bono').style.color = hitMeta ? 'var(--green)' : 'var(--gray3)';
     document.getElementById('mgr-prog-bono-sub').textContent = hitMeta
       ? '$5,000 fijo + $' + bonoExtra.toLocaleString('es-MX') + ' (1% excedente)'
@@ -2393,25 +2372,9 @@ async function refreshManagerData() {
       ? '1% de $' + excedente.toLocaleString('es-MX') + ' en excedente'
       : 'Aplica solo sobre la venta por encima de $' + meta.toLocaleString('es-MX');
 
-    // Bono individual del manager como coach
-    const indVentaEl = document.getElementById('mgr-ind-venta');
-    const indMetaEl = document.getElementById('mgr-ind-meta');
-    const indBonoEl = document.getElementById('mgr-ind-bono');
-    const indNoteEl = document.getElementById('mgr-ind-note');
-    if (indVentaEl) {
-      indVentaEl.textContent = '$' + miVentaTotal.toLocaleString('es-MX');
-      indVentaEl.style.color = hitInd ? 'var(--green)' : 'var(--white)';
-      indMetaEl.textContent = '$' + metaInd.toLocaleString('es-MX');
-      indBonoEl.textContent = '$' + bonoIndTotal.toLocaleString('es-MX');
-      indBonoEl.style.color = hitInd ? 'var(--green)' : 'var(--gray3)';
-      indNoteEl.textContent = hitInd
-        ? '3% de $' + metaInd.toLocaleString('es-MX') + ' = $' + bonoIndBase.toLocaleString('es-MX') + (bonoIndExc > 0 ? ' + 1% excedente $' + bonoIndExc.toLocaleString('es-MX') : '')
-        : 'Faltan $' + Math.max(0, metaInd - miVentaTotal).toLocaleString('es-MX') + ' para activar el bono individual (meta: $' + metaInd.toLocaleString('es-MX') + ')';
-    }
-
     const totalEl = document.getElementById('mgr-bono-total');
     totalEl.textContent = '$' + bonoTotal.toLocaleString('es-MX');
-    totalEl.style.color = (hitMeta || hitInd) ? 'var(--white)' : 'var(--gray3)';
+    totalEl.style.color = hitMeta ? 'var(--white)' : 'var(--gray3)';
 
     // Venta del día
     renderMgrDiaGrid(allSales, est, today, yesterday);
@@ -3279,11 +3242,7 @@ function exportBonosCSV(staffOnly, bonoEstudios, managerKeys, allSales) {
     const v = allSales.filter(x => x.estudio === USERS[k].estudio).reduce((a,b) => a + Number(b.monto), 0);
     const meta = META_ESTUDIO[USERS[k].estudio]||0;
     const hit = v >= meta;
-    const bonoMgr = hit ? 5000 + Math.round(Math.max(0,v-meta)*0.01) : 0;
-    const metaInd = USERS[k].estudio === 'ARTZ PEDREGAL' ? 120000 : 130000;
-    const vInd = allSales.filter(x => x.usuario === k).reduce((a,b) => a + Number(b.monto), 0);
-    const bonoInd = vInd >= metaInd ? Math.round(metaInd*0.03) + Math.round(Math.max(0,vInd-metaInd)*0.01) : 0;
-    return s + bonoMgr + bonoInd;
+    return s + (hit ? 5000 + Math.round(Math.max(0,v-meta)*0.01) : 0);
   }, 0);
 
   rows.push('RESUMEN TOTAL');
