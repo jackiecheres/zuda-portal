@@ -2291,11 +2291,11 @@ async function loadManagerView() {
   document.getElementById('mgr-eyebrow').textContent = 'Manager · ' + est + ' · Trimestral Julio–Septiembre 2026';
   document.getElementById('mgr-f-fecha').value = getCDMXDate();
   document.getElementById('mgr-f-estudio').value = est;
-  document.getElementById('mgr-prev-est').textContent = est;
   document.getElementById('mgr-kpi-meta').textContent = '$' + meta.toLocaleString('es-MX');
   document.getElementById('mgr-bar-meta').textContent = 'Meta $' + (meta/1000).toFixed(0) + 'K';
 
   initManagerCatalog();
+  renderMgrCart();
   await refreshManagerData();
 
   document.getElementById('btn-refresh-mgr').addEventListener('click', async function() {
