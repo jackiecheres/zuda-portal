@@ -297,12 +297,13 @@ tr:hover td { background:#f5f2ed; }
       <div style="font-size:11px;color:var(--gray);margin-top:10px;" id="est-sync-note"></div>
     </div>
 
-    <!-- 04 REGISTRAR VENTA -->
+    <!-- 04 REGISTRAR VENTA (CARRITO) -->
     <div class="section staff-only">
       <div class="sec-hd"><span class="sec-num">04</span><span class="sec-title">REGISTRAR VENTA</span></div>
       <div class="form-grid">
+        <!-- Panel izquierdo: datos del ticket -->
         <div class="form-panel">
-          <div class="form-title">DATOS DE LA VENTA</div>
+          <div class="form-title">DATOS DEL TICKET</div>
           <div class="field">
             <label>Fecha de la venta</label>
             <input type="date" id="f-fecha">
@@ -317,54 +318,54 @@ tr:hover td { background:#f5f2ed; }
             </select>
           </div>
           <div class="field">
-            <label>Categoría</label>
-            <select id="f-cat"><option value="">— Selecciona categoría —</option></select>
-          </div>
-          <div class="field">
-            <label>Paquete / Membresía</label>
-            <select id="f-pkg"><option value="">— Primero selecciona categoría —</option></select>
-          </div>
-          <div class="field">
-            <label>Descuento <span style="font-size:10px;color:var(--gray);">(opcional)</span></label>
-            <select id="f-descuento">
-              <option value="0">Sin descuento</option>
-              <option value="10">10%</option>
-              <option value="15">15%</option>
-              <option value="20">20%</option>
-            </select>
-          </div>
-          <div class="field" id="f-motivo-wrap" style="display:none;">
-            <label>Motivo del descuento</label>
-            <input type="text" id="f-motivo" placeholder="Escribe el motivo..." style="width:100%;padding:11px 14px;background:var(--surface);border:1px solid var(--border);color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;">
-          </div>
-          <div class="field">
             <label>Número de orden <span style="font-size:10px;color:var(--gray);">(opcional)</span></label>
             <div style="display:flex;align-items:center;background:var(--gray2);border:1px solid var(--border);">
               <span style="padding:11px 12px;font-size:13px;color:var(--gray);border-right:1px solid var(--border);white-space:nowrap;">Order #</span>
               <input type="text" id="f-orden" placeholder="VTC9-SSVF-5KV3" style="flex:1;padding:11px 14px;background:transparent;border:none;color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;letter-spacing:0.04em;">
             </div>
           </div>
-        </div>
-        <div class="form-panel">
-          <div class="form-title">RESUMEN</div>
-          <div class="sale-preview">
-            <div class="sp-row"><span>Categoría</span><span id="prev-cat">—</span></div>
-            <div class="sp-row"><span>Paquete</span><span id="prev-pkg">—</span></div>
-            <div class="sp-row"><span>Estudio</span><span id="prev-est" style="color:var(--red)">— elige estudio —</span></div>
-            <div class="sp-row"><span>Fecha</span><span id="prev-fecha">—</span></div>
-            <div class="sp-row" id="prev-descuento-row" style="display:none;"><span>Descuento</span><span id="prev-descuento" style="color:var(--tan)">—</span></div>
-            <div class="sp-row" id="prev-motivo-row" style="display:none;"><span>Motivo</span><span id="prev-motivo-txt" style="color:var(--gray);font-size:12px;">—</span></div>
-            <div class="sp-row" id="prev-precio-original-row" style="display:none;"><span>Precio original</span><span id="prev-precio-original" style="color:var(--gray);text-decoration:line-through;">—</span></div>
-            <div class="sp-row" id="prev-orden-row"><span>Order #</span><span id="prev-orden" style="color:var(--gray);font-size:12px;">—</span></div>
-            <div class="sp-row big" style="border-top:1px solid var(--border);margin-top:10px;padding-top:10px;">
-              <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--gray)">Monto final</span>
-              <span id="prev-monto">$0</span>
+
+          <div style="border-top:1px solid var(--border);margin-top:20px;padding-top:16px;">
+            <div class="form-title" style="margin-bottom:12px;">AGREGAR PRODUCTO</div>
+            <div class="field">
+              <label>Categoría</label>
+              <select id="f-cat"><option value="">— Selecciona categoría —</option></select>
             </div>
+            <div class="field">
+              <label>Paquete / Membresía</label>
+              <select id="f-pkg"><option value="">— Primero selecciona categoría —</option></select>
+            </div>
+            <div class="field">
+              <label>Descuento <span style="font-size:10px;color:var(--gray);">(opcional)</span></label>
+              <select id="f-descuento">
+                <option value="0">Sin descuento</option>
+                <option value="10">10%</option>
+                <option value="15">15%</option>
+                <option value="20">20%</option>
+              </select>
+            </div>
+            <div class="field" id="f-motivo-wrap" style="display:none;">
+              <label>Motivo del descuento</label>
+              <input type="text" id="f-motivo" placeholder="Escribe el motivo..." style="width:100%;padding:11px 14px;background:var(--surface);border:1px solid var(--border);color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;">
+            </div>
+            <button id="btn-add-item" style="width:100%;padding:10px;border:1px dashed var(--border);background:none;color:var(--gray);font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.08em;cursor:pointer;margin-top:4px;">+ AGREGAR AL CARRITO</button>
           </div>
-          <button class="btn-add" id="btn-add">+ REGISTRAR VENTA</button>
+        </div>
+
+        <!-- Panel derecho: carrito y total -->
+        <div class="form-panel">
+          <div class="form-title">CARRITO</div>
+          <div id="cart-items" style="min-height:60px;margin-bottom:12px;">
+            <div style="color:var(--gray3);font-size:12px;padding:12px 0;">Agrega al menos un producto para registrar la venta.</div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:10px;display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;">
+            <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--gray)">Total del ticket</span>
+            <span id="cart-total" style="font-family:'Bebas Neue',sans-serif;font-size:28px;">$0</span>
+          </div>
+          <button class="btn-add" id="btn-add" disabled style="opacity:0.4;">REGISTRAR TICKET</button>
           <div class="success-msg" id="success-msg"></div>
           <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);font-size:12px;color:var(--gray);line-height:1.6;">
-            Registra solo ventas con tu código de staff en el POS. Se corrobora contra el sistema al cierre del trimestre.
+            Puedes agregar varios productos al mismo ticket. Todos quedarán con el mismo Order # y fecha. Se corrobora contra el sistema al cierre del trimestre.
           </div>
         </div>
       </div>
@@ -499,12 +500,12 @@ tr:hover td { background:#f5f2ed; }
         </div>
       </div>
 
-      <!-- 06 REGISTRAR MI VENTA -->
+      <!-- 06 REGISTRAR MI VENTA (CARRITO) -->
       <div class="section">
         <div class="sec-hd"><span class="sec-num">06</span><span class="sec-title">REGISTRAR MI VENTA</span></div>
         <div class="form-grid">
           <div class="form-panel">
-            <div class="form-title">DATOS DE LA VENTA</div>
+            <div class="form-title">DATOS DEL TICKET</div>
             <div class="field">
               <label>Fecha de la venta</label>
               <input type="date" id="mgr-f-fecha">
@@ -514,50 +515,48 @@ tr:hover td { background:#f5f2ed; }
               <input type="text" id="mgr-f-estudio" readonly style="width:100%;padding:11px 14px;background:var(--gray2);border:1px solid var(--border);color:var(--tan);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;">
             </div>
             <div class="field">
-              <label>Categoría</label>
-              <select id="mgr-f-cat"></select>
-            </div>
-            <div class="field">
-              <label>Paquete / Membresía</label>
-              <select id="mgr-f-pkg"></select>
-            </div>
-            <div class="field">
-              <label>Descuento <span style="font-size:10px;color:var(--gray);">(opcional)</span></label>
-              <select id="mgr-f-descuento">
-                <option value="0">Sin descuento</option>
-                <option value="10">10%</option>
-                <option value="15">15%</option>
-                <option value="20">20%</option>
-              </select>
-            </div>
-            <div class="field" id="mgr-f-motivo-wrap" style="display:none;">
-              <label>Motivo del descuento</label>
-              <input type="text" id="mgr-f-motivo" placeholder="Escribe el motivo..." style="width:100%;padding:11px 14px;background:var(--surface);border:1px solid var(--border);color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;">
-            </div>
-            <div class="field">
               <label>Número de orden <span style="font-size:10px;color:var(--gray);">(opcional)</span></label>
               <div style="display:flex;align-items:center;background:var(--gray2);border:1px solid var(--border);">
                 <span style="padding:11px 12px;font-size:13px;color:var(--gray);border-right:1px solid var(--border);white-space:nowrap;">Order #</span>
                 <input type="text" id="mgr-f-orden" placeholder="VTC9-SSVF-5KV3" style="flex:1;padding:11px 14px;background:transparent;border:none;color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;letter-spacing:0.04em;">
               </div>
             </div>
+            <div style="border-top:1px solid var(--border);margin-top:20px;padding-top:16px;">
+              <div class="form-title" style="margin-bottom:12px;">AGREGAR PRODUCTO</div>
+              <div class="field">
+                <label>Categoría</label>
+                <select id="mgr-f-cat"></select>
+              </div>
+              <div class="field">
+                <label>Paquete / Membresía</label>
+                <select id="mgr-f-pkg"></select>
+              </div>
+              <div class="field">
+                <label>Descuento <span style="font-size:10px;color:var(--gray);">(opcional)</span></label>
+                <select id="mgr-f-descuento">
+                  <option value="0">Sin descuento</option>
+                  <option value="10">10%</option>
+                  <option value="15">15%</option>
+                  <option value="20">20%</option>
+                </select>
+              </div>
+              <div class="field" id="mgr-f-motivo-wrap" style="display:none;">
+                <label>Motivo del descuento</label>
+                <input type="text" id="mgr-f-motivo" placeholder="Escribe el motivo..." style="width:100%;padding:11px 14px;background:var(--surface);border:1px solid var(--border);color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;">
+              </div>
+              <button id="mgr-btn-add-item" style="width:100%;padding:10px;border:1px dashed var(--border);background:none;color:var(--gray);font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.08em;cursor:pointer;margin-top:4px;">+ AGREGAR AL CARRITO</button>
+            </div>
           </div>
           <div class="form-panel">
-            <div class="form-title">RESUMEN</div>
-            <div class="sale-preview">
-              <div class="sp-row"><span>Categoría</span><span id="mgr-prev-cat">—</span></div>
-              <div class="sp-row"><span>Paquete</span><span id="mgr-prev-pkg">—</span></div>
-              <div class="sp-row"><span>Estudio</span><span id="mgr-prev-est" style="color:var(--tan)">—</span></div>
-              <div class="sp-row"><span>Fecha</span><span id="mgr-prev-fecha">—</span></div>
-              <div class="sp-row" id="mgr-prev-desc-row" style="display:none;"><span>Descuento</span><span id="mgr-prev-desc" style="color:var(--tan)">—</span></div>
-              <div class="sp-row" id="mgr-prev-orig-row" style="display:none;"><span>Precio original</span><span id="mgr-prev-orig" style="color:var(--gray);text-decoration:line-through;">—</span></div>
-              <div class="sp-row"><span>Order #</span><span id="mgr-prev-orden" style="color:var(--gray);font-size:12px;">—</span></div>
-              <div class="sp-row big" style="border-top:1px solid var(--border);margin-top:10px;padding-top:10px;">
-                <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--gray)">Monto final</span>
-                <span id="mgr-prev-monto">$0</span>
-              </div>
+            <div class="form-title">CARRITO</div>
+            <div id="mgr-cart-items" style="min-height:60px;margin-bottom:12px;">
+              <div style="color:var(--gray3);font-size:12px;padding:12px 0;">Agrega al menos un producto para registrar la venta.</div>
             </div>
-            <button class="btn-add" id="mgr-btn-add">+ REGISTRAR VENTA</button>
+            <div style="border-top:1px solid var(--border);padding-top:10px;display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;">
+              <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--gray)">Total del ticket</span>
+              <span id="mgr-cart-total" style="font-family:'Bebas Neue',sans-serif;font-size:28px;">$0</span>
+            </div>
+            <button class="btn-add" id="mgr-btn-add" disabled style="opacity:0.4;">REGISTRAR TICKET</button>
             <div class="success-msg" id="mgr-success-msg"></div>
           </div>
         </div>
@@ -1167,58 +1166,14 @@ function updatePackages() {
     o.value = i; o.textContent = item.name + ' — $' + item.price.toLocaleString('es-MX');
     sel.appendChild(o);
   });
-  document.getElementById('prev-cat').textContent = CAT_LABELS[cat];
   updatePreview();
 }
 
 function updatePreview() {
-  const cat = document.getElementById('f-cat').value;
-  const idx = document.getElementById('f-pkg').value;
-  const fecha = document.getElementById('f-fecha').value;
-  const estudio = document.getElementById('f-estudio').value;
+  // Show/hide motivo field based on descuento selection
   const descPct = parseInt(document.getElementById('f-descuento')?.value || '0');
-  const motivo = document.getElementById('f-motivo')?.value || '';
-
-  document.getElementById('prev-fecha').textContent = fecha || '—';
-  const estEl = document.getElementById('prev-est');
-  estEl.textContent = estudio || '— elige estudio —';
-  estEl.style.color = estudio ? 'var(--white)' : 'var(--red)';
-
-  // Show/hide motivo field
   const motivoWrap = document.getElementById('f-motivo-wrap');
   if (motivoWrap) motivoWrap.style.display = descPct > 0 ? '' : 'none';
-
-  if (cat && idx !== '' && CATALOG[cat]) {
-    const item = CATALOG[cat][parseInt(idx)];
-    const precioFinal = descPct > 0 ? Math.round(item.price * (1 - descPct/100)) : item.price;
-    document.getElementById('prev-pkg').textContent = item.name;
-    document.getElementById('prev-monto').textContent = '$' + precioFinal.toLocaleString('es-MX');
-    document.getElementById('prev-monto').style.color = descPct > 0 ? 'var(--accent)' : 'var(--white)';
-
-    // Descuento rows
-    const dRow = document.getElementById('prev-descuento-row');
-    const mRow = document.getElementById('prev-motivo-row');
-    const oRow = document.getElementById('prev-precio-original-row');
-    if (descPct > 0) {
-      dRow.style.display = ''; document.getElementById('prev-descuento').textContent = descPct + '%';
-      oRow.style.display = ''; document.getElementById('prev-precio-original').textContent = '$' + item.price.toLocaleString('es-MX');
-      if (motivo) { mRow.style.display = ''; document.getElementById('prev-motivo-txt').textContent = motivo; }
-      else mRow.style.display = 'none';
-    } else {
-      dRow.style.display = 'none'; mRow.style.display = 'none'; oRow.style.display = 'none';
-    }
-    document.getElementById('btn-add').classList.toggle('ready', !!estudio);
-  } else {
-    document.getElementById('prev-pkg').textContent = '—';
-    document.getElementById('prev-monto').textContent = '$0';
-    document.getElementById('prev-monto').style.color = 'var(--white)';
-    document.getElementById('btn-add').classList.remove('ready');
-    ['prev-descuento-row','prev-motivo-row','prev-precio-original-row'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
-  }
-  // Update orden preview
-  const orden = document.getElementById('f-orden')?.value?.trim();
-  const ordenEl = document.getElementById('prev-orden');
-  if (ordenEl) ordenEl.textContent = orden ? orden : '—';
 }
 
 // ─── LOAD & RENDER SALES ───
@@ -1355,69 +1310,115 @@ function renderSales(sales) {
 }
 
 // ─── ADD SALE ───
-async function addSale() {
+// ─── CART STATE ───
+let _cart = []; // [{cat, catLabel, pkg, price, descPct, motivo, monto}]
+
+function renderCart() {
+  const el = document.getElementById('cart-items');
+  const totalEl = document.getElementById('cart-total');
+  const btn = document.getElementById('btn-add');
+  if (!el) return;
+  if (_cart.length === 0) {
+    el.innerHTML = '<div style="color:var(--gray3);font-size:12px;padding:12px 0;">Agrega al menos un producto para registrar la venta.</div>';
+    totalEl.textContent = '$0';
+    btn.disabled = true; btn.style.opacity = '0.4';
+    return;
+  }
+  const total = _cart.reduce((s,i) => s + i.monto, 0);
+  el.innerHTML = _cart.map((item, idx) => `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);gap:8px;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.pkg}</div>
+        <div style="font-size:10px;color:var(--gray);margin-top:2px;">${item.catLabel}${item.descPct > 0 ? ' · ' + item.descPct + '% desc.' : ''}${item.motivo ? ' · ' + item.motivo : ''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:${item.descPct > 0 ? 'var(--tan)' : 'var(--white)'};">$${item.monto.toLocaleString('es-MX')}</span>
+        <button onclick="removeCartItem(${idx})" style="background:none;border:none;color:var(--gray3);font-size:16px;cursor:pointer;padding:0 2px;line-height:1;">✕</button>
+      </div>
+    </div>`).join('');
+  totalEl.textContent = '$' + total.toLocaleString('es-MX');
+  btn.disabled = false; btn.style.opacity = '1';
+}
+
+function removeCartItem(idx) {
+  _cart.splice(idx, 1);
+  renderCart();
+}
+
+function addCartItem() {
   const cat = document.getElementById('f-cat').value;
   const idx = document.getElementById('f-pkg').value;
-  const fecha = document.getElementById('f-fecha').value;
-  const estudio = document.getElementById('f-estudio').value;
-  const msg = document.getElementById('success-msg');
-  if (!cat || idx === '' || !fecha || !estudio) {
-    msg.style.color = 'var(--red)'; msg.textContent = 'Completa todos los campos.';
-    setTimeout(() => msg.textContent = '', 2500); return;
+  if (!cat || idx === '') {
+    const msg = document.getElementById('success-msg');
+    msg.style.color = 'var(--red)'; msg.textContent = 'Selecciona categoría y producto.';
+    setTimeout(() => msg.textContent = '', 2000); return;
   }
   const item = CATALOG[cat][parseInt(idx)];
   const descPct = parseInt(document.getElementById('f-descuento').value || '0');
   const motivo = document.getElementById('f-motivo').value.trim();
+  const monto = descPct > 0 ? Math.round(item.price * (1 - descPct/100)) : item.price;
+  _cart.push({ cat, catLabel: CAT_LABELS[cat]||cat, pkg: item.name, price: item.price, descPct, motivo, monto });
+  // Reset product selectors only
+  document.getElementById('f-cat').value = '';
+  document.getElementById('f-pkg').innerHTML = '<option value="">— Primero selecciona categoría —</option>';
+  document.getElementById('f-descuento').value = '0';
+  document.getElementById('f-motivo').value = '';
+  document.getElementById('f-motivo-wrap').style.display = 'none';
+  renderCart();
+}
+
+async function addSale() {
+  const fecha = document.getElementById('f-fecha').value;
+  const estudio = document.getElementById('f-estudio').value;
   const orden = document.getElementById('f-orden').value.trim();
-  const precioFinal = descPct > 0 ? Math.round(item.price * (1 - descPct/100)) : item.price;
+  const msg = document.getElementById('success-msg');
+  if (!fecha || !estudio) {
+    msg.style.color = 'var(--red)'; msg.textContent = 'Selecciona fecha y estudio.';
+    setTimeout(() => msg.textContent = '', 2500); return;
+  }
+  if (_cart.length === 0) {
+    msg.style.color = 'var(--red)'; msg.textContent = 'Agrega al menos un producto al carrito.';
+    setTimeout(() => msg.textContent = '', 2500); return;
+  }
   const btn = document.getElementById('btn-add');
-  btn.textContent = 'GUARDANDO...'; btn.classList.remove('ready');
+  btn.textContent = 'GUARDANDO...'; btn.disabled = true; btn.style.opacity = '0.6';
   try {
-    const result = await dbPost({
-      usuario: currentUserKey, nombre: currentUser.name,
-      fecha, estudio, categoria: CAT_LABELS[cat]||cat,
-      paquete: item.name, monto: precioFinal,
-      precio_original: item.price,
-      descuento: descPct > 0 ? descPct : null,
-      motivo_descuento: descPct > 0 && motivo ? motivo : null,
-      numero_orden: orden || null
-    });
-    console.log('Venta guardada:', result);
+    for (const item of _cart) {
+      await dbPost({
+        usuario: currentUserKey, nombre: currentUser.name,
+        fecha, estudio, categoria: item.catLabel,
+        paquete: item.pkg, monto: item.monto,
+        precio_original: item.price,
+        descuento: item.descPct > 0 ? item.descPct : null,
+        motivo_descuento: item.descPct > 0 && item.motivo ? item.motivo : null,
+        numero_orden: orden || null
+      });
+    }
+    const total = _cart.reduce((s,i) => s + i.monto, 0);
+    const n = _cart.length;
     msg.style.color = 'var(--green)';
-    const descTxt = descPct > 0 ? ` (${descPct}% desc.)` : '';
-    const ordenTxt = orden ? ` · Order #${orden}` : '';
-    msg.textContent = '✓ Guardado en ' + estudio + ': ' + item.name + ' · $' + precioFinal.toLocaleString('es-MX') + descTxt + ordenTxt;
-    setTimeout(() => msg.textContent = '', 3500);
+    msg.textContent = `✓ ${n} producto${n>1?'s':''} registrado${n>1?'s':''} en ${estudio} · Total $${total.toLocaleString('es-MX')}${orden ? ' · Order #'+orden : ''}`;
+    setTimeout(() => msg.textContent = '', 4000);
+    // Reset everything
+    _cart = [];
     document.getElementById('f-estudio').value = '';
-    document.getElementById('f-cat').value = '';
-    document.getElementById('f-pkg').innerHTML = '<option value="">— Primero selecciona categoría —</option>';
-    document.getElementById('f-descuento').value = '0';
-    document.getElementById('f-motivo').value = '';
+    document.getElementById('f-fecha').value = '';
     document.getElementById('f-orden').value = '';
-    document.getElementById('f-motivo-wrap').style.display = 'none';
-    ['prev-est','prev-cat','prev-pkg'].forEach(id => document.getElementById(id).textContent = '—');
-    document.getElementById('prev-est').style.color = 'var(--red)';
-    document.getElementById('prev-monto').textContent = '$0';
-    document.getElementById('prev-orden').textContent = '—';
-    ['prev-descuento-row','prev-motivo-row','prev-precio-original-row'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
+    renderCart();
     await loadSales();
   } catch(e) {
     console.error('Error al guardar venta:', e);
     const errMsg = e.message || '';
     let userMsg = 'Error al guardar. ';
     if (errMsg.includes('Failed to fetch') || errMsg.includes('NetworkError') || errMsg.includes('CORS')) {
-      userMsg += 'Sin conexión a Supabase — verifica que el archivo esté publicado en un dominio, no abierto como archivo local.';
+      userMsg += 'Sin conexión a Supabase — verifica que el archivo esté publicado en un dominio.';
     } else if (errMsg.includes('42501') || errMsg.includes('permission')) {
       userMsg += 'Sin permisos — verifica las políticas RLS en Supabase.';
-    } else if (errMsg.includes('23502')) {
-      userMsg += 'Campo requerido vacío — contacta al admin.';
-    } else {
-      userMsg += errMsg.substring(0, 120);
-    }
+    } else { userMsg += errMsg.substring(0, 120); }
     msg.style.color = 'var(--red)'; msg.textContent = userMsg;
     setTimeout(() => msg.textContent = '', 8000);
   }
-  btn.textContent = '+ REGISTRAR VENTA';
+  btn.textContent = 'REGISTRAR TICKET'; btn.disabled = false; btn.style.opacity = '1';
 }
 
 // ─── DELETE ───
@@ -2303,6 +2304,7 @@ async function loadManagerView() {
     this.textContent = '↻ Actualizar';
   });
 
+  document.getElementById('mgr-btn-add-item').addEventListener('click', addMgrCartItem);
   document.getElementById('mgr-btn-add').addEventListener('click', addManagerSale);
   document.getElementById('mgr-btn-export').addEventListener('click', async () => {
     const sales = await dbGet(`usuario=eq.${encodeURIComponent(currentUserKey)}&fecha=gte.2026-07-01&order=created_at.desc&limit=10000`);
@@ -2626,107 +2628,125 @@ function initManagerCatalog() {
     o.value = k; o.textContent = CAT_LABELS[k]; cat.appendChild(o);
   });
   cat.addEventListener('change', updateManagerPkgs);
-  document.getElementById('mgr-f-pkg').addEventListener('change', updateManagerPreview);
-  document.getElementById('mgr-f-fecha').addEventListener('change', updateManagerPreview);
   document.getElementById('mgr-f-descuento').addEventListener('change', updateManagerPreview);
-  document.getElementById('mgr-f-motivo').addEventListener('input', updateManagerPreview);
-  document.getElementById('mgr-f-orden').addEventListener('input', updateManagerPreview);
 }
 
 function updateManagerPkgs() {
   const cat = document.getElementById('mgr-f-cat').value;
   const sel = document.getElementById('mgr-f-pkg');
   sel.innerHTML = '<option value="">— Selecciona paquete —</option>';
-  if (!cat || !CATALOG[cat]) { updateManagerPreview(); return; }
+  if (!cat || !CATALOG[cat]) return;
   CATALOG[cat].forEach((item,i) => {
     const o = document.createElement('option');
     o.value = i; o.textContent = item.name + ' — $' + item.price.toLocaleString('es-MX');
     sel.appendChild(o);
   });
-  document.getElementById('mgr-prev-cat').textContent = CAT_LABELS[cat];
-  updateManagerPreview();
 }
 
 function updateManagerPreview() {
-  const cat = document.getElementById('mgr-f-cat').value;
-  const idx = document.getElementById('mgr-f-pkg').value;
-  const fecha = document.getElementById('mgr-f-fecha').value;
   const descPct = parseInt(document.getElementById('mgr-f-descuento')?.value || '0');
-  const orden = document.getElementById('mgr-f-orden')?.value?.trim();
-  document.getElementById('mgr-prev-fecha').textContent = fecha || '—';
-  document.getElementById('mgr-prev-orden').textContent = orden || '—';
   const motivoWrap = document.getElementById('mgr-f-motivo-wrap');
   if (motivoWrap) motivoWrap.style.display = descPct > 0 ? '' : 'none';
-  if (cat && idx !== '' && CATALOG[cat]) {
-    const item = CATALOG[cat][parseInt(idx)];
-    const precioFinal = descPct > 0 ? Math.round(item.price * (1 - descPct/100)) : item.price;
-    document.getElementById('mgr-prev-pkg').textContent = item.name;
-    document.getElementById('mgr-prev-monto').textContent = '$' + precioFinal.toLocaleString('es-MX');
-    document.getElementById('mgr-prev-monto').style.color = descPct > 0 ? 'var(--accent)' : 'var(--white)';
-    const dRow = document.getElementById('mgr-prev-desc-row');
-    const oRow = document.getElementById('mgr-prev-orig-row');
-    if (descPct > 0) {
-      dRow.style.display = ''; document.getElementById('mgr-prev-desc').textContent = descPct + '%';
-      oRow.style.display = ''; document.getElementById('mgr-prev-orig').textContent = '$' + item.price.toLocaleString('es-MX');
-    } else {
-      dRow.style.display = 'none'; oRow.style.display = 'none';
-    }
-    document.getElementById('mgr-btn-add').classList.add('ready');
-  } else {
-    document.getElementById('mgr-prev-pkg').textContent = '—';
-    document.getElementById('mgr-prev-monto').textContent = '$0';
-    document.getElementById('mgr-btn-add').classList.remove('ready');
-    ['mgr-prev-desc-row','mgr-prev-orig-row'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
-  }
 }
 
-async function addManagerSale() {
+// ─── MANAGER CART STATE ───
+let _mgrCart = [];
+
+function renderMgrCart() {
+  const el = document.getElementById('mgr-cart-items');
+  const totalEl = document.getElementById('mgr-cart-total');
+  const btn = document.getElementById('mgr-btn-add');
+  if (!el) return;
+  if (_mgrCart.length === 0) {
+    el.innerHTML = '<div style="color:var(--gray3);font-size:12px;padding:12px 0;">Agrega al menos un producto para registrar la venta.</div>';
+    totalEl.textContent = '$0';
+    btn.disabled = true; btn.style.opacity = '0.4';
+    return;
+  }
+  const total = _mgrCart.reduce((s,i) => s + i.monto, 0);
+  el.innerHTML = _mgrCart.map((item, idx) => `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);gap:8px;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.pkg}</div>
+        <div style="font-size:10px;color:var(--gray);margin-top:2px;">${item.catLabel}${item.descPct > 0 ? ' · ' + item.descPct + '% desc.' : ''}${item.motivo ? ' · ' + item.motivo : ''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:${item.descPct > 0 ? 'var(--tan)' : 'var(--white)'};">$${item.monto.toLocaleString('es-MX')}</span>
+        <button onclick="removeMgrCartItem(${idx})" style="background:none;border:none;color:var(--gray3);font-size:16px;cursor:pointer;padding:0 2px;line-height:1;">✕</button>
+      </div>
+    </div>`).join('');
+  totalEl.textContent = '$' + total.toLocaleString('es-MX');
+  btn.disabled = false; btn.style.opacity = '1';
+}
+
+function removeMgrCartItem(idx) {
+  _mgrCart.splice(idx, 1);
+  renderMgrCart();
+}
+
+function addMgrCartItem() {
   const cat = document.getElementById('mgr-f-cat').value;
   const idx = document.getElementById('mgr-f-pkg').value;
-  const fecha = document.getElementById('mgr-f-fecha').value;
-  const estudio = currentUser.estudio;
   const msg = document.getElementById('mgr-success-msg');
-  if (!cat || idx === '' || !fecha) {
-    msg.style.color = 'var(--red)'; msg.textContent = 'Completa todos los campos.';
-    setTimeout(() => msg.textContent = '', 2500); return;
+  if (!cat || idx === '') {
+    msg.style.color = 'var(--red)'; msg.textContent = 'Selecciona categoría y producto.';
+    setTimeout(() => msg.textContent = '', 2000); return;
   }
   const item = CATALOG[cat][parseInt(idx)];
   const descPct = parseInt(document.getElementById('mgr-f-descuento')?.value || '0');
   const motivo = document.getElementById('mgr-f-motivo')?.value?.trim() || '';
+  const monto = descPct > 0 ? Math.round(item.price * (1 - descPct/100)) : item.price;
+  _mgrCart.push({ cat, catLabel: CAT_LABELS[cat]||cat, pkg: item.name, price: item.price, descPct, motivo, monto });
+  document.getElementById('mgr-f-cat').value = '';
+  document.getElementById('mgr-f-pkg').innerHTML = '<option value="">— Primero selecciona categoría —</option>';
+  document.getElementById('mgr-f-descuento').value = '0';
+  if (document.getElementById('mgr-f-motivo')) document.getElementById('mgr-f-motivo').value = '';
+  if (document.getElementById('mgr-f-motivo-wrap')) document.getElementById('mgr-f-motivo-wrap').style.display = 'none';
+  renderMgrCart();
+}
+
+async function addManagerSale() {
+  const fecha = document.getElementById('mgr-f-fecha').value;
+  const estudio = currentUser.estudio;
   const orden = document.getElementById('mgr-f-orden')?.value?.trim() || '';
-  const precioFinal = descPct > 0 ? Math.round(item.price * (1 - descPct/100)) : item.price;
+  const msg = document.getElementById('mgr-success-msg');
+  if (!fecha) {
+    msg.style.color = 'var(--red)'; msg.textContent = 'Selecciona la fecha.';
+    setTimeout(() => msg.textContent = '', 2500); return;
+  }
+  if (_mgrCart.length === 0) {
+    msg.style.color = 'var(--red)'; msg.textContent = 'Agrega al menos un producto al carrito.';
+    setTimeout(() => msg.textContent = '', 2500); return;
+  }
   const btn = document.getElementById('mgr-btn-add');
-  btn.textContent = 'GUARDANDO...'; btn.classList.remove('ready');
+  btn.textContent = 'GUARDANDO...'; btn.disabled = true; btn.style.opacity = '0.6';
   try {
-    await dbPost({
-      usuario: currentUserKey, nombre: currentUser.name,
-      fecha, estudio, categoria: CAT_LABELS[cat]||cat,
-      paquete: item.name, monto: precioFinal,
-      precio_original: item.price,
-      descuento: descPct > 0 ? descPct : null,
-      motivo_descuento: descPct > 0 && motivo ? motivo : null,
-      numero_orden: orden || null
-    });
-    const descTxt = descPct > 0 ? ` (${descPct}% desc.)` : '';
+    for (const item of _mgrCart) {
+      await dbPost({
+        usuario: currentUserKey, nombre: currentUser.name,
+        fecha, estudio, categoria: item.catLabel,
+        paquete: item.pkg, monto: item.monto,
+        precio_original: item.price,
+        descuento: item.descPct > 0 ? item.descPct : null,
+        motivo_descuento: item.descPct > 0 && item.motivo ? item.motivo : null,
+        numero_orden: orden || null
+      });
+    }
+    const total = _mgrCart.reduce((s,i) => s + i.monto, 0);
+    const n = _mgrCart.length;
     msg.style.color = 'var(--green)';
-    msg.textContent = '✓ Guardado: ' + item.name + ' · $' + precioFinal.toLocaleString('es-MX') + descTxt;
-    setTimeout(() => msg.textContent = '', 3500);
-    document.getElementById('mgr-f-cat').value = '';
-    document.getElementById('mgr-f-pkg').innerHTML = '<option value="">— Primero selecciona categoría —</option>';
-    document.getElementById('mgr-f-descuento').value = '0';
-    if (document.getElementById('mgr-f-motivo')) document.getElementById('mgr-f-motivo').value = '';
+    msg.textContent = `✓ ${n} producto${n>1?'s':''} registrado${n>1?'s':''} · Total $${total.toLocaleString('es-MX')}${orden ? ' · Order #'+orden : ''}`;
+    setTimeout(() => msg.textContent = '', 4000);
+    _mgrCart = [];
+    document.getElementById('mgr-f-fecha').value = '';
     if (document.getElementById('mgr-f-orden')) document.getElementById('mgr-f-orden').value = '';
-    if (document.getElementById('mgr-f-motivo-wrap')) document.getElementById('mgr-f-motivo-wrap').style.display = 'none';
-    document.getElementById('mgr-prev-cat').textContent = '—';
-    document.getElementById('mgr-prev-pkg').textContent = '—';
-    document.getElementById('mgr-prev-monto').textContent = '$0';
-    document.getElementById('mgr-prev-orden').textContent = '—';
-    ['mgr-prev-desc-row','mgr-prev-orig-row'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
+    renderMgrCart();
     await refreshManagerData();
   } catch(e) {
     msg.style.color = 'var(--red)'; msg.textContent = 'Error al guardar. Intenta de nuevo.';
+    setTimeout(() => msg.textContent = '', 4000);
   }
-  btn.textContent = '+ REGISTRAR VENTA';
+  btn.textContent = 'REGISTRAR TICKET'; btn.disabled = false; btn.style.opacity = '1';
 }
 
 // ─── DIRECTOR VIEW ───
@@ -3668,6 +3688,7 @@ function fmtDate(d) {
 // ─── WIRING ───
 document.getElementById('btn-login').addEventListener('click', doLogin);
 document.getElementById('btn-logout').addEventListener('click', doLogout);
+document.getElementById('btn-add-item').addEventListener('click', addCartItem);
 document.getElementById('btn-add').addEventListener('click', addSale);
 document.getElementById('btn-export').addEventListener('click', async () => {
   const sales = await dbGet(`usuario=eq.${encodeURIComponent(currentUserKey)}&fecha=gte.2026-07-01&order=created_at.desc&limit=10000`);
