@@ -2106,9 +2106,10 @@ function showDetail(d) {
           <td>${s.categoria}</td>
           <td style="font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--charcoal)">$${Number(s.monto).toLocaleString('es-MX')}</td>
           <td>${s.descuento ? `<span style="color:var(--tan);font-size:12px;">${s.descuento}%</span>` : '<span style="color:var(--gray3)">—</span>'}</td>
+          <td style="font-size:11px;color:var(--gray);letter-spacing:0.04em;">${s.numero_orden || '—'}</td>
           <td style="font-size:11px;color:var(--gray);max-width:100px;overflow:hidden;text-overflow:ellipsis;">${s.motivo_descuento || '—'}</td>
           <td style="display:flex;gap:4px;">
-            <button class="admin-edit-btn" data-id="${s.id}" data-monto-orig="${s.precio_original || s.monto}" data-descuento="${s.descuento || 0}" data-motivo="${(s.motivo_descuento||'').replace(/"/g,'&quot;')}" data-fecha="${s.fecha || ''}" style="background:none;border:1px solid var(--border);color:var(--gray);cursor:pointer;font-size:11px;padding:3px 8px;transition:all 0.2s;">✎</button>
+            <button class="admin-edit-btn" data-id="${s.id}" data-monto-orig="${s.precio_original || s.monto}" data-descuento="${s.descuento || 0}" data-motivo="${(s.motivo_descuento||'').replace(/"/g,'&quot;')}" data-fecha="${s.fecha || ''}" data-orden="${(s.numero_orden||'').replace(/"/g,'&quot;')}" style="background:none;border:1px solid var(--border);color:var(--gray);cursor:pointer;font-size:11px;padding:3px 8px;transition:all 0.2s;">✎</button>
             <button class="admin-del-btn" data-id="${s.id}" data-pkg="${s.paquete}" data-monto="${s.monto}" data-est="${s.estudio}" style="background:none;border:1px solid transparent;color:var(--gray);cursor:pointer;font-size:12px;padding:3px 8px;transition:all 0.2s;">✕</button>
           </td>
         </tr>`).join('')
@@ -2134,7 +2135,7 @@ function showDetail(d) {
       </div>
       <div style="padding:20px;">
         <table class="detail-sales-table">
-          <thead><tr><th>Fecha</th><th>Estudio</th><th>Producto</th><th>Categoría</th><th>Monto</th><th>Desc.</th><th>Motivo</th><th></th></tr></thead>
+          <thead><tr><th>Fecha</th><th>Estudio</th><th>Producto</th><th>Categoría</th><th>Monto</th><th>Desc.</th><th>Order #</th><th>Motivo</th><th></th></tr></thead>
           <tbody id="detail-tbody">${renderDetailRows(sales)}</tbody>
         </table>
       </div>
@@ -2158,6 +2159,7 @@ function showDetail(d) {
       const currentDesc = parseInt(editBtn.dataset.descuento) || 0;
       const currentMotivo = editBtn.dataset.motivo || '';
       const currentFecha = editBtn.dataset.fecha || '';
+      const currentOrden = editBtn.dataset.orden || '';
       // Build inline edit row
       const row = editBtn.closest('tr');
       const existingEditor = document.getElementById('edit-row-' + id);
@@ -2165,11 +2167,15 @@ function showDetail(d) {
       const editorRow = document.createElement('tr');
       editorRow.id = 'edit-row-' + id;
       editorRow.style.background = '#0a0a14';
-      editorRow.innerHTML = `<td colspan="8" style="padding:12px 16px;">
+      editorRow.innerHTML = `<td colspan="9" style="padding:12px 16px;">
         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
           <div>
             <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:4px;">Fecha</div>
             <input type="date" id="edit-fecha-${id}" value="${currentFecha}" style="padding:7px 12px;background:var(--surface);border:1px solid var(--border);color:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;">
+          </div>
+          <div>
+            <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:4px;">Order #</div>
+            <input type="text" id="edit-orden-${id}" value="${currentOrden}" placeholder="Order #..." style="padding:7px 12px;background:var(--surface);border:1px solid var(--border);color:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;letter-spacing:0.04em;width:160px;">
           </div>
           <div>
             <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:4px;">Descuento</div>
@@ -2207,6 +2213,7 @@ function showDetail(d) {
         const mot = document.getElementById(`edit-motivo-${id}`).value.trim();
         const newFecha = document.getElementById(`edit-fecha-${id}`).value;
         const newMonto = pct > 0 ? Math.round(montoOrig * (1 - pct/100)) : montoOrig;
+        const newOrden = document.getElementById(`edit-orden-${id}`).value.trim();
         try {
           await fetch(`${SB_URL}/rest/v1/ventas?id=eq.${id}`, {
             method: 'PATCH',
@@ -2215,7 +2222,8 @@ function showDetail(d) {
               fecha: newFecha || undefined,
               monto: newMonto,
               descuento: pct > 0 ? pct : null,
-              motivo_descuento: pct > 0 && mot ? mot : null
+              motivo_descuento: pct > 0 && mot ? mot : null,
+              numero_orden: newOrden || null
             })
           });
           editorRow.remove();
@@ -2225,6 +2233,7 @@ function showDetail(d) {
             detailSales[idx2].monto = newMonto;
             detailSales[idx2].descuento = pct > 0 ? pct : null;
             detailSales[idx2].motivo_descuento = pct > 0 && mot ? mot : null;
+            detailSales[idx2].numero_orden = newOrden || null;
           }
           document.getElementById('detail-tbody').innerHTML = renderDetailRows(detailSales);
           const allSales = await dbGet('fecha=gte.2026-07-01&order=created_at.desc&limit=10000');
