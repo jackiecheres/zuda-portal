@@ -133,7 +133,7 @@ tr:hover td { background:#f5f2ed; }
 .detail-close { font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray); cursor:pointer; padding:5px 10px; border:1px solid var(--border); background:none; }
 .detail-sales-table { width:100%; border-collapse:collapse; font-size:12px; }
 .detail-sales-table th { padding:8px 12px; text-align:left; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--gray); border-bottom:1px solid var(--border); }
-.detail-sales-table td { padding:8px 12px; border-bottom:1px solid #E8E2D9; color:rgba(255,255,255,0.65); }
+.detail-sales-table td { padding:8px 12px; border-bottom:1px solid #E8E2D9; color:var(--charcoal); }
 @media(max-width:680px){
   nav{padding:0 20px;} .main{padding:0 20px;}
   .kpi-row,.progress-header,.form-grid,.bonus-grid,.est-grid,.admin-kpi-row{grid-template-columns:1fr;}
@@ -2101,10 +2101,10 @@ function showDetail(d) {
     return sales.length
       ? sales.map(s => `<tr>
           <td>${fmtDate(s.fecha)}</td>
-          <td>${s.estudio}</td>
+          <td>${s.estudio || '—'}</td>
           <td style="color:var(--charcoal)">${s.paquete}</td>
           <td>${s.categoria}</td>
-          <td style="font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--white)">$${Number(s.monto).toLocaleString('es-MX')}</td>
+          <td style="font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--charcoal)">$${Number(s.monto).toLocaleString('es-MX')}</td>
           <td>${s.descuento ? `<span style="color:var(--tan);font-size:12px;">${s.descuento}%</span>` : '<span style="color:var(--gray3)">—</span>'}</td>
           <td style="font-size:11px;color:var(--gray);max-width:100px;overflow:hidden;text-overflow:ellipsis;">${s.motivo_descuento || '—'}</td>
           <td style="display:flex;gap:4px;">
