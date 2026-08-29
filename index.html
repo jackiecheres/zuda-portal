@@ -538,6 +538,8 @@ tr:hover td { background:#f5f2ed; }
                   <option value="10">10%</option>
                   <option value="15">15%</option>
                   <option value="20">20%</option>
+                  <option value="student10">Student Promo 10% OFF</option>
+                  <option value="intro">ZUDAINTRO26</option>
                 </select>
               </div>
               <div class="field" id="mgr-f-motivo-wrap" style="display:none;">
@@ -648,6 +650,81 @@ tr:hover td { background:#f5f2ed; }
             <thead><tr><th>Estudio</th><th>Venta total</th><th>Hoy vs Ayer</th><th>Vendedores · Ventas</th><th>Avance</th></tr></thead>
             <tbody id="admin-estudios-tbody"></tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- REGISTRAR VENTA (ADMIN) -->
+      <div class="section">
+        <div class="sec-hd"><span class="sec-num">04</span><span class="sec-title">REGISTRAR VENTA</span></div>
+        <div class="form-grid">
+          <div class="form-panel">
+            <div class="form-title">DATOS DEL TICKET</div>
+            <div class="field">
+              <label>Fecha de la venta</label>
+              <input type="date" id="adm-sale-fecha">
+            </div>
+            <div class="field">
+              <label>Estudio <span style="color:var(--red);font-size:11px;">* obligatorio</span></label>
+              <select id="adm-sale-estudio">
+                <option value="">— Selecciona estudio —</option>
+                <option value="LILAS">Lilas</option>
+                <option value="PRADO NORTE">Prado Norte</option>
+                <option value="ARTZ PEDREGAL">Artz Pedregal</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Registrar como <span style="font-size:10px;color:var(--gray);">(staff que realizó la venta)</span></label>
+              <select id="adm-sale-usuario">
+                <option value="">— Selecciona staff —</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Número de orden <span style="font-size:10px;color:var(--gray);">(opcional)</span></label>
+              <div style="display:flex;align-items:center;background:var(--gray2);border:1px solid var(--border);">
+                <span style="padding:11px 12px;font-size:13px;color:var(--gray);border-right:1px solid var(--border);white-space:nowrap;">Order #</span>
+                <input type="text" id="adm-sale-orden" placeholder="VTC9-SSVF-5KV3" style="flex:1;padding:11px 14px;background:transparent;border:none;color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;letter-spacing:0.04em;">
+              </div>
+            </div>
+            <div style="border-top:1px solid var(--border);margin-top:20px;padding-top:16px;">
+              <div class="form-title" style="margin-bottom:12px;">AGREGAR PRODUCTO</div>
+              <div class="field">
+                <label>Categoría</label>
+                <select id="adm-sale-cat"><option value="">— Selecciona categoría —</option></select>
+              </div>
+              <div class="field">
+                <label>Paquete / Membresía</label>
+                <select id="adm-sale-pkg"><option value="">— Primero selecciona categoría —</option></select>
+              </div>
+              <div class="field">
+                <label>Descuento <span style="font-size:10px;color:var(--gray);">(opcional)</span></label>
+                <select id="adm-sale-descuento">
+                  <option value="0">Sin descuento</option>
+                  <option value="10">10%</option>
+                  <option value="15">15%</option>
+                  <option value="20">20%</option>
+                  <option value="student10">Student Promo 10% OFF</option>
+                  <option value="intro">ZUDAINTRO26</option>
+                </select>
+              </div>
+              <div class="field" id="adm-sale-motivo-wrap" style="display:none;">
+                <label>Motivo del descuento</label>
+                <input type="text" id="adm-sale-motivo" placeholder="Escribe el motivo..." style="width:100%;padding:11px 14px;background:var(--surface);border:1px solid var(--border);color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;">
+              </div>
+              <button id="adm-sale-add-item" style="width:100%;padding:10px;border:1px dashed var(--border);background:none;color:var(--gray);font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.08em;cursor:pointer;margin-top:4px;">+ AGREGAR AL CARRITO</button>
+            </div>
+          </div>
+          <div class="form-panel">
+            <div class="form-title">CARRITO</div>
+            <div id="adm-cart-items" style="min-height:60px;margin-bottom:12px;">
+              <div style="color:var(--gray3);font-size:12px;padding:12px 0;">Agrega al menos un producto para registrar la venta.</div>
+            </div>
+            <div style="border-top:1px solid var(--border);padding-top:10px;display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;">
+              <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--gray)">Total del ticket</span>
+              <span id="adm-cart-total" style="font-family:'Bebas Neue',sans-serif;font-size:28px;">$0</span>
+            </div>
+            <button class="btn-add" id="adm-sale-submit" disabled style="opacity:0.4;">REGISTRAR TICKET</button>
+            <div class="success-msg" id="adm-sale-msg"></div>
+          </div>
         </div>
       </div>
 
@@ -1056,7 +1133,7 @@ const TRIMESTRE_2025_TOTAL = JULIO_2025 + AGOSTO_2025 + SEPTIEMBRE_2025;
 const CATALOG = {
   paquete:[{name:"1 clase",price:380},{name:"3 clases (primera vez)",price:949},{name:"5 clases",price:1850},{name:"10 clases",price:3600},{name:"20 clases",price:6800},{name:"30 clases",price:9600},{name:"Office 10 clases",price:2400},{name:"100 clases",price:25000}],
   promociones:[{name:"5 clases + 1 gratis",price:1850},{name:"10 clases + 2 gratis",price:3600},{name:"20 clases + 3 gratis",price:6800}],
-  mensualidad:[{name:"Platinum 16 clases",price:4400},{name:"Platinum 24 clases",price:4900},{name:"Ilimitado All Access",price:5600},{name:"ARTZ Ilimitado",price:3600}],
+  mensualidad:[{name:"Platinum 16 clases",price:4400},{name:"Platinum 24 clases",price:4900},{name:"Ilimitado All Access",price:5600},{name:"ARTZ Ilimitado",price:3600},{name:"ZUDA Student 8 clases",price:1999},{name:"ZUDA Student 16 clases",price:3299}],
   anualidad:[{name:"Zuda Black All Access",price:58000}],
   teens:[{name:"Teens 8 clases",price:1800},{name:"Teens 16 clases",price:2900}],
   cubo:[{name:"Cubo All Access mensual",price:3400}],
@@ -1176,8 +1253,10 @@ function updatePackages() {
 function updatePreview() {
   // Show/hide motivo field based on descuento selection
   const descPct = parseInt(document.getElementById('f-descuento')?.value || '0');
+  const fDescRaw = document.getElementById('f-descuento')?.value || '0';
+  const fIsCode = fDescRaw === 'intro' || fDescRaw === 'student10';
   const motivoWrap = document.getElementById('f-motivo-wrap');
-  if (motivoWrap) motivoWrap.style.display = descPct > 0 ? '' : 'none';
+  if (motivoWrap) motivoWrap.style.display = (!fIsCode && parseInt(fDescRaw) > 0) ? '' : 'none';
 }
 
 // ─── LOAD & RENDER SALES ───
@@ -1358,10 +1437,12 @@ function addCartItem() {
     setTimeout(() => msg.textContent = '', 2000); return;
   }
   const item = CATALOG[cat][parseInt(idx)];
-  const descPct = parseInt(document.getElementById('f-descuento').value || '0');
-  const motivo = document.getElementById('f-motivo').value.trim();
+  const descRaw = document.getElementById('f-descuento').value || '0';
+  const descPct = getDescPct(descRaw);
+  const descLabel = getDescLabel(descRaw);
+  const motivo = descRaw === 'intro' || descRaw === 'student10' ? descLabel : document.getElementById('f-motivo').value.trim();
   const monto = descPct > 0 ? Math.round(item.price * (1 - descPct/100)) : item.price;
-  _cart.push({ cat, catLabel: CAT_LABELS[cat]||cat, pkg: item.name, price: item.price, descPct, motivo, monto });
+  _cart.push({ cat, catLabel: CAT_LABELS[cat]||cat, pkg: item.name, price: item.price, descPct, descRaw, motivo, monto });
   // Reset product selectors only
   document.getElementById('f-cat').value = '';
   document.getElementById('f-pkg').innerHTML = '<option value="">— Primero selecciona categoría —</option>';
@@ -1672,6 +1753,13 @@ function renderAdminView(allSales) {
   const staffKeys = Object.keys(USERS).filter(k => !USERS[k].isAdmin && !USERS[k].isDirector);
   const today = getCDMXDate();
   const yesterday = getCDMXDate(-1);
+
+  // Init admin sale form once
+  if (document.getElementById('adm-sale-cat') && !document.getElementById('adm-sale-cat').dataset.init) {
+    document.getElementById('adm-sale-cat').dataset.init = '1';
+    initAdminSaleForm();
+    renderAdmCart();
+  }
 
   const userData = staffKeys.map(k => {
     const sales = allSales.filter(s => s.usuario === k);
@@ -2657,9 +2745,10 @@ function updateManagerPkgs() {
 }
 
 function updateManagerPreview() {
-  const descPct = parseInt(document.getElementById('mgr-f-descuento')?.value || '0');
+  const mgrDescRaw = document.getElementById('mgr-f-descuento')?.value || '0';
+  const mgrIsCode = mgrDescRaw === 'intro' || mgrDescRaw === 'student10';
   const motivoWrap = document.getElementById('mgr-f-motivo-wrap');
-  if (motivoWrap) motivoWrap.style.display = descPct > 0 ? '' : 'none';
+  if (motivoWrap) motivoWrap.style.display = (!mgrIsCode && parseInt(mgrDescRaw) > 0) ? '' : 'none';
 }
 
 // ─── MANAGER CART STATE ───
@@ -3064,6 +3153,182 @@ async function downloadTablero() {
   a.download = 'zuda_tablero_' + getCDMXDate() + '.png';
   a.href = canvas.toDataURL('image/png');
   a.click();
+}
+
+// ─── DISCOUNT HELPER ───
+// Eligible products for ZUDAINTRO26
+const INTRO_ELIGIBLE = [
+  '5 clases','10 clases','30 clases',
+  'Platinum 16 clases','Platinum 24 clases','Ilimitado All Access'
+];
+
+function getDescPct(rawValue) {
+  if (rawValue === 'student10') return 10;
+  if (rawValue === 'intro') return 10; // ZUDAINTRO26 = 10% off
+  return parseInt(rawValue) || 0;
+}
+
+function getDescLabel(rawValue) {
+  if (rawValue === 'student10') return 'Student Promo 10% OFF';
+  if (rawValue === 'intro') return 'ZUDAINTRO26';
+  const n = parseInt(rawValue);
+  return n > 0 ? n + '%' : 'Sin descuento';
+}
+
+// ─── ADMIN CART ───
+let _admCart = [];
+
+function initAdminSaleForm() {
+  const catSel = document.getElementById('adm-sale-cat');
+  catSel.innerHTML = '<option value="">— Selecciona categoría —</option>';
+  Object.keys(CATALOG).forEach(k => {
+    const o = document.createElement('option');
+    o.value = k; o.textContent = CAT_LABELS[k] || k;
+    catSel.appendChild(o);
+  });
+
+  const usuarioSel = document.getElementById('adm-sale-usuario');
+  const staffEntries = Object.entries(USERS).filter(([k,u]) => !u.isDirector && k !== 'facturacion@zuda.mx' && k !== 'elio@zuda.mx');
+
+  function populateStaff(est) {
+    usuarioSel.innerHTML = '<option value="">— Selecciona staff —</option>';
+    staffEntries
+      .filter(([k,u]) => !est || u.estudio === est)
+      .sort((a,b) => a[1].name.localeCompare(b[1].name))
+      .forEach(([k,u]) => {
+        const o = document.createElement('option');
+        o.value = k; o.textContent = u.name;
+        usuarioSel.appendChild(o);
+      });
+  }
+  populateStaff('');
+
+  document.getElementById('adm-sale-estudio').addEventListener('change', () => {
+    populateStaff(document.getElementById('adm-sale-estudio').value);
+  });
+
+  catSel.addEventListener('change', () => {
+    const cat = catSel.value;
+    const pkg = document.getElementById('adm-sale-pkg');
+    pkg.innerHTML = '<option value="">— Selecciona paquete —</option>';
+    if (cat && CATALOG[cat]) {
+      CATALOG[cat].forEach((item,i) => {
+        const o = document.createElement('option');
+        o.value = i; o.textContent = item.name + ' — $' + item.price.toLocaleString('es-MX');
+        pkg.appendChild(o);
+      });
+    }
+  });
+
+  document.getElementById('adm-sale-descuento').addEventListener('change', () => {
+    const raw = document.getElementById('adm-sale-descuento').value;
+    const isCode = raw === 'intro' || raw === 'student10';
+    document.getElementById('adm-sale-motivo-wrap').style.display = (!isCode && parseInt(raw) > 0) ? '' : 'none';
+  });
+
+  document.getElementById('adm-sale-add-item').addEventListener('click', addAdmCartItem);
+  document.getElementById('adm-sale-submit').addEventListener('click', submitAdmSale);
+  document.getElementById('adm-sale-fecha').value = getCDMXDate();
+}
+
+function renderAdmCart() {
+  const el = document.getElementById('adm-cart-items');
+  const totalEl = document.getElementById('adm-cart-total');
+  const btn = document.getElementById('adm-sale-submit');
+  if (!el) return;
+  if (_admCart.length === 0) {
+    el.innerHTML = '<div style="color:var(--gray3);font-size:12px;padding:12px 0;">Agrega al menos un producto.</div>';
+    totalEl.textContent = '$0';
+    btn.disabled = true; btn.style.opacity = '0.4'; return;
+  }
+  const total = _admCart.reduce((s,i) => s + i.monto, 0);
+  el.innerHTML = _admCart.map((item,idx) => `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);gap:8px;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.pkg}</div>
+        <div style="font-size:10px;color:var(--gray);margin-top:2px;">${item.catLabel}${item.descPct > 0 ? ' · ' + item.descPct + '% desc.' : ''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:16px;">$${item.monto.toLocaleString('es-MX')}</span>
+        <button onclick="removeAdmCartItem(${idx})" style="background:none;border:none;color:var(--gray3);font-size:16px;cursor:pointer;padding:0 2px;">✕</button>
+      </div>
+    </div>`).join('');
+  totalEl.textContent = '$' + total.toLocaleString('es-MX');
+  btn.disabled = false; btn.style.opacity = '1';
+}
+
+function removeAdmCartItem(idx) { _admCart.splice(idx,1); renderAdmCart(); }
+
+function addAdmCartItem() {
+  const cat = document.getElementById('adm-sale-cat').value;
+  const idx = document.getElementById('adm-sale-pkg').value;
+  const msg = document.getElementById('adm-sale-msg');
+  if (!cat || idx === '') {
+    msg.style.color='var(--red)'; msg.textContent='Selecciona categoría y producto.';
+    setTimeout(()=>msg.textContent='',2000); return;
+  }
+  const item = CATALOG[cat][parseInt(idx)];
+  const descRaw = document.getElementById('adm-sale-descuento').value||'0';
+  const descPct = getDescPct(descRaw);
+  const descLabel = getDescLabel(descRaw);
+  const motivo = descRaw === 'intro' || descRaw === 'student10' ? descLabel : document.getElementById('adm-sale-motivo').value.trim();
+  const monto = descPct > 0 ? Math.round(item.price*(1-descPct/100)) : item.price;
+  _admCart.push({cat, catLabel:CAT_LABELS[cat]||cat, pkg:item.name, price:item.price, descPct, descRaw, motivo, monto});
+  document.getElementById('adm-sale-cat').value='';
+  document.getElementById('adm-sale-pkg').innerHTML='<option value="">— Primero selecciona categoría —</option>';
+  document.getElementById('adm-sale-descuento').value='0';
+  document.getElementById('adm-sale-motivo').value='';
+  document.getElementById('adm-sale-motivo-wrap').style.display='none';
+  renderAdmCart();
+}
+
+async function submitAdmSale() {
+  const fecha = document.getElementById('adm-sale-fecha').value;
+  const estudio = document.getElementById('adm-sale-estudio').value;
+  const usuarioKey = document.getElementById('adm-sale-usuario').value;
+  const orden = document.getElementById('adm-sale-orden').value.trim();
+  const msg = document.getElementById('adm-sale-msg');
+  if (!fecha || !estudio || !usuarioKey) {
+    msg.style.color='var(--red)'; msg.textContent='Selecciona fecha, estudio y staff.';
+    setTimeout(()=>msg.textContent='',2500); return;
+  }
+  if (_admCart.length === 0) {
+    msg.style.color='var(--red)'; msg.textContent='Agrega al menos un producto.';
+    setTimeout(()=>msg.textContent='',2500); return;
+  }
+  const btn = document.getElementById('adm-sale-submit');
+  const usuario = USERS[usuarioKey];
+  btn.textContent='GUARDANDO...'; btn.disabled=true; btn.style.opacity='0.6';
+  try {
+    for (const item of _admCart) {
+      await dbPost({
+        usuario: usuarioKey, nombre: usuario.name,
+        fecha, estudio, categoria: item.catLabel,
+        paquete: item.pkg, monto: item.monto,
+        precio_original: item.price,
+        descuento: item.descPct > 0 ? item.descPct : null,
+        motivo_descuento: item.descPct > 0 && item.motivo ? item.motivo : null,
+        numero_orden: orden || null
+      });
+    }
+    const n = _admCart.length;
+    const total = _admCart.reduce((s,i)=>s+i.monto,0);
+    msg.style.color='var(--green)';
+    msg.textContent=`✓ ${n} producto${n>1?'s':''} registrado${n>1?'s':''} para ${usuario.name} · $${total.toLocaleString('es-MX')}`;
+    setTimeout(()=>msg.textContent='',4000);
+    _admCart=[];
+    document.getElementById('adm-sale-fecha').value=getCDMXDate();
+    document.getElementById('adm-sale-estudio').value='';
+    document.getElementById('adm-sale-usuario').value='';
+    document.getElementById('adm-sale-orden').value='';
+    renderAdmCart();
+    const allSales = await dbGet('fecha=gte.2026-07-01&order=created_at.desc&limit=10000');
+    renderAdminView(allSales);
+  } catch(e) {
+    msg.style.color='var(--red)'; msg.textContent='Error al guardar. Intenta de nuevo.';
+    setTimeout(()=>msg.textContent='',4000);
+  }
+  btn.textContent='REGISTRAR TICKET'; btn.disabled=false; btn.style.opacity='1';
 }
 
 // ─── EXPORT BONOS HTML ───
