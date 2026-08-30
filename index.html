@@ -3194,7 +3194,7 @@ function initAdminSaleForm() {
   function populateStaff(est) {
     usuarioSel.innerHTML = '<option value="">— Selecciona staff —</option>';
     staffEntries
-      .filter(([k,u]) => !est || u.estudio === est)
+      .filter(([k,u]) => !est || u.estudio === est || u.isAdmin)
       .sort((a,b) => a[1].name.localeCompare(b[1].name))
       .forEach(([k,u]) => {
         const o = document.createElement('option');
