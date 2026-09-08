@@ -100,8 +100,8 @@ th { padding:12px 16px; text-align:left; font-size:10px; font-weight:500; letter
 td { padding:12px 16px; border-bottom:1px solid #E8E2D9; color:rgba(255,255,255,0.7); }
 tr:last-child td { border-bottom:none; }
 tr:hover td { background:#f5f2ed; }
-.td-pkg { color:var(--white); }
-.td-amt { font-family:'Bebas Neue',sans-serif; font-size:16px; color:var(--white); }
+.td-pkg { color:var(--charcoal); }
+.td-amt { font-family:'Bebas Neue',sans-serif; font-size:16px; color:var(--charcoal); }
 .td-del { cursor:pointer; color:var(--gray); font-size:12px; padding:4px 8px; border:1px solid transparent; background:none; transition:all 0.2s; }
 .td-del:hover { color:var(--red); border-color:var(--red); }
 .empty-state { padding:48px; text-align:center; color:var(--gray); font-size:13px; }
@@ -1438,7 +1438,7 @@ function renderCart() {
   el.innerHTML = _cart.map((item, idx) => `
     <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);gap:8px;">
       <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.pkg}</div>
+        <div style="font-size:13px;color:var(--charcoal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.pkg}</div>
         <div style="font-size:10px;color:var(--gray);margin-top:2px;">${item.catLabel}${item.descPct > 0 ? ' · ' + item.descPct + '% desc.' : ''}${item.motivo ? ' · ' + item.motivo : ''}</div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
@@ -1785,7 +1785,7 @@ async function loadAdminView() {
       </tr>`;
     }).join('') +
     `<tr style="border-top:2px solid var(--border);">
-      <td style="font-weight:600;color:var(--white)">TOTAL</td>
+      <td style="font-weight:600;color:var(--charcoal)">TOTAL</td>
       <td></td>
       <td style="text-align:right;color:var(--gray)">${sales.length}</td>
       <td style="text-align:right;font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--tan);">$${total.toLocaleString('es-MX')}</td>
@@ -1936,10 +1936,10 @@ function renderAdminView(allSales) {
       ? `<span style="font-size:11px;color:var(--tan);">Bono estudio</span>`
       : (hit ? '✓ Meta' : '✗ Bajo');
     return `<tr class="${rowCls}" data-key="${d.key}" style="cursor:pointer;${d.isManager ? 'background:#f8f6f2!important;' : ''}">
-      <td style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--gray)">${i+1}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--charcoal);font-weight:700;">${i+1}</td>
       <td class="td-name" style="font-weight:500">${nameCell}</td>
       <td style="font-size:12px">${estLabel}</td>
-      <td style="font-family:'Bebas Neue',sans-serif;font-size:15px">$${d.total.toLocaleString('es-MX')}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--charcoal);">$${d.total.toLocaleString('es-MX')}</td>
       <td style="font-family:'Bebas Neue',sans-serif;font-size:14px;color:${d.hoy > 0 ? 'var(--accent)' : 'var(--gray3)'}">$${d.hoy.toLocaleString('es-MX')}</td>
       <td>
         <div style="display:flex;align-items:center;gap:6px;">
@@ -1969,7 +1969,7 @@ function renderAdminView(allSales) {
     const hit = estTotal >= meta;
     const pct = meta > 0 ? Math.min(100, Math.round(estTotal / meta * 100)) : 0;
     return `<tr>
-      <td style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--white)">${est}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--charcoal)">${est}</td>
       <td style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:${hit ? 'var(--green)' : 'var(--white)'}">$${estTotal.toLocaleString('es-MX')} <span style="font-family:'DM Sans',sans-serif;font-size:11px;color:var(--gray)">(${pct}%)</span></td>
       <td><span style="color:${arrowColor};font-size:13px;">${arrow}$${hoy.toLocaleString('es-MX')}</span><span style="font-size:11px;color:var(--gray);margin-left:6px;">vs $${ayer.toLocaleString('es-MX')} ayer</span></td>
       <td>${vendedores} vendedor${vendedores !== 1 ? 'es' : ''} · ${estSales.length} ventas</td>
@@ -2663,7 +2663,7 @@ function mensualDesgloseHTML(allSales, est, colorVar) {
       return `<div style="margin-bottom:8px;">
         <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;">
           <span style="color:var(--gray)">${m.label}</span>
-          <span style="color:var(--gray)">Meta <strong style="color:var(--white)">$${(metaM/1000).toFixed(0)}K</strong></span>
+          <span style="color:var(--gray)">Meta <strong style="color:var(--charcoal)">$${(metaM/1000).toFixed(0)}K</strong></span>
         </div>
         <div style="height:4px;background:var(--border);border-radius:2px;margin-bottom:3px;">
           <div style="height:100%;width:${pctM}%;background:${barC};border-radius:2px;transition:width .3s;"></div>
@@ -2838,7 +2838,7 @@ function renderMgrCart() {
   el.innerHTML = _mgrCart.map((item, idx) => `
     <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);gap:8px;">
       <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.pkg}</div>
+        <div style="font-size:13px;color:var(--charcoal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.pkg}</div>
         <div style="font-size:10px;color:var(--gray);margin-top:2px;">${item.catLabel}${item.descPct > 0 ? ' · ' + item.descPct + '% desc.' : ''}${item.motivo ? ' · ' + item.motivo : ''}</div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
@@ -3088,7 +3088,7 @@ function renderDirStaffTable(allSales) {
     const barColor = d.hit ? 'var(--green)' : 'var(--red)';
     const estLabel = d.estudiosVendidos.length ? d.estudiosVendidos.map(e => e.split(' ')[0]).join(', ') : '—';
     return `<tr class="${d.hit ? 'row-green' : 'row-red'}">
-      <td style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--gray)">${i+1}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--charcoal);font-weight:700;">${i+1}</td>
       <td class="td-name" style="font-weight:500">${d.user.name}</td>
       <td style="font-size:12px">${estLabel}</td>
       <td style="font-family:'Bebas Neue',sans-serif;font-size:15px">$${d.total.toLocaleString('es-MX')}</td>
@@ -3188,7 +3188,7 @@ function renderTablero(allSales) {
     return `<div style="display:grid;grid-template-columns:44px 1fr 140px 80px;align-items:center;gap:16px;padding:16px 20px;border-bottom:1px solid #E8E2D9;background:${i===0 ? '#0a0f0a' : 'transparent'};">
       <div style="font-size:${i < 3 ? '22px' : '14px'};text-align:center;color:${i >= 3 ? 'var(--gray)' : 'inherit'};font-family:'DM Sans',sans-serif;">${i < 3 ? medals[i] : (i+1)}</div>
       <div>
-        <div style="font-size:16px;color:var(--white);font-weight:500;margin-bottom:6px;">${d.name}</div>
+        <div style="font-size:16px;color:var(--charcoal);font-weight:500;margin-bottom:6px;">${d.name}</div>
         <div style="height:6px;background:var(--sand);border-radius:3px;overflow:hidden;">
           <div style="height:100%;width:${d.pct}%;background:${barColor};border-radius:3px;"></div>
         </div>
@@ -3244,7 +3244,7 @@ function showStaffDrill(idx) {
         <td>${fmtDate(v.fecha)}</td>
         <td style="color:var(--gray)">${hora}</td>
         <td style="color:var(--gray)">${v.estudio || '—'}</td>
-        <td style="color:var(--white)">${v.paquete}</td>
+        <td style="color:var(--charcoal)">${v.paquete}</td>
         <td style="color:var(--gray)">${v.categoria}</td>
         <td style="font-size:11px;color:var(--gray);letter-spacing:.04em">${v.numero_orden || '—'}</td>
         <td>${desc}</td>
@@ -3347,7 +3347,7 @@ function renderAdmCart() {
   el.innerHTML = _admCart.map((item,idx) => `
     <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);gap:8px;">
       <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.pkg}</div>
+        <div style="font-size:13px;color:var(--charcoal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.pkg}</div>
         <div style="font-size:10px;color:var(--gray);margin-top:2px;">${item.catLabel}${item.descPct > 0 ? ' · ' + item.descPct + '% desc.' : ''}</div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
