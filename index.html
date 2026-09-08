@@ -856,24 +856,36 @@ tr:hover td { background:#f5f2ed; }
           </div>
         </div>
 
-        <div class="table-wrap" id="adm-fecha-wrap" style="display:none;">
-          <table>
-            <thead><tr><th>Fecha</th><th>Hora</th><th>Nombre</th><th>Estudio</th><th>Producto</th><th>Categoría</th><th>Order #</th><th>Desc.</th><th>Monto</th></tr></thead>
-            <tbody id="adm-fecha-tbody"></tbody>
-          </table>
-        </div>
-
-        <!-- Resumen por staff -->
-        <div id="adm-staff-resumen" style="display:none;margin-top:24px;">
-          <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--tan);margin-bottom:12px;font-weight:600;">VENTAS POR STAFF EN EL PERÍODO</div>
+        <!-- Resumen por staff (aparece primero) -->
+        <div id="adm-staff-resumen" style="display:none;margin-top:20px;">
+          <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--tan);margin-bottom:12px;font-weight:600;">VENTAS POR STAFF EN EL PERÍODO <span id="adm-periodo-label" style="color:var(--gray);font-weight:400;"></span></div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>Nombre</th><th>Estudio</th><th style="text-align:right">Ventas</th><th style="text-align:right">Total</th><th style="text-align:right">% del período</th></tr></thead>
+              <thead><tr><th>Nombre</th><th>Estudio</th><th style="text-align:right">Transacciones</th><th style="text-align:right">Total</th><th style="text-align:right">% del período</th><th></th></tr></thead>
               <tbody id="adm-staff-resumen-tbody"></tbody>
             </table>
           </div>
         </div>
-        <div style="display:flex;gap:8px;margin-top:12px;">
+
+        <!-- Detalle drill-down por staff -->
+        <div id="adm-drill-wrap" style="display:none;margin-top:16px;border:1px solid var(--tan);padding:0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--gray2);border-bottom:1px solid var(--border);">
+            <div id="adm-drill-title" style="font-size:12px;font-weight:600;color:var(--white);letter-spacing:0.06em;"></div>
+            <button onclick="document.getElementById('adm-drill-wrap').style.display='none'" style="background:none;border:none;color:var(--gray);cursor:pointer;font-size:16px;">✕</button>
+          </div>
+          <div class="table-wrap" style="border:none;">
+            <table>
+              <thead><tr><th>Fecha</th><th>Hora</th><th>Estudio</th><th>Producto</th><th>Categoría</th><th>Order #</th><th>Desc.</th><th style="text-align:right">Monto</th></tr></thead>
+              <tbody id="adm-drill-tbody"></tbody>
+            </table>
+          </div>
+          <div style="padding:10px 16px;background:var(--gray2);border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:11px;color:var(--gray);" id="adm-drill-count"></span>
+            <span style="font-family:'Bebas Neue',sans-serif;font-size:18px;" id="adm-drill-total"></span>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:14px;">
           <button id="adm-export-rango" style="display:none;padding:9px 18px;border:1px solid var(--border);background:none;color:var(--gray);font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;">↓ Exportar detalle CSV</button>
           <button id="adm-export-staff-resumen" style="display:none;padding:9px 18px;border:1px solid var(--tan);background:none;color:var(--tan);font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;">↓ Exportar resumen por staff CSV</button>
         </div>
@@ -1724,92 +1736,85 @@ async function loadAdminView() {
     const sales = await dbGet(q);
 
     const total = sales.reduce((s,v) => s + Number(v.monto), 0);
-    const wrap = document.getElementById('adm-fecha-wrap');
-    const tbody = document.getElementById('adm-fecha-tbody');
-    const resumen = document.getElementById('adm-rango-resumen');
+    // hide old detail tabla — we use drill-down now
+
     const exportBtn = document.getElementById('adm-export-rango');
-
-    const d1 = new Date(desde), d2 = new Date(hasta);
-    const dias = Math.max(1, Math.round((d2 - d1) / 86400000) + 1);
-    const promedio = sales.length ? Math.round(total / dias) : 0;
-
-    document.getElementById('res-total').textContent = '$' + total.toLocaleString('es-MX');
-    document.getElementById('res-ventas').textContent = sales.length;
-    document.getElementById('res-promedio').textContent = '$' + promedio.toLocaleString('es-MX');
-    document.getElementById('res-periodo').textContent = fmtDate(desde) + ' → ' + fmtDate(hasta) + ' (' + dias + ' días)';
-    resumen.style.display = sales.length ? 'block' : 'none';
-
-    if (!sales.length) {
-      tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state">Sin ventas para este período y filtro.</div></td></tr>';
-    } else {
-      tbody.innerHTML = sales.map(s => {
-        const hora = s.created_at ? new Date(s.created_at).toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit', timeZone:'America/Mexico_City'}) : '—';
-        const descCell = s.descuento ? `<span style="color:var(--tan);font-size:12px;">${s.descuento}%</span>` : '<span style="color:var(--gray3)">—</span>';
-        return `<tr>
-          <td>${fmtDate(s.fecha)}</td>
-          <td style="color:var(--gray)">${hora}</td>
-          <td style="font-weight:500;color:var(--white)">${s.nombre}</td>
-          <td>${s.estudio}</td>
-          <td class="td-pkg">${s.paquete}</td>
-          <td>${s.categoria}</td>
-          <td style="font-size:11px;color:var(--gray);letter-spacing:0.04em;">${s.numero_orden || '—'}</td>
-          <td>${descCell}</td>
-          <td class="td-amt">$${Number(s.monto).toLocaleString('es-MX')}</td>
-        </tr>`;
-      }).join('');
-    }
-    wrap.style.display = '';
-    exportBtn.style.display = sales.length ? '' : 'none';
-    exportBtn.onclick = () => exportCSV(sales, `zuda_ventas_${desde}_${hasta}.csv`);
-
     const exportStaffBtn = document.getElementById('adm-export-staff-resumen');
     const staffResumen = document.getElementById('adm-staff-resumen');
     const staffTbody = document.getElementById('adm-staff-resumen-tbody');
-    if (sales.length) {
-      const byStaff = {};
-      sales.forEach(s => {
-        const key = s.usuario;
-        if (!byStaff[key]) byStaff[key] = { nombre: s.nombre, estudio: s.estudio, count: 0, total: 0 };
-        byStaff[key].count++;
-        byStaff[key].total += Number(s.monto);
-      });
-      const staffList = Object.values(byStaff).sort((a,b) => b.total - a.total);
-      staffTbody.innerHTML = staffList.map(s => {
-        const pct = total > 0 ? Math.round(s.total / total * 100) : 0;
-        return `<tr>
-          <td style="color:var(--white);font-weight:500">${s.nombre}</td>
-          <td style="color:var(--gray)">${s.estudio || '—'}</td>
-          <td style="text-align:right;color:var(--gray)">${s.count}</td>
-          <td style="text-align:right;font-family:'Bebas Neue',sans-serif;font-size:15px;">$${s.total.toLocaleString('es-MX')}</td>
-          <td style="text-align:right;">
-            <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;">
-              <div style="width:60px;height:4px;background:var(--border);border-radius:2px;">
-                <div style="width:${pct}%;height:100%;background:var(--tan);border-radius:2px;"></div>
-              </div>
-              <span style="color:var(--tan);font-size:12px;min-width:28px;text-align:right">${pct}%</span>
-            </div>
-          </td>
-        </tr>`;
-      }).join('');
+    const periodoLabel = document.getElementById('adm-periodo-label');
+    const periodoStr = `${fmtDate(desde)} → ${fmtDate(hasta)}`;
+
+    if (periodoLabel) periodoLabel.textContent = '· ' + periodoStr;
+
+    if (!sales.length) {
+      staffTbody.innerHTML = '<tr><td colspan="6" style="color:var(--gray3);padding:16px;">Sin ventas para este período y filtro.</td></tr>';
       staffResumen.style.display = '';
-      exportStaffBtn.style.display = '';
-      exportStaffBtn.onclick = () => {
-        const header = 'Nombre,Estudio,Transacciones,Total MXN,% del Período';
-        const rows = staffList.map(s => {
-          const pct = total > 0 ? Math.round(s.total / total * 100) : 0;
-          return `"${s.nombre}","${s.estudio || ''}",${s.count},${s.total},${pct}%`;
-        });
-        rows.push(`"TOTAL","",${sales.length},${total},100%`);
-        const blob = new Blob([[header, ...rows].join('\n')], {type:'text/csv;charset=utf-8'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `zuda_resumen_staff_${desde}_${hasta}.csv`;
-        a.click();
-      };
-    } else {
-      staffResumen.style.display = 'none';
+      exportBtn.style.display = 'none';
       exportStaffBtn.style.display = 'none';
+      document.getElementById('adm-drill-wrap').style.display = 'none';
+      return;
     }
+
+    // Build staff summary
+    const byStaff = {};
+    sales.forEach(s => {
+      if (!byStaff[s.usuario]) byStaff[s.usuario] = { nombre: s.nombre, estudio: s.estudio, count: 0, total: 0, ventas: [] };
+      byStaff[s.usuario].count++;
+      byStaff[s.usuario].total += Number(s.monto);
+      byStaff[s.usuario].ventas.push(s);
+    });
+    const staffList = Object.values(byStaff).sort((a,b) => b.total - a.total);
+
+    staffTbody.innerHTML = staffList.map((s, idx) => {
+      const pct = total > 0 ? Math.round(s.total / total * 100) : 0;
+      return `<tr style="cursor:pointer;" onclick="showStaffDrill(${idx})" onmouseover="this.style.background='var(--gray2)'" onmouseout="this.style.background=''">
+        <td style="font-weight:500;color:var(--white)">${s.nombre}</td>
+        <td style="color:var(--gray)">${s.estudio || '—'}</td>
+        <td style="text-align:right;color:var(--gray)">${s.count}</td>
+        <td style="text-align:right;font-family:'Bebas Neue',sans-serif;font-size:15px;">$${s.total.toLocaleString('es-MX')}</td>
+        <td style="text-align:right;">
+          <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;">
+            <div style="width:60px;height:4px;background:var(--border);border-radius:2px;">
+              <div style="width:${pct}%;height:100%;background:var(--tan);border-radius:2px;"></div>
+            </div>
+            <span style="color:var(--tan);font-size:12px;min-width:28px;text-align:right">${pct}%</span>
+          </div>
+        </td>
+        <td style="color:var(--gray);font-size:11px;text-align:right;">ver ›</td>
+      </tr>`;
+    }).join('') +
+    `<tr style="border-top:2px solid var(--border);">
+      <td style="font-weight:600;color:var(--white)">TOTAL</td>
+      <td></td>
+      <td style="text-align:right;color:var(--gray)">${sales.length}</td>
+      <td style="text-align:right;font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--tan);">$${total.toLocaleString('es-MX')}</td>
+      <td></td><td></td>
+    </tr>`;
+
+    // Expose drill-down data globally
+    window._drillData = staffList;
+    window._drillPeriodo = periodoStr;
+
+    staffResumen.style.display = '';
+    document.getElementById('adm-drill-wrap').style.display = 'none';
+
+    // Export buttons
+    exportBtn.style.display = '';
+    exportBtn.onclick = () => exportCSV(sales, `zuda_ventas_${desde}_${hasta}.csv`);
+
+    exportStaffBtn.style.display = '';
+    exportStaffBtn.onclick = () => {
+      const header = `Período: ${periodoStr}\nNombre,Estudio,Transacciones,Total MXN,% del Período`;
+      const rows = staffList.map(s => {
+        const pct = total > 0 ? Math.round(s.total / total * 100) : 0;
+        return `"${s.nombre}","${s.estudio || ''}",${s.count},${s.total},${pct}%`;
+      });
+      rows.push(`"TOTAL","",${sales.length},${total},100%`);
+      const blob = new Blob([[header, ...rows].join('\n')], {type:'text/csv;charset=utf-8'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = `zuda_resumen_staff_${desde}_${hasta}.csv`; a.click();
+    };
   });
 }
 
@@ -3217,6 +3222,39 @@ async function downloadTablero() {
   a.download = 'zuda_tablero_' + getCDMXDate() + '.png';
   a.href = canvas.toDataURL('image/png');
   a.click();
+}
+
+// ─── DRILL-DOWN POR STAFF ───
+function showStaffDrill(idx) {
+  const s = window._drillData[idx];
+  if (!s) return;
+  const wrap = document.getElementById('adm-drill-wrap');
+  const title = document.getElementById('adm-drill-title');
+  const tbody = document.getElementById('adm-drill-tbody');
+  const countEl = document.getElementById('adm-drill-count');
+  const totalEl = document.getElementById('adm-drill-total');
+
+  title.textContent = s.nombre + ' · ' + (window._drillPeriodo || '');
+  tbody.innerHTML = s.ventas
+    .sort((a,b) => (a.fecha||'').localeCompare(b.fecha||''))
+    .map(v => {
+      const hora = v.created_at ? new Date(v.created_at).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',timeZone:'America/Mexico_City'}) : '—';
+      const desc = v.descuento ? `<span style="color:var(--tan);font-size:12px;">${v.descuento}%</span>` : '<span style="color:var(--gray3)">—</span>';
+      return `<tr>
+        <td>${fmtDate(v.fecha)}</td>
+        <td style="color:var(--gray)">${hora}</td>
+        <td style="color:var(--gray)">${v.estudio || '—'}</td>
+        <td style="color:var(--white)">${v.paquete}</td>
+        <td style="color:var(--gray)">${v.categoria}</td>
+        <td style="font-size:11px;color:var(--gray);letter-spacing:.04em">${v.numero_orden || '—'}</td>
+        <td>${desc}</td>
+        <td style="text-align:right;font-family:'Bebas Neue',sans-serif;font-size:14px;">$${Number(v.monto).toLocaleString('es-MX')}</td>
+      </tr>`;
+    }).join('');
+  countEl.textContent = s.count + ' transacción' + (s.count !== 1 ? 'es' : '');
+  totalEl.textContent = '$' + s.total.toLocaleString('es-MX');
+  wrap.style.display = '';
+  wrap.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
 // ─── DISCOUNT HELPER ───
