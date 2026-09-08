@@ -862,8 +862,20 @@ tr:hover td { background:#f5f2ed; }
             <tbody id="adm-fecha-tbody"></tbody>
           </table>
         </div>
+
+        <!-- Resumen por staff -->
+        <div id="adm-staff-resumen" style="display:none;margin-top:24px;">
+          <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--tan);margin-bottom:12px;font-weight:600;">VENTAS POR STAFF EN EL PERÍODO</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Nombre</th><th>Estudio</th><th style="text-align:right">Ventas</th><th style="text-align:right">Total</th><th style="text-align:right">% del período</th></tr></thead>
+              <tbody id="adm-staff-resumen-tbody"></tbody>
+            </table>
+          </div>
+        </div>
         <div style="display:flex;gap:8px;margin-top:12px;">
-          <button id="adm-export-rango" style="display:none;padding:9px 18px;border:1px solid var(--border);background:none;color:var(--gray);font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;">↓ Exportar resultados CSV</button>
+          <button id="adm-export-rango" style="display:none;padding:9px 18px;border:1px solid var(--border);background:none;color:var(--gray);font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;">↓ Exportar detalle CSV</button>
+          <button id="adm-export-staff-resumen" style="display:none;padding:9px 18px;border:1px solid var(--tan);background:none;color:var(--tan);font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;">↓ Exportar resumen por staff CSV</button>
         </div>
       </div>
 
@@ -1749,6 +1761,55 @@ async function loadAdminView() {
     wrap.style.display = '';
     exportBtn.style.display = sales.length ? '' : 'none';
     exportBtn.onclick = () => exportCSV(sales, `zuda_ventas_${desde}_${hasta}.csv`);
+
+    const exportStaffBtn = document.getElementById('adm-export-staff-resumen');
+    const staffResumen = document.getElementById('adm-staff-resumen');
+    const staffTbody = document.getElementById('adm-staff-resumen-tbody');
+    if (sales.length) {
+      const byStaff = {};
+      sales.forEach(s => {
+        const key = s.usuario;
+        if (!byStaff[key]) byStaff[key] = { nombre: s.nombre, estudio: s.estudio, count: 0, total: 0 };
+        byStaff[key].count++;
+        byStaff[key].total += Number(s.monto);
+      });
+      const staffList = Object.values(byStaff).sort((a,b) => b.total - a.total);
+      staffTbody.innerHTML = staffList.map(s => {
+        const pct = total > 0 ? Math.round(s.total / total * 100) : 0;
+        return `<tr>
+          <td style="color:var(--white);font-weight:500">${s.nombre}</td>
+          <td style="color:var(--gray)">${s.estudio || '—'}</td>
+          <td style="text-align:right;color:var(--gray)">${s.count}</td>
+          <td style="text-align:right;font-family:'Bebas Neue',sans-serif;font-size:15px;">$${s.total.toLocaleString('es-MX')}</td>
+          <td style="text-align:right;">
+            <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;">
+              <div style="width:60px;height:4px;background:var(--border);border-radius:2px;">
+                <div style="width:${pct}%;height:100%;background:var(--tan);border-radius:2px;"></div>
+              </div>
+              <span style="color:var(--tan);font-size:12px;min-width:28px;text-align:right">${pct}%</span>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+      staffResumen.style.display = '';
+      exportStaffBtn.style.display = '';
+      exportStaffBtn.onclick = () => {
+        const header = 'Nombre,Estudio,Transacciones,Total MXN,% del Período';
+        const rows = staffList.map(s => {
+          const pct = total > 0 ? Math.round(s.total / total * 100) : 0;
+          return `"${s.nombre}","${s.estudio || ''}",${s.count},${s.total},${pct}%`;
+        });
+        rows.push(`"TOTAL","",${sales.length},${total},100%`);
+        const blob = new Blob([[header, ...rows].join('\n')], {type:'text/csv;charset=utf-8'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `zuda_resumen_staff_${desde}_${hasta}.csv`;
+        a.click();
+      };
+    } else {
+      staffResumen.style.display = 'none';
+      exportStaffBtn.style.display = 'none';
+    }
   });
 }
 
