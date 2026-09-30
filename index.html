@@ -2038,7 +2038,7 @@ function renderAdminView(allSales) {
     const exc = ventaEst - meta;
     colDetail += `<div style="padding:6px 0;border-bottom:1px solid #E8E2D9;">
       <div style="display:flex;justify-content:space-between;">
-        <span style="color:${hit ? 'var(--white)' : 'var(--gray)'}">${est}</span>
+        <span style="color:${hit ? 'var(--green)' : 'var(--charcoal)'}">${est}</span>
         <span style="color:${hit ? 'var(--green)' : 'var(--gray3)'};font-family:'Bebas Neue',sans-serif;font-size:15px;">$${pool.toLocaleString('es-MX')}</span>
       </div>
       <div style="font-size:10px;color:var(--gray);margin-top:2px;">
@@ -2064,7 +2064,7 @@ function renderAdminView(allSales) {
     totalMgr += bonoTotal;
     mgrDetail += `<div style="padding:6px 0;border-bottom:1px solid #E8E2D9;">
       <div style="display:flex;justify-content:space-between;">
-        <span style="color:${hit ? 'var(--white)' : 'var(--gray)'}">${mgr.name.split(' ')[0]} ${mgr.name.split(' ')[1]}</span>
+        <span style="color:${hit ? 'var(--green)' : 'var(--charcoal)'}">${mgr.name.split(' ')[0]} ${mgr.name.split(' ')[1]}</span>
         <span style="color:${hit ? 'var(--green)' : 'var(--gray3)'};font-family:'Bebas Neue',sans-serif;font-size:15px;">$${bonoTotal.toLocaleString('es-MX')}</span>
       </div>
       <div style="font-size:10px;color:var(--gray);margin-top:2px;">
