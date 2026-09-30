@@ -758,7 +758,7 @@ tr:hover td { background:#f5f2ed; }
 
           <!-- Colectivos -->
           <div style="background:var(--surface);padding:24px;border-left:1px solid var(--sand);">
-            <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--tan);margin-bottom:16px;font-weight:500;">BONO COLECTIVO · 2% DE LA META (topado) · mín. $100K individual</div>
+            <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--tan);margin-bottom:16px;font-weight:500;">BONO COLECTIVO · 2% DE LA META (topado) · mín. $65K individual</div>
             <div id="est-col-detail" style="font-size:12px;color:var(--gray);line-height:1.8;"></div>
             <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--gray);">Condición: estudio supera meta · Topado a 2% de la meta · Se reparte proporcional a horas (mín. 20h/sem)</div>
           </div>
@@ -1397,7 +1397,7 @@ function renderSales(sales) {
           <div style="font-size:11px;color:var(--gray);margin-bottom:4px;">Estudio: <strong style="color:${hitEst?'var(--green)':'var(--charcoal)'}">$${estTotal.toLocaleString('es-MX')}</strong> <span style="color:${barC}">(${pctEst}%)</span></div>
           <div style="font-size:11px;color:var(--gray);margin-bottom:4px;">Pool disponible: <strong style="color:${hitEst?'var(--green)':'var(--gray3)'}">$${hitEst ? pool.toLocaleString('es-MX') : '—'}</strong></div>
           <div style="font-size:11px;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">
-            <span style="color:${eligible ? 'var(--green)' : 'var(--gray3)'};">${eligible ? '✓ Ventas elegibles ($100K+)' : '✗ Necesitas $' + Math.max(0,100000-miVentaEst).toLocaleString('es-MX') + ' más para llegar a $100K'}</span>
+            <span style="color:${eligible ? 'var(--green)' : 'var(--gray3)'};">${eligible ? '✓ Ventas elegibles ($65K+)' : '✗ Necesitas $' + Math.max(0,65000-miVentaEst).toLocaleString('es-MX') + ' más para llegar a $65K'}</span>
             <span style="font-size:10px;color:var(--gray);display:block;margin-top:2px;">Mis ventas aquí: $${miVentaEst.toLocaleString('es-MX')} · También se requieren 20h/sem</span>
           </div>
         </div>`;
