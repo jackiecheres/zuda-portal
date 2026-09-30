@@ -265,7 +265,7 @@ tr:hover td { background:#f5f2ed; }
           <div>
             <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray);margin-bottom:8px;">Para ser elegible</div>
             <div style="font-size:12px;color:var(--charcoal);line-height:1.8;">
-              · Mínimo <strong>$100,000 en ventas</strong> en ese estudio<br>
+              · Mínimo <strong>$65,000 en ventas</strong> en ese estudio<br>
               · Mínimo <strong>20 horas semanales</strong> trabajadas<br>
               · Se distribuye <strong>proporcional a horas</strong> trabajadas<br>
               · Aplica por estudio donde vendiste
@@ -455,7 +455,7 @@ tr:hover td { background:#f5f2ed; }
             <div>
               <div style="font-size:10px;color:var(--gray);margin-bottom:6px;text-transform:uppercase;letter-spacing:.1em;">Elegibilidad (para tu equipo)</div>
               <div style="font-size:12px;color:var(--charcoal);line-height:1.8;">
-                · Cada staff necesita <strong>$100,000 en ventas</strong> en el estudio<br>
+                · Cada staff necesita <strong>$65,000 en ventas</strong> en el estudio<br>
                 · Y cubrir <strong>mínimo 20 horas semanales</strong><br>
                 · Se distribuye proporcional a <strong>horas trabajadas</strong><br>
                 · El staff de front desk participa; managers no
@@ -1367,7 +1367,7 @@ function renderSales(sales) {
   bEl.textContent = '$' + bono.toLocaleString('es-MX');
   bEl.classList.toggle('active', hit);
   document.getElementById('box-bono-note').textContent = hit
-    ? '¡Bono activo! Cada venta también suma al bono colectivo si alcanzas $100K en el estudio.'
+    ? '¡Bono activo! Cada venta también suma al bono colectivo si alcanzas $65K en el estudio.'
     : 'Necesitas ' + metaLabel + ' en total. Tus ventas de todos los estudios suman.';
   const totEl = document.getElementById('box-bono-total');
   totEl.textContent = '$' + bono.toLocaleString('es-MX');
@@ -1387,7 +1387,7 @@ function renderSales(sales) {
         const pool = Math.min(Math.round(metaEst * 0.02), Math.round(metaEst * 0.02)); // 2% de la meta
         const hitEst = estTotal >= metaEst;
         const pctEst = metaEst > 0 ? Math.min(100, Math.round(estTotal / metaEst * 100)) : 0;
-        const eligible = miVentaEst >= 100000;
+        const eligible = miVentaEst >= 65000;
         const barC = hitEst ? 'var(--green)' : pctEst > 60 ? 'var(--accent)' : 'var(--red)';
         return `<div style="background:var(--gray2);padding:12px;border:1px solid var(--border);">
           <div style="font-size:10px;font-weight:600;color:${hitEst ? 'var(--tan)' : 'var(--gray)'};letter-spacing:.08em;margin-bottom:6px;">${est.split(' ')[0]}</div>
@@ -2016,8 +2016,8 @@ function renderAdminView(allSales) {
   });
   if (!indDetail) indDetail = '<div style="color:var(--gray3)">Ningún staff ha alcanzado su meta aún.</div>';
 
-  // 2. Bonos colectivos (2% venta estudio topado a meta, solo para staff con ≥$100K individual)
-  const MIN_VENTA_COLECTIVO = 100000; // requisito mínimo individual para acceder al colectivo
+  // 2. Bonos colectivos (2% venta estudio topado a meta, solo para staff con ≥$65K individual)
+  const MIN_VENTA_COLECTIVO = 65000; // requisito mínimo individual para acceder al colectivo
   let totalCol = 0;
   let colDetail = '';
   bonoEstudios.forEach(est => {
@@ -2025,7 +2025,7 @@ function renderAdminView(allSales) {
     const ventaEst = estSales.reduce((s,v) => s + Number(v.monto), 0);
     const meta = META_ESTUDIO[est] || 0;
     const hit = ventaEst >= meta;
-    // Solo staff con ≥$100K en ventas en ese estudio Y ≥20h/semana califican al colectivo
+    // Solo staff con ≥$65K en ventas en ese estudio Y ≥20h/semana califican al colectivo
     const elegibles = staffOnly.filter(d => {
       const ventaEnEst = allSales.filter(s => s.usuario === d.key && s.estudio === est).reduce((s,v) => s + Number(v.monto), 0);
       if (ventaEnEst < MIN_VENTA_COLECTIVO) return false;
