@@ -1135,6 +1135,11 @@ const META = 130000;
 const META_ESTUDIO = {'LILAS':727000,'PRADO NORTE':457000,'ARTZ PEDREGAL':322000};
 const META_IND = {'LILAS':130000,'PRADO NORTE':130000,'ARTZ PEDREGAL':120000};
 const BONO_IND_PCT = 0.03; // 3% sobre meta individual; +1% sobre excedente se calcula aparte
+
+function calcBonoInd(total, metaInd) {
+  if (total < metaInd) return 0;
+  return Math.round(metaInd * 0.03) + Math.round(Math.max(0, total - metaInd) * 0.01);
+}
 // Metas mensuales por estudio (30% sobre mostrador bruta 2025, distribuido por peso implícito)
 // Horas trabajadas en el trimestre (llenar con datos de planilla al cierre)
 // Mínimo 20h/sem × 13 semanas = 260h para ser elegible al bono colectivo
@@ -1718,8 +1723,8 @@ async function loadAdminView() {
         document.getElementById('adm-fecha-desde').value = firstDay;
         document.getElementById('adm-fecha-hasta').value = today;
       } else if (range === 'trimestre') {
-        document.getElementById('adm-fecha-desde').value = '2026-05-01';
-        document.getElementById('adm-fecha-hasta').value = '2026-06-30';
+        document.getElementById('adm-fecha-desde').value = '2026-07-01';
+        document.getElementById('adm-fecha-hasta').value = '2026-09-30';
       }
     });
   });
@@ -1847,7 +1852,7 @@ function renderAdminView(allSales) {
   const ventaHoy = allSales.filter(s => s.fecha === today).reduce((s,v) => s + Number(v.monto), 0);
   const sobre = staffOnly.filter(d => d.total >= d.metaInd).length;
   const bajo = staffOnly.filter(d => d.total < d.metaInd).length;
-  const bonos = staffOnly.filter(d => d.total >= d.metaInd).reduce((s,d) => s + Math.round(d.total * BONO_IND_PCT), 0);
+  const bonos = staffOnly.filter(d => d.total >= d.metaInd).reduce((s,d) => s + calcBonoInd(d.total, d.metaInd), 0);
   document.getElementById('adm-kpi-total').textContent = '$' + totalAll.toLocaleString('es-MX');
   document.getElementById('adm-kpi-sobre').textContent = sobre;
   document.getElementById('adm-kpi-bajo').textContent = bajo;
@@ -1924,7 +1929,7 @@ function renderAdminView(allSales) {
   const tbody = document.getElementById('admin-tbody');
   tbody.innerHTML = filtered.length ? filtered.map((d,i) => {
     const hit = d.isManager ? null : d.total >= d.metaInd;
-    const bono = (!d.isManager && hit) ? Math.round(d.total * BONO_IND_PCT) : 0;
+    const bono = (!d.isManager && hit) ? calcBonoInd(d.total, d.metaInd) : 0;
     const metaForPct = d.isManager ? (META_ESTUDIO[d.user.estudio] || 1) : d.metaInd;
     const pct = Math.min(100, Math.round(d.total / metaForPct * 100));
     const barColor = d.isManager ? 'var(--accent)' : (hit ? 'var(--green)' : 'var(--red)');
@@ -2089,7 +2094,7 @@ function renderAdminView(allSales) {
 
   // ─── PROYECCIÓN AL CIERRE ───
   const END_DATE = new Date('2026-09-30T23:59:59');
-  const START_DATE = new Date('2026-05-01T00:00:00');
+  const START_DATE = new Date('2026-07-01T00:00:00');
   const now2 = new Date();
   const diasTranscurridos = Math.max(1, Math.round((now2 - START_DATE) / 86400000));
   const diasRestantes = Math.max(0, Math.round((END_DATE - now2) / 86400000));
@@ -2257,7 +2262,7 @@ function renderAdminView(allSales) {
 function showDetail(d) {
   const wrap = document.getElementById('staff-detail-wrap');
   const hit = d.total >= META;
-  const bono = hit ? Math.round(d.total * 0.03) : 0;
+  const bono = hit ? calcBonoInd(d.total, d.metaInd) : 0;
 
   function renderDetailRows(sales) {
     return sales.length
@@ -2281,7 +2286,7 @@ function showDetail(d) {
   function buildDetail(sales) {
     const total = sales.reduce((s,v) => s + Number(v.monto), 0);
     const isHit = total >= d.metaInd;
-    const b = isHit ? Math.round(total * BONO_IND_PCT) : 0;
+    const b = isHit ? calcBonoInd(total, metaInd) : 0;
     return `<div class="detail-panel">
       <div class="detail-header">
         <div>
@@ -2429,7 +2434,7 @@ function showDetail(d) {
         // Update header totals
         const newTotal = detailSales.reduce((s,v) => s + Number(v.monto), 0);
         const isHit = newTotal >= d.metaInd;
-        const b = isHit ? Math.round(newTotal * BONO_IND_PCT) : 0;
+        const b = isHit ? calcBonoInd(newTotal, metaInd) : 0;
         wrap.querySelector('.detail-header div div:last-child').innerHTML = `
           Venta: <strong style="color:${isHit ? 'var(--green)' : 'var(--red)'}">$${newTotal.toLocaleString('es-MX')}</strong> &nbsp;·&nbsp;
           Bono: <strong style="color:${isHit ? 'var(--green)' : 'var(--gray3)'}">$${b.toLocaleString('es-MX')}</strong> &nbsp;·&nbsp;
@@ -3085,7 +3090,7 @@ function renderDirStaffTable(allSales) {
   }
 
   tbody.innerHTML = filtered.map((d,i) => {
-    const bono = d.hit ? Math.round(d.total * BONO_IND_PCT) : 0;
+    const bono = d.hit ? calcBonoInd(d.total, d.metaInd) : 0;
     const barColor = d.hit ? 'var(--green)' : 'var(--red)';
     const estLabel = d.estudiosVendidos.length ? d.estudiosVendidos.map(e => e.split(' ')[0]).join(', ') : '—';
     return `<tr class="${d.hit ? 'row-green' : 'row-red'}">
@@ -3634,10 +3639,10 @@ function exportBonosCSV(staffOnly, bonoEstudios, managerKeys, allSales) {
   rows.push('');
 
   // Totales
-  const totalInd = staffOnly.filter(d => d.total >= d.metaInd).reduce((s,d) => s + Math.round(d.total * BONO_IND_PCT), 0);
+  const totalInd = staffOnly.filter(d => d.total >= d.metaInd).reduce((s,d) => s + calcBonoInd(d.total, d.metaInd), 0);
   const totalCol = bonoEstudios.reduce((s, est) => {
     const v = allSales.filter(x => x.estudio === est).reduce((a,b) => a + Number(b.monto), 0);
-    return s + (v >= (META_ESTUDIO[est]||0) ? Math.round(v * 0.03) : 0);
+    return s + (v >= (META_ESTUDIO[est]||0) ? Math.min(Math.round(v * 0.02), Math.round((META_ESTUDIO[est]||0) * 0.02)) : 0);
   }, 0);
   const totalMgr = managerKeys.reduce((s,k) => {
     const v = allSales.filter(x => x.estudio === USERS[k].estudio).reduce((a,b) => a + Number(b.monto), 0);
