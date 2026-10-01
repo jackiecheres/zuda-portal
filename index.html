@@ -321,7 +321,7 @@ tr:hover td { background:#f5f2ed; }
             <label>Número de orden <span style="font-size:10px;color:var(--red);">*</span></label>
             <div style="display:flex;align-items:center;background:var(--gray2);border:1px solid var(--border);">
               <span style="padding:11px 12px;font-size:13px;color:var(--gray);border-right:1px solid var(--border);white-space:nowrap;">Order #</span>
-              <input type="text" id="f-orden" placeholder="VTC9-SSVF-5KV3" style="flex:1;padding:11px 14px;background:transparent;border:none;color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;letter-spacing:0.04em;">
+              <input type="text" id="f-orden" placeholder="VTC9-SSVF-5KV3" maxlength="14" autocapitalize="characters" autocomplete="off" style="flex:1;padding:11px 14px;background:transparent;border:none;color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;letter-spacing:0.04em;">
             </div>
           </div>
 
@@ -518,7 +518,7 @@ tr:hover td { background:#f5f2ed; }
               <label>Número de orden <span style="font-size:10px;color:var(--red);">*</span></label>
               <div style="display:flex;align-items:center;background:var(--gray2);border:1px solid var(--border);">
                 <span style="padding:11px 12px;font-size:13px;color:var(--gray);border-right:1px solid var(--border);white-space:nowrap;">Order #</span>
-                <input type="text" id="mgr-f-orden" placeholder="VTC9-SSVF-5KV3" style="flex:1;padding:11px 14px;background:transparent;border:none;color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;letter-spacing:0.04em;">
+                <input type="text" id="mgr-f-orden" placeholder="VTC9-SSVF-5KV3" maxlength="14" autocapitalize="characters" autocomplete="off" style="flex:1;padding:11px 14px;background:transparent;border:none;color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;letter-spacing:0.04em;">
               </div>
             </div>
             <div style="border-top:1px solid var(--border);margin-top:20px;padding-top:16px;">
@@ -682,7 +682,7 @@ tr:hover td { background:#f5f2ed; }
               <label>Número de orden <span style="font-size:10px;color:var(--red);">*</span></label>
               <div style="display:flex;align-items:center;background:var(--gray2);border:1px solid var(--border);">
                 <span style="padding:11px 12px;font-size:13px;color:var(--gray);border-right:1px solid var(--border);white-space:nowrap;">Order #</span>
-                <input type="text" id="adm-sale-orden" placeholder="VTC9-SSVF-5KV3" style="flex:1;padding:11px 14px;background:transparent;border:none;color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;letter-spacing:0.04em;">
+                <input type="text" id="adm-sale-orden" placeholder="VTC9-SSVF-5KV3" maxlength="14" autocapitalize="characters" autocomplete="off" style="flex:1;padding:11px 14px;background:transparent;border:none;color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;letter-spacing:0.04em;">
               </div>
             </div>
             <div style="border-top:1px solid var(--border);margin-top:20px;padding-top:16px;">
@@ -4127,6 +4127,19 @@ document.getElementById('f-estudio').addEventListener('change', updatePreview);
 document.getElementById('f-fecha').addEventListener('change', updatePreview);
 document.getElementById('f-descuento').addEventListener('change', updatePreview);
 document.getElementById('f-motivo').addEventListener('input', updatePreview);
+
+// Auto-formato del número de orden mientras se escribe: mayúsculas, solo letras/números, guiones cada 4.
+function fmtOrdenInput(el) {
+  const c = el.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
+  const f = c.match(/.{1,4}/g)?.join('-') || '';
+  if (el.value !== f) el.value = f;
+}
+document.addEventListener('input', e => {
+  const id = e.target?.id || '';
+  if (id === 'f-orden' || id === 'mgr-f-orden' || id === 'adm-sale-orden' || id.startsWith('edit-orden-')) {
+    fmtOrdenInput(e.target);
+  }
+});
 document.getElementById('f-orden').addEventListener('input', updatePreview);
 </script>
 </body>
