@@ -318,7 +318,7 @@ tr:hover td { background:#f5f2ed; }
             </select>
           </div>
           <div class="field">
-            <label>Número de orden <span style="font-size:10px;color:var(--gray);">(opcional)</span></label>
+            <label>Número de orden <span style="font-size:10px;color:var(--red);">*</span></label>
             <div style="display:flex;align-items:center;background:var(--gray2);border:1px solid var(--border);">
               <span style="padding:11px 12px;font-size:13px;color:var(--gray);border-right:1px solid var(--border);white-space:nowrap;">Order #</span>
               <input type="text" id="f-orden" placeholder="VTC9-SSVF-5KV3" style="flex:1;padding:11px 14px;background:transparent;border:none;color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;letter-spacing:0.04em;">
@@ -515,7 +515,7 @@ tr:hover td { background:#f5f2ed; }
               <input type="text" id="mgr-f-estudio" readonly style="width:100%;padding:11px 14px;background:var(--gray2);border:1px solid var(--border);color:var(--tan);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;">
             </div>
             <div class="field">
-              <label>Número de orden <span style="font-size:10px;color:var(--gray);">(opcional)</span></label>
+              <label>Número de orden <span style="font-size:10px;color:var(--red);">*</span></label>
               <div style="display:flex;align-items:center;background:var(--gray2);border:1px solid var(--border);">
                 <span style="padding:11px 12px;font-size:13px;color:var(--gray);border-right:1px solid var(--border);white-space:nowrap;">Order #</span>
                 <input type="text" id="mgr-f-orden" placeholder="VTC9-SSVF-5KV3" style="flex:1;padding:11px 14px;background:transparent;border:none;color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;letter-spacing:0.04em;">
@@ -679,7 +679,7 @@ tr:hover td { background:#f5f2ed; }
               </select>
             </div>
             <div class="field">
-              <label>Número de orden <span style="font-size:10px;color:var(--gray);">(opcional)</span></label>
+              <label>Número de orden <span style="font-size:10px;color:var(--red);">*</span></label>
               <div style="display:flex;align-items:center;background:var(--gray2);border:1px solid var(--border);">
                 <span style="padding:11px 12px;font-size:13px;color:var(--gray);border-right:1px solid var(--border);white-space:nowrap;">Order #</span>
                 <input type="text" id="adm-sale-orden" placeholder="VTC9-SSVF-5KV3" style="flex:1;padding:11px 14px;background:transparent;border:none;color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;letter-spacing:0.04em;">
@@ -1142,6 +1142,13 @@ const META = 130000;
 function estLabel(est) { return est === 'ARTZ PEDREGAL' ? 'ARTZ' : est; }
 const META_ESTUDIO = {'LILAS':715000,'PRADO NORTE':568600,'ARTZ PEDREGAL':505050};
 const META_IND = {'LILAS':130000,'PRADO NORTE':130000,'ARTZ PEDREGAL':120000};
+// Número de orden Mariana Tek: 3 bloques de 4 letras/números (XXXX-XXXX-XXXX).
+// Acepta con o sin guiones/espacios y en minúsculas; devuelve el formato normalizado o null si no es válido.
+function normOrden(v) {
+  const c = (v || '').toUpperCase().replace(/[\s-]/g, '');
+  return /^[A-Z0-9]{12}$/.test(c) ? `${c.slice(0,4)}-${c.slice(4,8)}-${c.slice(8)}` : null;
+}
+const ORDEN_ERR = 'Número de orden inválido. Formato: XXXX-XXXX-XXXX (solo letras y números).';
 // Bono individual: 3% sobre la meta + 1% sobre el excedente (solo si alcanza meta)
 function calcBonoInd(total, metaInd) { return total >= metaInd ? Math.round(metaInd * 0.03) + Math.round(Math.max(0, total - metaInd) * 0.01) : 0; }
 const BONO_IND_PCT = 0.03; // 3% sobre meta individual; +1% sobre excedente se calcula aparte
@@ -1494,8 +1501,13 @@ function addCartItem() {
 async function addSale() {
   const fecha = document.getElementById('f-fecha').value;
   const estudio = document.getElementById('f-estudio').value;
-  const orden = document.getElementById('f-orden').value.trim();
+  const ordenRaw = document.getElementById('f-orden').value.trim();
+  const orden = normOrden(ordenRaw);
   const msg = document.getElementById('success-msg');
+  if (!orden) {
+    msg.style.color = 'var(--red)'; msg.textContent = ordenRaw ? ORDEN_ERR : 'El número de orden es obligatorio.';
+    document.getElementById('f-orden').focus(); return;
+  }
   if (!fecha || !estudio) {
     msg.style.color = 'var(--red)'; msg.textContent = 'Selecciona fecha y estudio.';
     setTimeout(() => msg.textContent = '', 2500); return;
@@ -2387,7 +2399,9 @@ function showDetail(d) {
         const mot = document.getElementById(`edit-motivo-${id}`).value.trim();
         const newFecha = document.getElementById(`edit-fecha-${id}`).value;
         const newMonto = pct > 0 ? Math.round(montoOrig * (1 - pct/100)) : montoOrig;
-        const newOrden = document.getElementById(`edit-orden-${id}`).value.trim();
+        const newOrdenRaw = document.getElementById(`edit-orden-${id}`).value.trim();
+        const newOrden = normOrden(newOrdenRaw);
+        if (!newOrden) { alert(newOrdenRaw ? ORDEN_ERR : 'El número de orden es obligatorio.'); document.getElementById(`edit-orden-${id}`).focus(); return; }
         try {
           await fetch(`${SB_URL}/rest/v1/ventas?id=eq.${id}`, {
             method: 'PATCH',
@@ -2892,8 +2906,13 @@ function addMgrCartItem() {
 async function addManagerSale() {
   const fecha = document.getElementById('mgr-f-fecha').value;
   const estudio = currentUser.estudio;
-  const orden = document.getElementById('mgr-f-orden')?.value?.trim() || '';
+  const ordenRaw = document.getElementById('mgr-f-orden')?.value?.trim() || '';
+  const orden = normOrden(ordenRaw);
   const msg = document.getElementById('mgr-success-msg');
+  if (!orden) {
+    msg.style.color = 'var(--red)'; msg.textContent = ordenRaw ? ORDEN_ERR : 'El número de orden es obligatorio.';
+    document.getElementById('mgr-f-orden')?.focus(); return;
+  }
   if (!fecha) {
     msg.style.color = 'var(--red)'; msg.textContent = 'Selecciona la fecha.';
     setTimeout(() => msg.textContent = '', 2500); return;
@@ -3401,8 +3420,13 @@ async function submitAdmSale() {
   const fecha = document.getElementById('adm-sale-fecha').value;
   const estudio = document.getElementById('adm-sale-estudio').value;
   const usuarioKey = document.getElementById('adm-sale-usuario').value;
-  const orden = document.getElementById('adm-sale-orden').value.trim();
+  const ordenRaw = document.getElementById('adm-sale-orden').value.trim();
+  const orden = normOrden(ordenRaw);
   const msg = document.getElementById('adm-sale-msg');
+  if (!orden) {
+    msg.style.color='var(--red)'; msg.textContent= ordenRaw ? ORDEN_ERR : 'El número de orden es obligatorio.';
+    document.getElementById('adm-sale-orden').focus(); setTimeout(()=>msg.textContent='',2500); return;
+  }
   if (!fecha || !estudio || !usuarioKey) {
     msg.style.color='var(--red)'; msg.textContent='Selecciona fecha, estudio y staff.';
     setTimeout(()=>msg.textContent='',2500); return;
