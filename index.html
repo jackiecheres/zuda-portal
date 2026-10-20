@@ -1133,7 +1133,7 @@ const USERS = {
   "marcebmin@gmail.com":            {pass:"Zuda2026$Marcela", name:"Marcela Barros Minvielle",    initials:"MB", isAdmin:false, isManager:true,  estudio:"LILAS"},
   "lucapa2406@icloud.com":           {pass:"Zuda2026$Luisa",   name:"Luisa Cabrera Pacheco",       initials:"LC", isAdmin:false, estudio:"PRADO NORTE"},
   "admin":                          {pass:"zudaadmin26",      name:"Admin ZUDA",                  initials:"AD", isAdmin:true,  estudio:null},
-  "jax@zuda.mx":                    {pass:"zudaadmin26",      name:"Admin (Jax Cheres)",          initials:"JC", isAdmin:true,  estudio:null},
+  "jax@zuda.mx":                    {pass:"zudaadmin26",      name:"Admin (Jax Cheres)",          initials:"JC", isAdmin:true,  sinBono:true, estudio:null},
   "admin2":                         {pass:"zudaadmin26",      name:"Dirección ZUDA",              initials:"DZ", isAdmin:false, isDirector:true, estudio:null},
   "javier@zuda.mx":                 {pass:"Zuda2026$Javier",  name:"Javier de Haro",              initials:"JH", isAdmin:false, isDirector:true, estudio:null}
 };
@@ -1151,7 +1151,7 @@ function normOrden(v) {
 }
 const ORDEN_ERR = 'Número de orden inválido. Formato: XXXX-XXXX-XXXX (solo letras y números).';
 // Bono individual: 3% sobre la meta + 1% sobre el excedente (solo si alcanza meta)
-function calcBonoInd(total, metaInd) { return total >= metaInd ? Math.round(metaInd * 0.03) + Math.round(Math.max(0, total - metaInd) * 0.01) : 0; }
+function calcBonoInd(total, metaInd) { if (!metaInd) return 0; return total >= metaInd ? Math.round(metaInd * 0.03) + Math.round(Math.max(0, total - metaInd) * 0.01) : 0; }
 const BONO_IND_PCT = 0.03; // 3% sobre meta individual; +1% sobre excedente se calcula aparte
 // Metas mensuales por estudio (30% sobre mostrador bruta 2025, distribuido por peso implícito)
 // Horas trabajadas en el trimestre (llenar con datos de planilla al cierre)
@@ -1213,6 +1213,9 @@ const CATALOG = {
 };
 const CAT_LABELS = {aniversario:'★ Promociones Aniversario',paquete:'Paquetes',mensualidad:'Mensualidad',anualidad:'Anualidad',teens:'Teens',cubo:'Cubo',recovery:'Recovery',bebidas:'Alimentos y Bebidas',merch:'Merch',wellness:'Zuda Wellness',promociones:'Promociones',eventos:'Eventos',otros:'Otros',creditos:'Créditos'};
 
+// Quién aparece en listas de venta: staff, managers y admins que venden sin bono (sinBono)
+function esVendedor(k) { const u = USERS[k]; return !u.isDirector && (!u.isAdmin || !!u.sinBono); }
+const SIN_BONO_TAG = '<span style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;border:1px solid var(--gray3);color:var(--gray);padding:1px 6px;margin-left:6px;">Sin bono</span>';
 let currentUser = null;
 // Categorías con vigencia: aniversario solo en octubre 2026 (admin la ve siempre)
 function catVisible(k) {
@@ -1734,7 +1737,7 @@ async function loadAdminView() {
   const staffSel = document.getElementById('adm-staff-filter');
   if (staffSel) {
     staffSel.innerHTML = '<option value="">Todos</option>';
-    Object.keys(USERS).filter(k => !USERS[k].isAdmin && !USERS[k].isDirector).forEach(k => {
+    Object.keys(USERS).filter(esVendedor).forEach(k => {
       const o = document.createElement('option');
       o.value = k; o.textContent = USERS[k].name;
       staffSel.appendChild(o);
@@ -1870,7 +1873,7 @@ async function loadAdminView() {
 }
 
 function renderAdminView(allSales) {
-  const staffKeys = Object.keys(USERS).filter(k => !USERS[k].isAdmin && !USERS[k].isDirector);
+  const staffKeys = Object.keys(USERS).filter(esVendedor);
   const today = getCDMXDate();
   const yesterday = getCDMXDate(-1);
 
@@ -1887,12 +1890,13 @@ function renderAdminView(allSales) {
     const hoy = sales.filter(s => s.fecha === today).reduce((s,v) => s + Number(v.monto), 0);
     const estudiosVendidos = [...new Set(sales.map(s => s.estudio))].filter(Boolean);
     const isManager = !!USERS[k].isManager;
-    const metaInd = isManager ? null : (USERS[k].estudio === 'ARTZ PEDREGAL') ? 120000 : META;
-    return { key:k, user:USERS[k], sales, total, hoy, estudiosVendidos, metaInd, isManager };
+    const sinBono = !!USERS[k].sinBono;
+    const metaInd = (isManager || sinBono) ? null : (USERS[k].estudio === 'ARTZ PEDREGAL') ? 120000 : META;
+    return { key:k, user:USERS[k], sales, total, hoy, estudiosVendidos, metaInd, isManager, sinBono };
   });
 
-  // KPIs — only count staff (not managers) for individual meta
-  const staffOnly = userData.filter(d => !d.isManager);
+  // KPIs — only count staff (not managers, not sin-bono) for individual meta and bonuses
+  const staffOnly = userData.filter(d => !d.isManager && !d.sinBono);
   const totalAll = userData.reduce((s,d) => s + d.total, 0);
   const ventaHoy = allSales.filter(s => s.fecha === today).reduce((s,v) => s + Number(v.monto), 0);
   const sobre = staffOnly.filter(d => d.total >= d.metaInd).length;
@@ -1967,24 +1971,25 @@ function renderAdminView(allSales) {
   // Staff + managers table — filtered
   const filtered = userData.filter(d => {
     if (adminFilter === 'todos') return true;
-    if (adminFilter === 'bajo') return !d.isManager && d.total < d.metaInd;
+    if (adminFilter === 'bajo') return !d.isManager && !d.sinBono && d.total < d.metaInd;
     return d.estudiosVendidos.includes(adminFilter);
   }).sort((a,b) => b.total - a.total);
 
   const tbody = document.getElementById('admin-tbody');
   tbody.innerHTML = filtered.length ? filtered.map((d,i) => {
-    const hit = d.isManager ? null : d.total >= d.metaInd;
-    const bono = (!d.isManager && hit) ? calcBonoInd(d.total, d.metaInd) : 0;
-    const metaForPct = d.isManager ? (META_ESTUDIO[d.user.estudio] || 1) : d.metaInd;
-    const pct = Math.min(100, Math.round(d.total / metaForPct * 100));
-    const barColor = d.isManager ? 'var(--accent)' : (hit ? 'var(--green)' : 'var(--red)');
-    const rowCls = d.isManager ? '' : (hit ? 'row-green' : 'row-red');
+    const hit = (d.isManager || d.sinBono) ? null : d.total >= d.metaInd;
+    const bono = (!d.isManager && !d.sinBono && hit) ? calcBonoInd(d.total, d.metaInd) : 0;
+    const metaForPct = d.isManager ? (META_ESTUDIO[d.user.estudio] || 1) : (d.metaInd || 1);
+    const pct = d.sinBono ? 0 : Math.min(100, Math.round(d.total / metaForPct * 100));
+    const barColor = d.isManager ? 'var(--accent)' : d.sinBono ? 'var(--gray3)' : (hit ? 'var(--green)' : 'var(--red)');
+    const rowCls = (d.isManager || d.sinBono) ? '' : (hit ? 'row-green' : 'row-red');
     const estLabel = d.estudiosVendidos.length ? d.estudiosVendidos.map(e => e.split(' ')[0]).join(', ') : '—';
     const nameCell = d.isManager
       ? `${d.user.name} <span style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;border:1px solid var(--accent);color:var(--tan);padding:1px 6px;margin-left:6px;">Manager</span>`
-      : d.user.name;
+      : d.sinBono ? `Jax Cheres ${SIN_BONO_TAG}` : d.user.name;
     const statusCell = d.isManager
       ? `<span style="font-size:11px;color:var(--tan);">Bono estudio</span>`
+      : d.sinBono ? `<span style="font-size:11px;color:var(--gray);">Sin bono</span>`
       : (hit ? '✓ Meta' : '✗ Bajo');
     return `<tr class="${rowCls}" data-key="${d.key}" style="cursor:pointer;${d.isManager ? 'background:#f8f6f2!important;' : ''}">
       <td style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--charcoal);font-weight:700;">${i+1}</td>
@@ -2331,7 +2336,7 @@ function showDetail(d) {
 
   function buildDetail(sales) {
     const total = sales.reduce((s,v) => s + Number(v.monto), 0);
-    const isHit = total >= d.metaInd;
+    const isHit = !!d.metaInd && total >= d.metaInd;
     const b = calcBonoInd(total, d.metaInd);
     return `<div class="detail-panel">
       <div class="detail-header">
@@ -2339,7 +2344,7 @@ function showDetail(d) {
           <div class="detail-header-name">${d.user.name}</div>
           <div style="font-size:12px;color:var(--gray);margin-top:4px">
             Venta: <strong style="color:${isHit ? 'var(--green)' : 'var(--red)'}">$${total.toLocaleString('es-MX')}</strong>
-            &nbsp;·&nbsp; Bono: <strong style="color:${isHit ? 'var(--green)' : 'var(--gray3)'}">$${b.toLocaleString('es-MX')}</strong>
+            &nbsp;·&nbsp; Bono: <strong style="color:${isHit ? 'var(--green)' : 'var(--gray3)'}">${d.sinBono ? 'Sin bono' : d.isManager ? 'Ver bono manager' : '$' + b.toLocaleString('es-MX')}</strong>
             &nbsp;·&nbsp; ${sales.length} ventas
             <span style="margin-left:12px;font-size:10px;color:var(--gray);border:1px solid var(--border);padding:2px 8px;">Admin · Editar o eliminar ventas</span>
           </div>
@@ -2481,11 +2486,11 @@ function showDetail(d) {
         document.getElementById('detail-tbody').innerHTML = renderDetailRows(detailSales);
         // Update header totals
         const newTotal = detailSales.reduce((s,v) => s + Number(v.monto), 0);
-        const isHit = newTotal >= d.metaInd;
+        const isHit = !!d.metaInd && newTotal >= d.metaInd;
         const b = calcBonoInd(newTotal, d.metaInd);
         wrap.querySelector('.detail-header div div:last-child').innerHTML = `
           Venta: <strong style="color:${isHit ? 'var(--green)' : 'var(--red)'}">$${newTotal.toLocaleString('es-MX')}</strong> &nbsp;·&nbsp;
-          Bono: <strong style="color:${isHit ? 'var(--green)' : 'var(--gray3)'}">$${b.toLocaleString('es-MX')}</strong> &nbsp;·&nbsp;
+          Bono: <strong style="color:${isHit ? 'var(--green)' : 'var(--gray3)'}">${d.sinBono ? 'Sin bono' : d.isManager ? 'Ver bono manager' : '$' + b.toLocaleString('es-MX')}</strong> &nbsp;·&nbsp;
           ${detailSales.length} ventas
           <span style="margin-left:12px;font-size:10px;color:var(--gray);border:1px solid var(--border);padding:2px 8px;">Admin · Puedes eliminar ventas</span>`;
         // Refresh main admin table
@@ -2791,7 +2796,7 @@ function renderMgrEstGrid(allSales, myEst) {
 
 function renderManagerStaffTable(allSales, est) {
   const today = getCDMXDate();
-  const staffKeys = Object.keys(USERS).filter(k => !USERS[k].isAdmin && !USERS[k].isManager);
+  const staffKeys = Object.keys(USERS).filter(k => esVendedor(k) && !USERS[k].isManager);
   const estSalesAll = allSales.filter(s => s.estudio === est);
 
   const staffData = staffKeys
@@ -2811,11 +2816,20 @@ function renderManagerStaffTable(allSales, est) {
   }
 
   tbody.innerHTML = staffData.map(d => {
+    const sinBono = !!d.user.sinBono;
     const metaInd = (USERS[d.key].estudio === 'ARTZ PEDREGAL') ? 120000 : META;
     const hit = d.total >= metaInd;
     const falta = Math.max(0, metaInd - d.total);
     const exc = d.total - metaInd;
-    const bono = hit ? (Math.round(d.metaInd * 0.03) + Math.round(Math.max(0, d.total - d.metaInd) * 0.01)) : 0;
+    const bono = sinBono ? 0 : calcBonoInd(d.total, metaInd);
+    if (sinBono) return `<tr>
+      <td class="td-name" style="font-weight:500">Jax Cheres ${SIN_BONO_TAG}</td>
+      <td>${d.sales.length}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:15px">$${d.total.toLocaleString('es-MX')}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:14px;color:${d.hoy > 0 ? 'var(--accent)' : 'var(--gray3)'}">$${d.hoy.toLocaleString('es-MX')}</td>
+      <td style="color:var(--gray3)">—</td><td style="color:var(--gray3)">—</td>
+      <td class="td-status"><span style="font-size:11px;color:var(--gray);">Sin bono</span></td>
+    </tr>`;
     return `<tr class="${hit ? 'row-green' : 'row-red'}">
       <td class="td-name" style="font-weight:500">${d.user.name}</td>
       <td>${d.sales.length}</td>
@@ -3118,17 +3132,18 @@ function renderDirEstudios(allSales) {
 
 function renderDirStaffTable(allSales) {
   const today = getCDMXDate();
-  const staffKeys = Object.keys(USERS).filter(k => !USERS[k].isAdmin && !USERS[k].isManager && !USERS[k].isDirector);
+  const staffKeys = Object.keys(USERS).filter(k => esVendedor(k) && !USERS[k].isManager);
 
   const userData = staffKeys.map(k => {
     const sales = allSales.filter(s => s.usuario === k);
     const total = sales.reduce((s,v) => s + Number(v.monto), 0);
     const hoy = sales.filter(s => s.fecha === today).reduce((s,v) => s + Number(v.monto), 0);
     const estudiosVendidos = [...new Set(sales.map(s => s.estudio))].filter(Boolean);
+    const sinBono = !!USERS[k].sinBono;
     const metaInd = (USERS[k].estudio === 'ARTZ PEDREGAL') ? 120000 : META;
-    const pct = Math.min(100, Math.round(total / metaInd * 100));
-    const hit = total >= metaInd;
-    return { key:k, user:USERS[k], total, hoy, estudiosVendidos, metaInd, pct, hit };
+    const pct = sinBono ? 0 : Math.min(100, Math.round(total / metaInd * 100));
+    const hit = !sinBono && total >= metaInd;
+    return { key:k, user:USERS[k], total, hoy, estudiosVendidos, metaInd, pct, hit, sinBono };
   });
 
   const filtered = userData.filter(d => {
@@ -3144,11 +3159,11 @@ function renderDirStaffTable(allSales) {
 
   tbody.innerHTML = filtered.map((d,i) => {
     const bono = d.hit ? calcBonoInd(d.total, d.metaInd || META) : 0;
-    const barColor = d.hit ? 'var(--green)' : 'var(--red)';
+    const barColor = d.sinBono ? 'var(--gray3)' : d.hit ? 'var(--green)' : 'var(--red)';
     const estLabel = d.estudiosVendidos.length ? d.estudiosVendidos.map(e => e.split(' ')[0]).join(', ') : '—';
-    return `<tr class="${d.hit ? 'row-green' : 'row-red'}">
+    return `<tr class="${d.sinBono ? '' : d.hit ? 'row-green' : 'row-red'}">
       <td style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--charcoal);font-weight:700;">${i+1}</td>
-      <td class="td-name" style="font-weight:500">${d.user.name}</td>
+      <td class="td-name" style="font-weight:500">${d.sinBono ? 'Jax Cheres ' + SIN_BONO_TAG : d.user.name}</td>
       <td style="font-size:12px">${estLabel}</td>
       <td style="font-family:'Bebas Neue',sans-serif;font-size:15px">$${d.total.toLocaleString('es-MX')}</td>
       <td style="font-family:'Bebas Neue',sans-serif;font-size:14px;color:${d.hoy > 0 ? 'var(--accent)' : 'var(--gray3)'}">$${d.hoy.toLocaleString('es-MX')}</td>
@@ -3159,7 +3174,7 @@ function renderDirStaffTable(allSales) {
         </div>
       </td>
       <td style="font-family:'Bebas Neue',sans-serif;font-size:14px;color:${d.hit ? 'var(--green)' : 'var(--gray3)'}">$${bono.toLocaleString('es-MX')}</td>
-      <td class="td-status">${d.hit ? '✓ Meta' : '✗ Bajo'}</td>
+      <td class="td-status">${d.sinBono ? '<span style="font-size:11px;color:var(--gray);">Sin bono</span>' : d.hit ? '✓ Meta' : '✗ Bajo'}</td>
     </tr>`;
   }).join('');
 }
