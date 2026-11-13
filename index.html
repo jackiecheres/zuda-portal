@@ -1195,6 +1195,8 @@ const CATALOG = {
     {name:"Aniv · ZUDA BLACK Contado",price:58000},
     {name:"Aniv · ZUDA BLACK +1 Mes (Promo Renovación)",price:58000}
   ],
+  // Buen Fin — visible solo del 13 al 17 de noviembre 2026 (admin siempre la ve)
+  buenfin:[{name:"Buen Fin 5+1",price:1850},{name:"Buen Fin 10+2",price:3600}],
   paquete:[{name:"1 clase",price:380},{name:"3 clases (primera vez)",price:949},{name:"5 clases",price:1850},{name:"10 clases",price:3600},{name:"20 clases",price:6800},{name:"30 clases",price:9600},{name:"Office 10 clases",price:2400},{name:"100 clases",price:25000}],
   promociones:[{name:"5 clases + 1 gratis",price:1850},{name:"10 clases + 2 gratis",price:3600},{name:"20 clases + 3 gratis",price:6800},{name:"Membresía Familiar 16 clases",price:4000},{name:"Este 15 compra 15",price:4800}],
   mensualidad:[{name:"Platinum 16 clases",price:4400},{name:"Platinum 24 clases",price:4900},{name:"Ilimitado All Access",price:5600},{name:"ARTZ Ilimitado",price:3600},{name:"ZUDA Student 8 clases",price:1999},{name:"ZUDA Student 16 clases",price:3299}],
@@ -1208,17 +1210,25 @@ const CATALOG = {
   otros:[{name:"Clase Privada",price:8000},{name:"Capacitación Sculpt",price:4000}],
   creditos:[{name:"Credito Extra Mem Lim",price:300},{name:"Credito Extra VIP",price:240}]
 };
-const CAT_LABELS = {aniversario:'★ Promociones Aniversario',paquete:'Paquetes',mensualidad:'Mensualidad',anualidad:'Anualidad',teens:'Teens',cubo:'Cubo',recovery:'Recovery',bebidas:'Alimentos y Bebidas',merch:'Merch',wellness:'Zuda Wellness',promociones:'Promociones',eventos:'Eventos',otros:'Otros',creditos:'Créditos'};
+const CAT_LABELS = {aniversario:'★ Promociones Aniversario',buenfin:'★ Buen Fin',paquete:'Paquetes',mensualidad:'Mensualidad',anualidad:'Anualidad',teens:'Teens',cubo:'Cubo',recovery:'Recovery',bebidas:'Alimentos y Bebidas',merch:'Merch',wellness:'Zuda Wellness',promociones:'Promociones',eventos:'Eventos',otros:'Otros',creditos:'Créditos'};
 
 // Quién aparece en listas de venta: staff, managers y admins que venden sin bono (sinBono)
 function esVendedor(k) { const u = USERS[k]; return !u.isDirector && (!u.isAdmin || !!u.sinBono); }
 const SIN_BONO_TAG = '<span style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;border:1px solid var(--gray3);color:var(--gray);padding:1px 6px;margin-left:6px;">Sin bono</span>';
 let currentUser = null;
 // Categorías con vigencia: aniversario solo en octubre 2026 (admin la ve siempre)
+// Categorías con vigencia (fechas inclusive, hora CDMX). Admin las ve siempre para capturas retroactivas.
+// Categorías que no aceptan descuentos adicionales
+const CAT_SIN_DESCUENTO = ['aniversario', 'buenfin'];
+const CAT_VIGENCIA = {
+  aniversario: ['2026-10-01', '2026-10-31'],
+  buenfin:     ['2026-11-13', '2026-11-17']
+};
 function catVisible(k) {
-  if (k !== 'aniversario') return true;
+  const v = CAT_VIGENCIA[k]; if (!v) return true;
   if (currentUser && currentUser.isAdmin) return true;
-  return getCDMXDate().slice(0,7) === '2026-10';
+  const hoy = getCDMXDate();
+  return hoy >= v[0] && hoy <= v[1];
 }
 let currentUserKey = null;
 let adminFilter = 'todos';
@@ -1510,7 +1520,7 @@ function addCartItem() {
     setTimeout(() => msg.textContent = '', 2000); return;
   }
   const item = CATALOG[cat][parseInt(idx)];
-  const descRaw = cat === 'aniversario' ? '0' : (document.getElementById('f-descuento').value || '0');
+  const descRaw = CAT_SIN_DESCUENTO.includes(cat) ? '0' : (document.getElementById('f-descuento').value || '0');
   const descPct = getDescPct(descRaw);
   const descLabel = getDescLabel(descRaw);
   const motivo = descRaw === 'intro' || descRaw === 'student10' ? descLabel : document.getElementById('f-motivo').value.trim();
@@ -2929,7 +2939,7 @@ function addMgrCartItem() {
     setTimeout(() => msg.textContent = '', 2000); return;
   }
   const item = CATALOG[cat][parseInt(idx)];
-  const descPct = cat === 'aniversario' ? 0 : parseInt(document.getElementById('mgr-f-descuento')?.value || '0');
+  const descPct = CAT_SIN_DESCUENTO.includes(cat) ? 0 : parseInt(document.getElementById('mgr-f-descuento')?.value || '0');
   const motivo = document.getElementById('mgr-f-motivo')?.value?.trim() || '';
   const monto = descPct > 0 ? Math.round(item.price * (1 - descPct/100)) : item.price;
   _mgrCart.push({ cat, catLabel: CAT_LABELS[cat]||cat, pkg: item.name, price: item.price, descPct, motivo, monto });
@@ -3441,7 +3451,7 @@ function addAdmCartItem() {
     setTimeout(()=>msg.textContent='',2000); return;
   }
   const item = CATALOG[cat][parseInt(idx)];
-  const descRaw = cat === 'aniversario' ? '0' : (document.getElementById('adm-sale-descuento').value||'0');
+  const descRaw = CAT_SIN_DESCUENTO.includes(cat) ? '0' : (document.getElementById('adm-sale-descuento').value||'0');
   const descPct = getDescPct(descRaw);
   const descLabel = getDescLabel(descRaw);
   const motivo = descRaw === 'intro' || descRaw === 'student10' ? descLabel : document.getElementById('adm-sale-motivo').value.trim();
@@ -4173,10 +4183,10 @@ const DESC_LOCK = {'f-cat':['f-descuento','f-motivo-wrap'],'mgr-f-cat':['mgr-f-d
 document.addEventListener('change', e => {
   const cfg = DESC_LOCK[e.target?.id]; if (!cfg) return;
   const sel = document.getElementById(cfg[0]); if (!sel) return;
-  const lock = e.target.value === 'aniversario';
+  const lock = CAT_SIN_DESCUENTO.includes(e.target.value);
   if (lock) { sel.value = '0'; sel.dispatchEvent(new Event('change')); const w = document.getElementById(cfg[1]); if (w) w.style.display = 'none'; }
   sel.disabled = lock; sel.style.opacity = lock ? '0.45' : '';
-  sel.title = lock ? 'Las Promociones Aniversario no aceptan descuentos adicionales' : '';
+  sel.title = lock ? 'Esta promoción no acepta descuentos adicionales' : '';
 });
 // Auto-formato del número de orden mientras se escribe: mayúsculas, solo letras/números, guiones cada 4.
 function fmtOrdenInput(el) {
